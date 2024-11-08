@@ -1,0 +1,33 @@
+services:
+  gotrue:
+    container_name: gotrue
+    depends_on:
+      - postgres
+    image: supabase/gotrue:v2.157.0
+    restart: on-failure
+    ports:
+      - "9999:9999"
+    environment:
+      GOTRUE_JWT_SECRET: "secret"
+      GOTRUE_DB_DRIVER: "postgres"
+      NAMESPACE: "auth"
+      DATABASE_URL: "postgres://supabase_auth_admin:root@postgres:5432/postgres"
+      API_EXTERNAL_URL: "http://localhost:9999"
+      GOTRUE_API_HOST: "0.0.0.0"
+      PORT: "9999"
+      GOTRUE_SITE_URL: "http://localhost:3000"
+      GOTRUE_RATE_LIMIT_EMAIL_SENT: "1000000"
+      GOTRUE_RATE_LIMIT_VERIFY: "1000000"
+      GOTRUE_RATE_LIMIT_TOKEN_REFRESH: "1000000"
+      GOTRUE_MFA_ENABLED: "true"
+      GOTRUE_MFA_RATE_LIMIT_CHALLENGE_AND_VERIFY: "1000000"
+      GOTRUE_SMTP_MAX_FREQUENCY: "1ns"
+
+  postgres:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
