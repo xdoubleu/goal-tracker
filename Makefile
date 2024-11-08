@@ -53,4 +53,3 @@ test/cov/open:
 
 swag: tools/swagger
 	swag init --ot json --parseDependency -g cmd/api/main.go 
-	cp -R ./docs/* ./../web/docs 

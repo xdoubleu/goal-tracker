@@ -11,8 +11,9 @@ import (
 func (app *Application) routes() http.Handler {
 	mux := http.NewServeMux()
 
+	app.rootRoute(mux)
 	app.authRoutes(mux)
-	app.goalsRoutes(mux)
+	//app.goalsRoutes(mux)
 
 	var sentryClientOptions sentry.ClientOptions
 	if len(app.config.SentryDsn) > 0 {

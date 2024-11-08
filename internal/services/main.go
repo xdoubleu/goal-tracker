@@ -11,8 +11,9 @@ import (
 )
 
 type Services struct {
-	Auth  AuthService
-	Goals GoalService
+	Auth    AuthService
+	Goals   GoalService
+	Todoist TodoistService
 }
 
 func New(
@@ -24,9 +25,11 @@ func New(
 ) Services {
 	auth := AuthService{client: client}
 	goals := GoalService{goals: repositories.Goals}
+	todoist := TodoistService{}
 
 	return Services{
-		Auth:  auth,
-		Goals: goals,
+		Auth:    auth,
+		Goals:   goals,
+		Todoist: todoist,
 	}
 }
