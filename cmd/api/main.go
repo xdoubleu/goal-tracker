@@ -28,7 +28,7 @@ import (
 //go:embed migrations/*.sql
 var embedMigrations embed.FS
 
-//go:embed templates/html/*html
+//go:embed templates/html/**/*html
 var htmlTemplates embed.FS
 
 type Application struct {
@@ -73,7 +73,7 @@ func main() {
 		cfg.GotrueApiKey,
 	)
 
-	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/*.html"))
+	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
 	app := NewApp(logger, cfg, tpl, db, client)
 
 	srv := &http.Server{

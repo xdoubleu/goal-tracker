@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	httptools "github.com/XDoubleU/essentia/pkg/communication/http"
 	"github.com/XDoubleU/essentia/pkg/config"
 
 	"goal-tracker/api/internal/dtos"
@@ -20,26 +19,18 @@ func (app *Application) authRoutes(prefix string, mux *http.ServeMux) {
 	)
 }
 
-// @Summary	Sign in a user
-// @Tags		auth
-// @Param		signInDto	body		SignInDto	true	"SignInDto"
-// @Success	200			{object}	User
-// @Failure	400			{object}	ErrorDto
-// @Failure	401			{object}	ErrorDto
-// @Failure	500			{object}	ErrorDto
-// @Router		/auth/signin [post].
 func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 	var signInDto dtos.SignInDto
 
 	err := temptools.ReadForm(r, &signInDto)
 	if err != nil {
-		httptools.BadRequestResponse(w, r, err)
+		temptools.RedirectWithError(w, r, "/", err)
 		return
 	}
 
-	user, accessToken, refreshToken, err := app.services.Auth.SignInWithEmail(&signInDto)
+	accessToken, refreshToken, err := app.services.Auth.SignInWithEmail(&signInDto)
 	if err != nil {
-		httptools.HandleError(w, r, err, signInDto.ValidationErrors)
+		temptools.RedirectWithError(w, r, "/", err)
 		return
 	}
 
@@ -52,7 +43,7 @@ func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 		secure,
 	)
 	if err != nil {
-		httptools.ServerErrorResponse(w, r, err)
+		temptools.RedirectWithError(w, r, "/", err)
 		return
 	}
 
@@ -68,39 +59,31 @@ func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 			secure,
 		)
 		if err != nil {
-			httptools.ServerErrorResponse(w, r, err)
+			temptools.RedirectWithError(w, r, "/", err)
 			return
 		}
 
 		http.SetCookie(w, refreshTokenCookie)
 	}
 
-	err = httptools.WriteJSON(w, http.StatusOK, user, nil)
-	if err != nil {
-		httptools.ServerErrorResponse(w, r, err)
-	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// @Summary	Sign out a user
-// @Tags		auth
-// @Success	200	{object}	nil
-// @Failure	401	{object}	ErrorDto
-// @Router		/auth/signout [get].
 func (app *Application) signOutHandler(w http.ResponseWriter, r *http.Request) {
 	accessToken, _ := r.Cookie("accessToken")
 	refreshToken, _ := r.Cookie("refreshToken")
 
 	deleteAccessTokenCookie, deleteRefreshTokenCookie, err := app.services.Auth.SignOut(accessToken.Value)
 	if err != nil {
-		httptools.ServerErrorResponse(w, r, err)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
 	http.SetCookie(w, deleteAccessTokenCookie)
 
-	if refreshToken == nil {
-		return
+	if refreshToken != nil {
+		http.SetCookie(w, deleteRefreshTokenCookie)
 	}
 
-	http.SetCookie(w, deleteRefreshTokenCookie)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

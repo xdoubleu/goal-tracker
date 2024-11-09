@@ -1,9 +1,6 @@
 db ?= postgres://postgres@localhost/postgres
 
-tools: tools/lint tools/swagger
-	
-tools/swagger:
-	go install github.com/swaggo/swag/cmd/swag@v1.16.3
+tools: tools/lint
 
 tools/lint: tools/lint/go
 
@@ -16,15 +13,13 @@ tools/lint/go:
 lint: tools/lint
 	golangci-lint run
 
-lint/fix: tools/swagger
-	swag fmt
+lint/fix:
 	golines . -m 88 -w
 	golangci-lint run --fix
 	gci write --skip-generated -s standard -s default -s "prefix(goal-tracker/api)" .
 
 build: 
 	go build -o=./bin/api ./cmd/api
-	make swag
 
 run/api:
 	go run ./cmd/api
@@ -50,6 +45,3 @@ test/cov: test/cov/report
 
 test/cov/open:
 	open ./coverage.html
-
-swag: tools/swagger
-	swag init --ot json --parseDependency -g cmd/api/main.go 

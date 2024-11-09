@@ -18,9 +18,9 @@ type AuthService struct {
 	client gotrue.Client
 }
 
-func (service AuthService) SignInWithEmail(signInDto *dtos.SignInDto) (*models.User, *string, *string, error) {
+func (service AuthService) SignInWithEmail(signInDto *dtos.SignInDto) (*string, *string, error) {
 	if v := signInDto.Validate(); !v.Valid() {
-		return nil, nil, nil, errortools.ErrFailedValidation
+		return nil, nil, errortools.ErrFailedValidation
 	}
 
 	response, err := service.client.Token(types.TokenRequest{
@@ -29,12 +29,10 @@ func (service AuthService) SignInWithEmail(signInDto *dtos.SignInDto) (*models.U
 		Password:  signInDto.Password,
 	})
 	if err != nil {
-		return nil, nil, nil, errortools.NewUnauthorizedError(errors.New("invalid credentials"))
+		return nil, nil, errortools.NewUnauthorizedError(errors.New("invalid credentials"))
 	}
 
-	user := models.UserFromTypesUser(response.User)
-
-	return &user, &response.AccessToken, &response.RefreshToken, nil
+	return &response.AccessToken, &response.RefreshToken, nil
 }
 
 func (service AuthService) GetUser(accessToken string) (*models.User, error) {

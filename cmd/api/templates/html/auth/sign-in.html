@@ -12,6 +12,18 @@
             <input type="checkbox" class="form-check-input" name="rememberMe">
             <label class="form-check-label" for="rememberMe">Remember me</label>
         </div>
+        <div class="alert alert-danger d-none" role="alert" id="error-alert">
+            A simple danger alert—check it out!
+        </div>
         <button type="submit" class="btn btn-primary">Sign in</button>
     </form>
+    <script>
+        var error = new URLSearchParams(window.location.search).get("error")
+
+        if (error != null) {
+            var alert = document.getElementById("error-alert")
+            alert.innerHTML = error
+            alert.classList.remove("d-none")
+        }
+    </script>
 {{template "footer"}}
