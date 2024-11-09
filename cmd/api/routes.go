@@ -8,11 +8,16 @@ import (
 	"github.com/justinas/alice"
 )
 
+func (app *Application) apiRoutes(mux *http.ServeMux) {
+	apiPrefix := "/api"
+	app.authRoutes(apiPrefix, mux)
+}
+
 func (app *Application) routes() http.Handler {
 	mux := http.NewServeMux()
 
 	app.rootRoute(mux)
-	app.authRoutes(mux)
+	app.apiRoutes(mux)
 	//app.goalsRoutes(mux)
 
 	var sentryClientOptions sentry.ClientOptions

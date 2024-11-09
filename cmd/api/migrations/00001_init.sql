@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS progress (
     goal_id uuid NOT NULL REFERENCES goals ON DELETE CASCADE,
     value integer NOT NULL,
     created_at timestamp NOT NULL DEFAULT now()
-)
+);
 -- +goose StatementEnd
 
 -- +goose Down

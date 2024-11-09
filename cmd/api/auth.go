@@ -1,53 +1,23 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 
 	httptools "github.com/XDoubleU/essentia/pkg/communication/http"
 	"github.com/XDoubleU/essentia/pkg/config"
-	errortools "github.com/XDoubleU/essentia/pkg/errors"
 
 	"goal-tracker/api/internal/dtos"
 	"goal-tracker/api/internal/models"
+	"goal-tracker/api/internal/temptools"
 )
 
-func (app *Application) authRoutes(mux *http.ServeMux) {
+func (app *Application) authRoutes(prefix string, mux *http.ServeMux) {
+	mux.HandleFunc(fmt.Sprintf("POST %s/auth/signin", prefix), app.signInHandler)
 	mux.HandleFunc(
-		"GET /auth/current-user",
-		app.authAccess(app.getCurrentUserHandler),
-	)
-	mux.HandleFunc("POST /auth/signin", app.signInHandler)
-	mux.HandleFunc(
-		"GET /auth/signout",
+		fmt.Sprintf("GET %s/auth/signout", prefix),
 		app.authAccess(app.signOutHandler),
 	)
-	mux.HandleFunc(
-		"GET /auth/refresh",
-		app.refreshHandler,
-	)
-}
-
-// @Summary	Get current user
-// @Tags		auth
-// @Success	200			{object}	User
-// @Failure	400			{object}	ErrorDto
-// @Failure	401			{object}	ErrorDto
-// @Failure	500			{object}	ErrorDto
-// @Router		/auth/current-user [get].
-func (app *Application) getCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
-	accessToken, _ := r.Cookie("accessToken")
-
-	user, err := app.services.Auth.GetUser(accessToken.Value)
-	if err != nil {
-		httptools.HandleError(w, r, err, nil)
-		return
-	}
-
-	err = httptools.WriteJSON(w, http.StatusOK, user, nil)
-	if err != nil {
-		httptools.ServerErrorResponse(w, r, err)
-	}
 }
 
 // @Summary	Sign in a user
@@ -59,15 +29,15 @@ func (app *Application) getCurrentUserHandler(w http.ResponseWriter, r *http.Req
 // @Failure	500			{object}	ErrorDto
 // @Router		/auth/signin [post].
 func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
-	var signInDto *dtos.SignInDto
+	var signInDto dtos.SignInDto
 
-	err := httptools.ReadJSON(r.Body, &signInDto)
+	err := temptools.ReadForm(r, &signInDto)
 	if err != nil {
 		httptools.BadRequestResponse(w, r, err)
 		return
 	}
 
-	user, accessToken, refreshToken, err := app.services.Auth.SignInWithEmail(signInDto)
+	user, accessToken, refreshToken, err := app.services.Auth.SignInWithEmail(&signInDto)
 	if err != nil {
 		httptools.HandleError(w, r, err, signInDto.ValidationErrors)
 		return
@@ -133,56 +103,4 @@ func (app *Application) signOutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, deleteRefreshTokenCookie)
-}
-
-// @Summary	Refresh access token
-// @Tags		auth
-// @Success	200	{object}	nil
-// @Failure	401	{object}	ErrorDto
-// @Failure	500	{object}	ErrorDto
-// @Router		/auth/refresh [get].
-func (app *Application) refreshHandler(w http.ResponseWriter, r *http.Request) {
-	tokenCookie, err := r.Cookie("refreshToken")
-
-	if err != nil {
-		httptools.UnauthorizedResponse(w, r,
-			errortools.NewUnauthorizedError(errors.New("no token in cookies")))
-		return
-	}
-
-	accessToken, refreshToken, err := app.services.Auth.SignInWithRefreshToken(tokenCookie.Value)
-	if err != nil {
-		httptools.HandleError(w, r, err, nil)
-		return
-	}
-
-	secure := app.config.Env == config.ProdEnv
-	accessTokenCookie, err := app.services.Auth.CreateCookie(
-		r.Context(),
-		models.AccessScope,
-		*accessToken,
-		app.config.AccessExpiry,
-		secure,
-	)
-	if err != nil {
-		httptools.ServerErrorResponse(w, r, err)
-		return
-	}
-
-	http.SetCookie(w, accessTokenCookie)
-
-	var refreshTokenCookie *http.Cookie
-	refreshTokenCookie, err = app.services.Auth.CreateCookie(
-		r.Context(),
-		models.RefreshScope,
-		*refreshToken,
-		app.config.RefreshExpiry,
-		secure,
-	)
-	if err != nil {
-		httptools.ServerErrorResponse(w, r, err)
-		return
-	}
-
-	http.SetCookie(w, refreshTokenCookie)
 }

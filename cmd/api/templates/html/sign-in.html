@@ -1,0 +1,17 @@
+{{template "header"}}
+    <form method="POST" action="/api/auth/signin" class="col-lg-6 offset-lg-3">
+        <div class="row justify-content-center mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" name="email">
+        </div>
+        <div class="row justify-content-center mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" name="password">
+        </div>
+        <div class="row justify-content-center form-check mb-3">
+            <input type="checkbox" class="form-check-input" name="rememberMe">
+            <label class="form-check-label" for="rememberMe">Remember me</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+    </form>
+{{template "footer"}}

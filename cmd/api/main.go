@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
 	"github.com/XDoubleU/essentia/pkg/logging"
 	sentrytools "github.com/XDoubleU/essentia/pkg/sentry"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -28,6 +28,9 @@ import (
 //go:embed migrations/*.sql
 var embedMigrations embed.FS
 
+//go:embed templates/html/*html
+var htmlTemplates embed.FS
+
 type Application struct {
 	logger    *slog.Logger
 	ctx       context.Context
@@ -35,6 +38,7 @@ type Application struct {
 	db        postgres.DB
 	config    config.Config
 	services  services.Services
+	tpl       *template.Template
 }
 
 //	@title			goal-tracker API
@@ -62,9 +66,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// solves issue with prepared statements on Supabase
-	db.Config().ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
-
 	ApplyMigrations(logger, db)
 
 	client := gotrue.New(
@@ -72,7 +73,8 @@ func main() {
 		cfg.GotrueApiKey,
 	)
 
-	app := NewApp(logger, cfg, db, client)
+	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/*.html"))
+	app := NewApp(logger, cfg, tpl, db, client)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Port),
@@ -87,13 +89,14 @@ func main() {
 	}
 }
 
-func NewApp(logger *slog.Logger, cfg config.Config, db postgres.DB, client gotrue.Client) *Application {
+func NewApp(logger *slog.Logger, cfg config.Config, tpl *template.Template, db postgres.DB, client gotrue.Client) *Application {
 	logger.Info(cfg.String())
 
 	//nolint:exhaustruct //other fields are optional
 	app := &Application{
 		logger: logger,
 		config: cfg,
+		tpl:    tpl,
 	}
 
 	app.setContext()

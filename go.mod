@@ -10,6 +10,7 @@ require (
 	github.com/XDoubleU/essentia v0.1.1
 	github.com/getsentry/sentry-go v0.28.1
 	github.com/gocolly/colly v1.2.0
+	github.com/gorilla/schema v1.4.1
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/pressly/goose/v3 v3.21.1
 	github.com/supabase-community/gotrue-go v1.2.1

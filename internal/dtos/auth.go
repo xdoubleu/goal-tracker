@@ -3,10 +3,10 @@ package dtos
 import "github.com/XDoubleU/essentia/pkg/validate"
 
 type SignInDto struct {
-	Email            string            `json:"email"`
-	Password         string            `json:"password"`
-	RememberMe       bool              `json:"rememberMe"`
-	ValidationErrors map[string]string `json:"-"`
+	Email            string            `schema:"email"`
+	Password         string            `schema:"password"`
+	RememberMe       bool              `schema:"rememberMe"`
+	ValidationErrors map[string]string `schema:"-"`
 } //	@name	SignInDto
 
 func (dto *SignInDto) Validate() *validate.Validator {
