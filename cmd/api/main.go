@@ -23,6 +23,7 @@ import (
 	"goal-tracker/api/internal/config"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/internal/services"
+	"goal-tracker/api/pkg/todoist"
 )
 
 //go:embed migrations/*.sql
@@ -68,13 +69,15 @@ func main() {
 
 	ApplyMigrations(logger, db)
 
-	client := gotrue.New(
+	supabaseClient := gotrue.New(
 		cfg.GotrueProjRef,
 		cfg.GotrueApiKey,
 	)
 
+	todoistClient := todoist.NewClient(cfg.TodoistAPIKey)
+
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
-	app := NewApp(logger, cfg, tpl, db, client)
+	app := NewApp(logger, cfg, tpl, db, supabaseClient, todoistClient)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Port),
@@ -89,7 +92,7 @@ func main() {
 	}
 }
 
-func NewApp(logger *slog.Logger, cfg config.Config, tpl *template.Template, db postgres.DB, client gotrue.Client) *Application {
+func NewApp(logger *slog.Logger, cfg config.Config, tpl *template.Template, db postgres.DB, supabaseClient gotrue.Client, todoistClient todoist.Client) *Application {
 	logger.Info(cfg.String())
 
 	//nolint:exhaustruct //other fields are optional
@@ -100,12 +103,12 @@ func NewApp(logger *slog.Logger, cfg config.Config, tpl *template.Template, db p
 	}
 
 	app.setContext()
-	app.SetDB(db, client)
+	app.SetDB(db, supabaseClient, todoistClient)
 
 	return app
 }
 
-func (app *Application) SetDB(db postgres.DB, client gotrue.Client) {
+func (app *Application) SetDB(db postgres.DB, supabaseClient gotrue.Client, todoistClient todoist.Client) {
 	// make sure previous app is cancelled internally
 	app.ctxCancel()
 
@@ -119,7 +122,8 @@ func (app *Application) SetDB(db postgres.DB, client gotrue.Client) {
 		app.logger,
 		app.config,
 		repositories.New(app.db),
-		client,
+		supabaseClient,
+		todoistClient,
 	)
 }
 

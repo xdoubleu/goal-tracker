@@ -13,9 +13,10 @@ func (app *Application) rootRoute(mux *http.ServeMux) {
 }
 
 func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
-	//TODO: if user has no todoist coupled, ask them to sign in
-	//TODO: if user has no steam coupled ask them to sign in
-	//TODO: if user has no goodreads coupled, ask them for their goodreads UR
+	tasks, err := app.services.Todoist.GetTasksFromProjectGroupedBySection(app.config.TodoistProjectID)
+	if err != nil {
+		panic(err)
+	}
 
-	tplhelper.RenderWithPanic(app.tpl, w, "root.html", nil)
+	tplhelper.RenderWithPanic(app.tpl, w, "root.html", tasks)
 }

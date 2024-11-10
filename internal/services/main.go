@@ -6,6 +6,7 @@ import (
 
 	"goal-tracker/api/internal/config"
 	"goal-tracker/api/internal/repositories"
+	"goal-tracker/api/pkg/todoist"
 
 	"github.com/supabase-community/gotrue-go"
 )
@@ -21,11 +22,12 @@ func New(
 	logger *slog.Logger,
 	config config.Config,
 	repositories repositories.Repositories,
-	client gotrue.Client,
+	supabaseClient gotrue.Client,
+	todoistClient todoist.Client,
 ) Services {
-	auth := AuthService{client: client}
+	auth := AuthService{client: supabaseClient}
 	goals := GoalService{goals: repositories.Goals}
-	todoist := TodoistService{}
+	todoist := TodoistService{client: todoistClient}
 
 	return Services{
 		Auth:    auth,

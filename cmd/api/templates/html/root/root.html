@@ -1,5 +1,18 @@
 {{template "header"}}
-    <a href="/api/auth/signout">Sign out</a>
-    <p>You're signed in</p>
+{{template "navbar"}}
+    <br/>
+    <br/>
+    
+    {{range $pair := .}}
+        <h2>{{$pair.SectionName}}</h2>
+        <ul>
+            {{range $task := $pair.Tasks}}
+                <li>{{$task.Content}}</li>
+            {{end}}
+        </ul>
+        <br/>
+        <br/>
+
+    {{end}}
 
 {{template "footer"}}

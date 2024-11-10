@@ -8,18 +8,22 @@ import (
 )
 
 type Config struct {
-	Env           string
-	Port          int
-	Throttle      bool
-	WebURL        string
-	SentryDsn     string
-	SampleRate    float64
-	AccessExpiry  string
-	RefreshExpiry string
-	DBDsn         string
-	Release       string
-	GotrueProjRef string
-	GotrueApiKey  string
+	Env              string
+	Port             int
+	Throttle         bool
+	WebURL           string
+	SentryDsn        string
+	SampleRate       float64
+	AccessExpiry     string
+	RefreshExpiry    string
+	DBDsn            string
+	Release          string
+	GotrueProjRef    string
+	GotrueApiKey     string
+	TodoistAPIKey    string
+	TodoistProjectID string
+	SteamAPIKey      string
+	GoodreadsURL     string
 }
 
 func New() Config {
@@ -37,6 +41,10 @@ func New() Config {
 	cfg.Release = config.EnvStr("RELEASE", config.DevEnv)
 	cfg.GotrueProjRef = config.EnvStr("GOTRUE_PROJ_REF", "")
 	cfg.GotrueApiKey = config.EnvStr("GOTRUE_API_KEY", "")
+	cfg.TodoistAPIKey = config.EnvStr("TODOIST_API_KEY", "")
+	cfg.TodoistProjectID = config.EnvStr("TODOIST_PROJECT_ID", "")
+	cfg.SteamAPIKey = config.EnvStr("STEAM_API_KEY", "")
+	cfg.GoodreadsURL = config.EnvStr("GOODREADS_URL", "")
 
 	return cfg
 }
