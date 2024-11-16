@@ -21,6 +21,7 @@ func (app *Application) authTemplateAccess(next http.HandlerFunc) http.HandlerFu
 			return
 		}
 
+		r = r.WithContext(app.contextSetUser(r.Context(), *user))
 		next(w, r)
 	})
 }

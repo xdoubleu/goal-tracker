@@ -6,13 +6,10 @@ CREATE TABLE IF NOT EXISTS goals (
     id uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id uuid NOT NULL,
     name varchar(255) NOT NULL,
-    description text,
-    date timestamp,
-    value integer,
+    target_value integer,
     source_id integer NOT NULL,
     type_id integer NOT NULL,
-    score integer NOT NULL CHECK (score > 0),
-    state_id integer NOT NULL
+    state varchar(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS progress (
@@ -26,4 +23,5 @@ CREATE TABLE IF NOT EXISTS progress (
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS goals;
+DROP TABLE IF EXISTS progress;
 -- +goose StatementEnd

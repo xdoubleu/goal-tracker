@@ -16,7 +16,7 @@ func (app *Application) apiRoutes(mux *http.ServeMux) {
 func (app *Application) routes() http.Handler {
 	mux := http.NewServeMux()
 
-	app.rootRoute(mux)
+	app.templateRoutes(mux)
 	app.apiRoutes(mux)
 	//app.goalsRoutes(mux)
 

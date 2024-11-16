@@ -4,10 +4,14 @@
     <br/>
     
     {{range $pair := .}}
-        <h2>{{$pair.SectionName}}</h2>
+        <h2>{{$pair.State}}</h2>
         <ul>
-            {{range $task := $pair.Tasks}}
-                <li>{{$task.Content}}</li>
+            {{range $goal := $pair.Goals}}
+                {{if $goal.IsLinked}}
+                    <li>{{$goal.Name}} (<a href="/edit/{{$goal.ID}}">edit</a>) (<a href="/unlink/{{$goal.ID}}">unlink</a>)</li>
+                {{else}}
+                    <li>{{$goal.Name}} (<a href="/link/{{$goal.ID}}">link</a>)</li>
+                {{end}}
             {{end}}
         </ul>
         <br/>

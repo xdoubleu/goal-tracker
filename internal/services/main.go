@@ -26,8 +26,8 @@ func New(
 	todoistClient todoist.Client,
 ) Services {
 	auth := AuthService{client: supabaseClient}
-	goals := GoalService{goals: repositories.Goals}
-	todoist := TodoistService{client: todoistClient}
+	todoist := TodoistService{client: todoistClient, projectID: config.TodoistProjectID}
+	goals := GoalService{goals: repositories.Goals, todoist: todoist}
 
 	return Services{
 		Auth:    auth,

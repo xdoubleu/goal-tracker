@@ -2,36 +2,25 @@ package repositories
 
 import (
 	"context"
-	"goal-tracker/api/internal/dtos"
 	"goal-tracker/api/internal/models"
 	"time"
 
 	"github.com/XDoubleU/essentia/pkg/database"
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
-	"github.com/jackc/pgx/v5"
 )
 
 type GoalRepository struct {
 	db postgres.DB
 }
 
-func (repo GoalRepository) GetPage(ctx context.Context, userID string, pageSize int, getAfterID *string) ([]*models.Goal, error) {
+func (repo GoalRepository) GetAll(ctx context.Context, userID string) ([]*models.Goal, error) {
 	query := `
-		SELECT id, name, description, date, value, source_id, type_id, score, state_id
+		SELECT id, name, target_value, source_id, type_id, state
 		FROM goals
 		WHERE user_id = $1
 	`
 
-	var rows pgx.Rows
-	var err error
-	if getAfterID != nil {
-		query += " AND id > $2 ORDER BY score DESC LIMIT $3"
-		rows, err = repo.db.Query(ctx, query, userID, getAfterID, pageSize)
-	} else {
-		query += " ORDER BY score DESC LIMIT $2"
-		rows, err = repo.db.Query(ctx, query, userID, pageSize)
-	}
-
+	rows, err := repo.db.Query(ctx, query, userID)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -45,13 +34,10 @@ func (repo GoalRepository) GetPage(ctx context.Context, userID string, pageSize 
 		err = rows.Scan(
 			&goal.ID,
 			&goal.Name,
-			&goal.Description,
-			&goal.Date,
-			&goal.Value,
+			&goal.TargetValue,
 			&goal.SourceID,
 			&goal.TypeID,
-			&goal.Score,
-			&goal.StateID,
+			&goal.State,
 		)
 		if err != nil {
 			return nil, postgres.PgxErrorToHTTPError(err)
@@ -69,7 +55,7 @@ func (repo GoalRepository) GetPage(ctx context.Context, userID string, pageSize 
 
 func (repo GoalRepository) GetByID(ctx context.Context, id string, userID string) (*models.Goal, error) {
 	query := `
-		SELECT name, description, date, value, source_id, type_id, score, state_id
+		SELECT name, target_value, source_id, type_id, state
 		FROM goals
 		WHERE goals.id = $1 AND user_id = $2
 	`
@@ -84,13 +70,10 @@ func (repo GoalRepository) GetByID(ctx context.Context, id string, userID string
 		query,
 		id, userID).Scan(
 		&goal.Name,
-		&goal.Description,
-		&goal.Date,
-		&goal.Value,
+		&goal.TargetValue,
 		&goal.SourceID,
 		&goal.TypeID,
-		&goal.Score,
-		&goal.StateID,
+		&goal.State,
 	)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
@@ -105,14 +88,14 @@ func (repo GoalRepository) Create(
 	name string,
 	description *string,
 	date *time.Time,
-	value *int64,
+	targetValue *int64,
 	sourceID *int64,
 	typeID *int64,
 	score int64,
-	stateID int64,
+	state string,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (user_id, name, description, date, value, source_id, type_id, score, state_id)
+		INSERT INTO goals (user_id, name, target_value, source_id, type_id, state)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id
 	`
@@ -121,13 +104,10 @@ func (repo GoalRepository) Create(
 	goal := models.Goal{
 		UserID:      userID,
 		Name:        name,
-		Description: description,
-		Date:        date,
-		Value:       value,
+		TargetValue: targetValue,
 		SourceID:    sourceID,
 		TypeID:      typeID,
-		Score:       score,
-		StateID:     stateID,
+		State:       state,
 	}
 
 	err := repo.db.QueryRow(
@@ -137,7 +117,7 @@ func (repo GoalRepository) Create(
 		name,
 		description,
 		score,
-		stateID,
+		state,
 	).Scan(&goal.ID)
 
 	if err != nil {
@@ -147,6 +127,7 @@ func (repo GoalRepository) Create(
 	return &goal, nil
 }
 
+/*
 func (repo GoalRepository) Update(
 	ctx context.Context,
 	goal models.Goal,
@@ -216,6 +197,7 @@ func (repo GoalRepository) Update(
 
 	return &goal, nil
 }
+*/
 
 func (repo GoalRepository) Delete(
 	ctx context.Context,

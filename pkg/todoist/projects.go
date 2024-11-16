@@ -1,6 +1,7 @@
 package todoist
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -21,9 +22,9 @@ type Project struct {
 	Url            string `json:"url"`
 }
 
-func (client Client) GetAllProjects() (*[]Project, error) {
+func (client Client) GetAllProjects(ctx context.Context) (*[]Project, error) {
 	var projects *[]Project
-	err := client.sendRequest(http.MethodGet, PROJECTS_ENDPOINT, "", &projects)
+	err := client.sendRequest(ctx, http.MethodGet, PROJECTS_ENDPOINT, "", &projects)
 	if err != nil {
 		return nil, err
 	}

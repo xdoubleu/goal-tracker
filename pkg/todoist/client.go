@@ -1,6 +1,7 @@
 package todoist
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -20,7 +21,7 @@ func NewClient(apiToken string) Client {
 	}
 }
 
-func (client Client) sendRequest(method string, endpoint string, query string, dst any) error {
+func (client Client) sendRequest(ctx context.Context, method string, endpoint string, query string, dst any) error {
 	u, err := url.Parse(fmt.Sprintf("%s/%s", BASE_URL_REST_API, endpoint))
 	if err != nil {
 		return err
@@ -28,7 +29,7 @@ func (client Client) sendRequest(method string, endpoint string, query string, d
 
 	u.RawQuery = query
 
-	req, err := http.NewRequest(method, u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), nil)
 	if err != nil {
 		return err
 	}

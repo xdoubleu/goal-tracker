@@ -1,6 +1,7 @@
 package todoist
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -41,11 +42,11 @@ type Duration struct {
 	Unit   string `json:"unit"`
 }
 
-func (client Client) GetActiveTasks(projectId string) (*[]Task, error) {
+func (client Client) GetActiveTasks(ctx context.Context, projectId string) (*[]Task, error) {
 	query := fmt.Sprintf("project_id=%s", projectId)
 
 	var tasks *[]Task
-	err := client.sendRequest(http.MethodGet, TASKS_ENDPOINT, query, &tasks)
+	err := client.sendRequest(ctx, http.MethodGet, TASKS_ENDPOINT, query, &tasks)
 	if err != nil {
 		return nil, err
 	}

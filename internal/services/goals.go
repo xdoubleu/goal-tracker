@@ -12,10 +12,50 @@ import (
 type GoalService struct {
 	goals    repositories.GoalRepository
 	progress repositories.ProgressRepository
+	todoist  TodoistService
 }
 
-func (service GoalService) GetPage(ctx context.Context, user models.User, pageSize int, getAfterID *string) ([]*models.Goal, error) {
-	return service.goals.GetPage(ctx, user.ID, pageSize, getAfterID)
+type StateGoalsPair struct {
+	State string
+	Goals []models.Goal
+}
+
+func (service GoalService) GetAllGroupedByState(ctx context.Context, userID string) ([]StateGoalsPair, error) {
+	sections, sectionsIdNameMap, err := service.todoist.GetSections(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tasks, err := service.todoist.GetTasks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	configuredGoals, err := service.goals.GetAll(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	goalsMap := map[string][]models.Goal{}
+	for _, configuredGoal := range configuredGoals {
+		goalsMap[configuredGoal.State] = append(goalsMap[configuredGoal.State], *configuredGoal)
+	}
+
+	for _, task := range *tasks {
+		goal := models.NewGoalFromTask(task, userID, sectionsIdNameMap[task.SectionId])
+		goalsMap[goal.State] = append(goalsMap[goal.State], goal)
+	}
+
+	result := []StateGoalsPair{}
+	for _, section := range *sections {
+		pair := StateGoalsPair{
+			State: section.Name,
+			Goals: goalsMap[section.Name],
+		}
+		result = append(result, pair)
+	}
+
+	return result, nil
 }
 
 func (service GoalService) GetByID(ctx context.Context, id string, user models.User) (*models.Goal, error) {
@@ -31,7 +71,8 @@ func (service GoalService) Create(
 		return nil, errors.ErrFailedValidation
 	}
 
-	return service.goals.Create(ctx, user.ID, createGoalDto.Name, createGoalDto.Description, createGoalDto.Date, createGoalDto.Value, createGoalDto.SourceID, createGoalDto.TypeID, createGoalDto.Score, createGoalDto.StateID)
+	return nil, nil
+	//return service.goals.Create(ctx, user.ID, createGoalDto.Name, createGoalDto.Description, createGoalDto.Date, createGoalDto.Value, createGoalDto.SourceID, createGoalDto.TypeID, createGoalDto.Score, createGoalDto.StateID)
 }
 
 func (service GoalService) Update(
@@ -44,17 +85,20 @@ func (service GoalService) Update(
 		return nil, errors.ErrFailedValidation
 	}
 
-	goal, err := service.GetByID(ctx, id, user)
-	if err != nil {
-		return nil, err
-	}
+	return nil, nil
 
-	_, err = service.progress.Create(ctx, id, *updateGoalDto.Value)
-	if err != nil {
-		return nil, err
-	}
+	/*
+		goal, err := service.GetByID(ctx, id, user)
+		if err != nil {
+			return nil, err
+		}
 
-	return service.goals.Update(ctx, *goal, updateGoalDto)
+		_, err = service.progress.Create(ctx, id, *updateGoalDto.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		return service.goals.Update(ctx, *goal, updateGoalDto)*/
 }
 
 func (service GoalService) Delete(

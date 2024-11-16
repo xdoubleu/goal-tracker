@@ -1,6 +1,7 @@
 package todoist
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -14,11 +15,11 @@ type Section struct {
 	Name      string `json:"name"`
 }
 
-func (client Client) GetAllSections(projectId string) (*[]Section, error) {
+func (client Client) GetAllSections(ctx context.Context, projectId string) (*[]Section, error) {
 	query := fmt.Sprintf("project_id=%s", projectId)
 
 	var sections *[]Section
-	err := client.sendRequest(http.MethodGet, SECTIONS_ENDPOINT, query, &sections)
+	err := client.sendRequest(ctx, http.MethodGet, SECTIONS_ENDPOINT, query, &sections)
 	if err != nil {
 		return nil, err
 	}
