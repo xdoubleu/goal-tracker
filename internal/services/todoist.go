@@ -25,10 +25,9 @@ func (service TodoistService) GetSections(ctx context.Context) (*[]todoist.Secti
 }
 
 func (service TodoistService) GetTasks(ctx context.Context) (*[]todoist.Task, error) {
-	tasks, err := service.client.GetActiveTasks(ctx, service.projectID)
-	if err != nil {
-		return nil, err
-	}
+	return service.client.GetActiveTasks(ctx, service.projectID)
+}
 
-	return tasks, nil
+func (service TodoistService) GetTaskByID(ctx context.Context, id string) (*todoist.Task, error) {
+	return service.client.GetActiveTask(ctx, id)
 }

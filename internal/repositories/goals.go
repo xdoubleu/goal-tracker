@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 	"goal-tracker/api/internal/models"
-	"time"
 
 	"github.com/XDoubleU/essentia/pkg/database"
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
@@ -15,7 +14,7 @@ type GoalRepository struct {
 
 func (repo GoalRepository) GetAll(ctx context.Context, userID string) ([]*models.Goal, error) {
 	query := `
-		SELECT id, name, target_value, source_id, type_id, state
+		SELECT id, name, is_linked, target_value, type_id, state
 		FROM goals
 		WHERE user_id = $1
 	`
@@ -34,8 +33,8 @@ func (repo GoalRepository) GetAll(ctx context.Context, userID string) ([]*models
 		err = rows.Scan(
 			&goal.ID,
 			&goal.Name,
+			&goal.IsLinked,
 			&goal.TargetValue,
-			&goal.SourceID,
 			&goal.TypeID,
 			&goal.State,
 		)
@@ -71,7 +70,6 @@ func (repo GoalRepository) GetByID(ctx context.Context, id string, userID string
 		id, userID).Scan(
 		&goal.Name,
 		&goal.TargetValue,
-		&goal.SourceID,
 		&goal.TypeID,
 		&goal.State,
 	)
@@ -84,39 +82,40 @@ func (repo GoalRepository) GetByID(ctx context.Context, id string, userID string
 
 func (repo GoalRepository) Create(
 	ctx context.Context,
+	id string,
 	userID string,
 	name string,
-	description *string,
-	date *time.Time,
-	targetValue *int64,
-	sourceID *int64,
-	typeID *int64,
-	score int64,
+	isLinked bool,
+	targetValue int64,
+	typeID int64,
 	state string,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (user_id, name, target_value, source_id, type_id, state)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO goals (id, user_id, name, is_linked, target_value, type_id, state)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id
 	`
 
 	//nolint:exhaustruct //other fields are optional
 	goal := models.Goal{
+		ID:          id,
 		UserID:      userID,
 		Name:        name,
-		TargetValue: targetValue,
-		SourceID:    sourceID,
-		TypeID:      typeID,
+		IsLinked:    isLinked,
+		TargetValue: &targetValue,
+		TypeID:      &typeID,
 		State:       state,
 	}
 
 	err := repo.db.QueryRow(
 		ctx,
 		query,
+		id,
 		userID,
 		name,
-		description,
-		score,
+		isLinked,
+		targetValue,
+		typeID,
 		state,
 	).Scan(&goal.ID)
 

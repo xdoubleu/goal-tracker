@@ -32,12 +32,16 @@ var embedMigrations embed.FS
 //go:embed templates/html/**/*html
 var htmlTemplates embed.FS
 
+//go:embed images/**
+var images embed.FS
+
 type Application struct {
 	logger    *slog.Logger
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 	db        postgres.DB
 	config    config.Config
+	images    embed.FS
 	services  services.Services
 	tpl       *template.Template
 }
@@ -77,7 +81,7 @@ func main() {
 	todoistClient := todoist.NewClient(cfg.TodoistAPIKey)
 
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
-	app := NewApp(logger, cfg, tpl, db, supabaseClient, todoistClient)
+	app := NewApp(logger, cfg, images, tpl, db, supabaseClient, todoistClient)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Port),
@@ -92,13 +96,14 @@ func main() {
 	}
 }
 
-func NewApp(logger *slog.Logger, cfg config.Config, tpl *template.Template, db postgres.DB, supabaseClient gotrue.Client, todoistClient todoist.Client) *Application {
+func NewApp(logger *slog.Logger, cfg config.Config, images embed.FS, tpl *template.Template, db postgres.DB, supabaseClient gotrue.Client, todoistClient todoist.Client) *Application {
 	logger.Info(cfg.String())
 
 	//nolint:exhaustruct //other fields are optional
 	app := &Application{
 		logger: logger,
 		config: cfg,
+		images: images,
 		tpl:    tpl,
 	}
 

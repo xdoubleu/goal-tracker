@@ -53,3 +53,15 @@ func (client Client) GetActiveTasks(ctx context.Context, projectId string) (*[]T
 
 	return tasks, nil
 }
+
+func (client Client) GetActiveTask(ctx context.Context, taskId string) (*Task, error) {
+	endpoint := fmt.Sprintf("%s/%s", TASKS_ENDPOINT, taskId)
+
+	var task *Task
+	err := client.sendRequest(ctx, http.MethodGet, endpoint, "", &task)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
+}

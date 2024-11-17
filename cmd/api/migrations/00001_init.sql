@@ -3,18 +3,18 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- noqa: L057
 
 CREATE TABLE IF NOT EXISTS goals (
-    id uuid NOT NULL PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id varchar(255) NOT NULL PRIMARY KEY,
     user_id uuid NOT NULL,
     name varchar(255) NOT NULL,
+    is_linked boolean NOT NULL, 
     target_value integer,
-    source_id integer NOT NULL,
-    type_id integer NOT NULL,
+    type_id integer,
     state varchar(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS progress (
     id serial4 PRIMARY KEY,
-    goal_id uuid NOT NULL REFERENCES goals ON DELETE CASCADE,
+    goal_id varchar(255) NOT NULL REFERENCES goals ON DELETE CASCADE,
     value integer NOT NULL,
     created_at timestamp NOT NULL DEFAULT now()
 );

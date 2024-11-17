@@ -62,59 +62,26 @@ func (service GoalService) GetByID(ctx context.Context, id string, user models.U
 	return service.goals.GetByID(ctx, id, user.ID)
 }
 
-func (service GoalService) Create(
+func (service GoalService) Link(
 	ctx context.Context,
-	user models.User,
-	createGoalDto *dtos.CreateGoalDto,
-) (*models.Goal, error) {
-	if v := createGoalDto.Validate(); !v.Valid() {
-		return nil, errors.ErrFailedValidation
-	}
-
-	return nil, nil
-	//return service.goals.Create(ctx, user.ID, createGoalDto.Name, createGoalDto.Description, createGoalDto.Date, createGoalDto.Value, createGoalDto.SourceID, createGoalDto.TypeID, createGoalDto.Score, createGoalDto.StateID)
-}
-
-func (service GoalService) Update(
-	ctx context.Context,
-	user models.User,
 	id string,
-	updateGoalDto *dtos.UpdateGoalDto,
-) (*models.Goal, error) {
-	if v := updateGoalDto.Validate(); !v.Valid() {
-		return nil, errors.ErrFailedValidation
-	}
-
-	return nil, nil
-
-	/*
-		goal, err := service.GetByID(ctx, id, user)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = service.progress.Create(ctx, id, *updateGoalDto.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		return service.goals.Update(ctx, *goal, updateGoalDto)*/
-}
-
-func (service GoalService) Delete(
-	ctx context.Context,
 	user models.User,
-	id string,
-) (*models.Goal, error) {
-	goal, err := service.GetByID(ctx, id, user)
-	if err != nil {
-		return nil, err
+	linkGoalDto *dtos.LinkGoalDto,
+) error {
+	if v := linkGoalDto.Validate(); !v.Valid() {
+		return errors.ErrFailedValidation
 	}
 
-	err = service.goals.Delete(ctx, goal)
+	_, sectionsMap, err := service.todoist.GetSections(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return goal, nil
+	task, err := service.todoist.GetTaskByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = service.goals.Create(ctx, id, user.ID, task.Content, true, linkGoalDto.TargetValue, linkGoalDto.TypeID, sectionsMap[task.SectionId])
+	return err
 }

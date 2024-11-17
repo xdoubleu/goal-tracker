@@ -11,6 +11,7 @@ import (
 func (app *Application) apiRoutes(mux *http.ServeMux) {
 	apiPrefix := "/api"
 	app.authRoutes(apiPrefix, mux)
+	app.goalsRoutes(apiPrefix, mux)
 }
 
 func (app *Application) routes() http.Handler {
@@ -18,7 +19,6 @@ func (app *Application) routes() http.Handler {
 
 	app.templateRoutes(mux)
 	app.apiRoutes(mux)
-	//app.goalsRoutes(mux)
 
 	var sentryClientOptions sentry.ClientOptions
 	if len(app.config.SentryDsn) > 0 {
