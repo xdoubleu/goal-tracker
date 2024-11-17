@@ -3,12 +3,8 @@
     {{range $pair := .}}
         <h2>{{$pair.State}}</h2>
         <ul>
-            {{range $goal := $pair.Goals}}
-                {{if $goal.IsLinked}}
-                    <li><a href="/{{$goal.ID}}">{{$goal.Name}}</a> (<a href="/edit/{{$goal.ID}}">edit</a>) (<a href="/unlink/{{$goal.ID}}">unlink</a>)</li>
-                {{else}}
-                    <li>{{$goal.Name}} (<a href="/link/{{$goal.ID}}">link</a>)</li>
-                {{end}}
+            {{range $goalWithSubGoals := $pair.Goals}}
+                {{template "goalWithSubGoals" $goalWithSubGoals}}
             {{end}}
         </ul>
         <br/>

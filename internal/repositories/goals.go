@@ -83,6 +83,7 @@ func (repo GoalRepository) GetByID(ctx context.Context, id string, userID string
 func (repo GoalRepository) Create(
 	ctx context.Context,
 	id string,
+	parentId *string,
 	userID string,
 	name string,
 	isLinked bool,
@@ -91,14 +92,15 @@ func (repo GoalRepository) Create(
 	state string,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (id, user_id, name, is_linked, target_value, type_id, state)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO goals (id, parent_id, user_id, name, is_linked, target_value, type_id, state)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id
 	`
 
 	//nolint:exhaustruct //other fields are optional
 	goal := models.Goal{
 		ID:          id,
+		ParentID:    parentId,
 		UserID:      userID,
 		Name:        name,
 		IsLinked:    isLinked,
@@ -111,6 +113,7 @@ func (repo GoalRepository) Create(
 		ctx,
 		query,
 		id,
+		parentId,
 		userID,
 		name,
 		isLinked,

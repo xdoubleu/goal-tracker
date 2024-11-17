@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"goal-tracker/api/internal/dtos"
+	"goal-tracker/api/internal/helper"
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/repositories"
 
@@ -17,10 +18,10 @@ type GoalService struct {
 
 type StateGoalsPair struct {
 	State string
-	Goals []models.Goal
+	Goals []helper.GoalWithSubGoals
 }
 
-func (service GoalService) GetAllGroupedByState(ctx context.Context, userID string) ([]StateGoalsPair, error) {
+func (service GoalService) GetAllGroupedByStateAndParentGoal(ctx context.Context, userID string) ([]StateGoalsPair, error) {
 	sections, sectionsIdNameMap, err := service.todoist.GetSections(ctx)
 	if err != nil {
 		return nil, err
@@ -31,19 +32,26 @@ func (service GoalService) GetAllGroupedByState(ctx context.Context, userID stri
 		return nil, err
 	}
 
-	configuredGoals, err := service.goals.GetAll(ctx, userID)
+	goals, err := service.goals.GetAll(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	goalsMap := map[string][]models.Goal{}
-	for _, configuredGoal := range configuredGoals {
-		goalsMap[configuredGoal.State] = append(goalsMap[configuredGoal.State], *configuredGoal)
-	}
-
 	for _, task := range *tasks {
 		goal := models.NewGoalFromTask(task, userID, sectionsIdNameMap[task.SectionId])
-		goalsMap[goal.State] = append(goalsMap[goal.State], goal)
+		goals = append(goals, &goal)
+	}
+
+	goalTree := helper.NewGoalTree()
+	for _, goal := range goals {
+		if !goalTree.TryAdd(*goal) {
+			return nil, err
+		}
+	}
+
+	goalsMap := map[string][]helper.GoalWithSubGoals{}
+	for _, goal := range goalTree.ToSlice() {
+		goalsMap[goal.Goal.State] = append(goalsMap[goal.Goal.State], goal)
 	}
 
 	result := []StateGoalsPair{}
@@ -82,6 +90,6 @@ func (service GoalService) Link(
 		return err
 	}
 
-	_, err = service.goals.Create(ctx, id, user.ID, task.Content, true, linkGoalDto.TargetValue, linkGoalDto.TypeID, sectionsMap[task.SectionId])
+	_, err = service.goals.Create(ctx, id, task.ParentId, user.ID, task.Content, true, linkGoalDto.TargetValue, linkGoalDto.TypeID, sectionsMap[task.SectionId])
 	return err
 }

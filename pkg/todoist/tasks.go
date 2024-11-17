@@ -16,7 +16,7 @@ type Task struct {
 	Description  string   `json:"description"`
 	IsCompleted  bool     `json:"is_completed"`
 	Labels       []string `json:"labels"`
-	ParentId     string   `json:"parent_id"`
+	ParentId     *string  `json:"parent_id"`
 	Order        int      `json:"order"`
 	Priority     int      `json:"priority"`
 	Due          Due      `json:"due"`
