@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"goal-tracker/api/internal/constants"
-	"goal-tracker/api/internal/models"
 
 	"github.com/getsentry/sentry-go"
+
+	"goal-tracker/api/internal/constants"
+	"goal-tracker/api/internal/models"
 )
 
 func (app *Application) contextSetUser(

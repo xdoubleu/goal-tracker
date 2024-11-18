@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/schema"
 )
 
+//nolint:gochecknoglobals //ok
 var decoder = schema.NewDecoder()
 
 func ReadForm(r *http.Request, dst any) error {
@@ -24,5 +25,10 @@ func ReadForm(r *http.Request, dst any) error {
 }
 
 func RedirectWithError(w http.ResponseWriter, r *http.Request, url string, err error) {
-	http.Redirect(w, r, fmt.Sprintf("%s?error=%s", url, err.Error()), http.StatusSeeOther)
+	http.Redirect(
+		w,
+		r,
+		fmt.Sprintf("%s?error=%s", url, err.Error()),
+		http.StatusSeeOther,
+	)
 }

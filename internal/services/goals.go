@@ -2,12 +2,13 @@ package services
 
 import (
 	"context"
+
+	"github.com/XDoubleU/essentia/pkg/errors"
+
 	"goal-tracker/api/internal/dtos"
 	"goal-tracker/api/internal/helper"
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/repositories"
-
-	"github.com/XDoubleU/essentia/pkg/errors"
 )
 
 type GoalService struct {
@@ -21,8 +22,11 @@ type StateGoalsPair struct {
 	Goals []helper.GoalWithSubGoals
 }
 
-func (service GoalService) GetAllGroupedByStateAndParentGoal(ctx context.Context, userID string) ([]StateGoalsPair, error) {
-	sections, sectionsIdNameMap, err := service.todoist.GetSections(ctx)
+func (service GoalService) GetAllGroupedByStateAndParentGoal(
+	ctx context.Context,
+	userID string,
+) ([]StateGoalsPair, error) {
+	sections, sectionsIDNameMap, err := service.todoist.GetSections(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -37,14 +41,14 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(ctx context.Context
 		return nil, err
 	}
 
-	for _, task := range *tasks {
-		goal := models.NewGoalFromTask(task, userID, sectionsIdNameMap[task.SectionId])
-		goals = append(goals, &goal)
+	for _, task := range tasks {
+		goal := models.NewGoalFromTask(task, userID, sectionsIDNameMap[task.SectionID])
+		goals = append(goals, goal)
 	}
 
 	goalTree := helper.NewGoalTree()
 	for _, goal := range goals {
-		if !goalTree.TryAdd(*goal) {
+		if !goalTree.TryAdd(goal) {
 			return nil, err
 		}
 	}
@@ -55,7 +59,7 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(ctx context.Context
 	}
 
 	result := []StateGoalsPair{}
-	for _, section := range *sections {
+	for _, section := range sections {
 		pair := StateGoalsPair{
 			State: section.Name,
 			Goals: goalsMap[section.Name],
@@ -66,7 +70,11 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(ctx context.Context
 	return result, nil
 }
 
-func (service GoalService) GetByID(ctx context.Context, id string, user models.User) (*models.Goal, error) {
+func (service GoalService) GetByID(
+	ctx context.Context,
+	id string,
+	user models.User,
+) (*models.Goal, error) {
 	return service.goals.GetByID(ctx, id, user.ID)
 }
 
@@ -90,6 +98,16 @@ func (service GoalService) Link(
 		return err
 	}
 
-	_, err = service.goals.Create(ctx, id, task.ParentId, user.ID, task.Content, true, linkGoalDto.TargetValue, linkGoalDto.TypeID, sectionsMap[task.SectionId])
+	_, err = service.goals.Create(
+		ctx,
+		id,
+		task.ParentID,
+		user.ID,
+		task.Content,
+		true,
+		linkGoalDto.TargetValue,
+		linkGoalDto.TypeID,
+		sectionsMap[task.SectionID],
+	)
 	return err
 }

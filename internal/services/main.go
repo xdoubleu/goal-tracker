@@ -1,14 +1,11 @@
 package services
 
 import (
-	"context"
-	"log/slog"
+	"github.com/supabase-community/gotrue-go"
 
 	"goal-tracker/api/internal/config"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/pkg/todoist"
-
-	"github.com/supabase-community/gotrue-go"
 )
 
 type Services struct {
@@ -18,8 +15,6 @@ type Services struct {
 }
 
 func New(
-	ctx context.Context,
-	logger *slog.Logger,
 	config config.Config,
 	repositories repositories.Repositories,
 	supabaseClient gotrue.Client,
@@ -27,7 +22,11 @@ func New(
 ) Services {
 	auth := AuthService{client: supabaseClient}
 	todoist := TodoistService{client: todoistClient, projectID: config.TodoistProjectID}
-	goals := GoalService{goals: repositories.Goals, todoist: todoist}
+	goals := GoalService{
+		goals:    repositories.Goals,
+		progress: repositories.Progress,
+		todoist:  todoist,
+	}
 
 	return Services{
 		Auth:    auth,

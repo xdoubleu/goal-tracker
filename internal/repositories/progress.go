@@ -2,9 +2,10 @@ package repositories
 
 import (
 	"context"
-	"goal-tracker/api/internal/models"
 
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
+
+	"goal-tracker/api/internal/models"
 )
 
 type ProgressRepository struct {

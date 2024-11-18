@@ -75,7 +75,7 @@ func main() {
 
 	supabaseClient := gotrue.New(
 		cfg.GotrueProjRef,
-		cfg.GotrueApiKey,
+		cfg.GotrueAPIKey,
 	)
 
 	todoistClient := todoist.NewClient(cfg.TodoistAPIKey)
@@ -96,7 +96,15 @@ func main() {
 	}
 }
 
-func NewApp(logger *slog.Logger, cfg config.Config, images embed.FS, tpl *template.Template, db postgres.DB, supabaseClient gotrue.Client, todoistClient todoist.Client) *Application {
+func NewApp(
+	logger *slog.Logger,
+	cfg config.Config,
+	images embed.FS,
+	tpl *template.Template,
+	db postgres.DB,
+	supabaseClient gotrue.Client,
+	todoistClient todoist.Client,
+) *Application {
 	logger.Info(cfg.String())
 
 	//nolint:exhaustruct //other fields are optional
@@ -113,7 +121,11 @@ func NewApp(logger *slog.Logger, cfg config.Config, images embed.FS, tpl *templa
 	return app
 }
 
-func (app *Application) SetDB(db postgres.DB, supabaseClient gotrue.Client, todoistClient todoist.Client) {
+func (app *Application) SetDB(
+	db postgres.DB,
+	supabaseClient gotrue.Client,
+	todoistClient todoist.Client,
+) {
 	// make sure previous app is cancelled internally
 	app.ctxCancel()
 
@@ -123,8 +135,6 @@ func (app *Application) SetDB(db postgres.DB, supabaseClient gotrue.Client, todo
 
 	app.db = spandb
 	app.services = services.New(
-		app.ctx,
-		app.logger,
 		app.config,
 		repositories.New(app.db),
 		supabaseClient,

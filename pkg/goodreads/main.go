@@ -7,42 +7,47 @@ import (
 	"github.com/gocolly/colly"
 )
 
-// todo move to repositories
-func GetUserId(profileUrl string) string {
+func GetUserID(profileURL string) (*string, error) {
 	c := colly.NewCollector()
 
-	var userId string
+	var userID string
 	c.OnHTML(".profilePictureIcon", func(h *colly.HTMLElement) {
-		imgUrl := h.Attr("src")
-		splittedSlash := strings.Split(imgUrl, "/")
-		userId = strings.Split(splittedSlash[len(splittedSlash)-1], ".jpg")[0]
+		imgURL := h.Attr("src")
+		splittedSlash := strings.Split(imgURL, "/")
+		userID = strings.Split(splittedSlash[len(splittedSlash)-1], ".jpg")[0]
 	})
 
-	c.Visit(profileUrl)
+	err := c.Visit(profileURL)
+	if err != nil {
+		return nil, err
+	}
 
-	return userId
+	return &userID, nil
 }
 
-func GetBooks(userId string, shelf string) []Book {
+func GetBooks(userID string, shelf string) ([]Book, error) {
 	books := []Book{}
 
 	page := 0
 	for {
 		page++
 
-		booksOnPage := getBooksFromPage(userId, shelf, page)
+		booksOnPage, err := getBooksFromPage(userID, shelf, page)
+		if err != nil {
+			return nil, err
+		}
+
 		books = append(books, booksOnPage...)
 
-		fmt.Printf("%d, %d\n", page, len(booksOnPage))
 		if len(booksOnPage) == 0 {
 			break
 		}
 	}
 
-	return books
+	return books, nil
 }
 
-func getBooksFromPage(userId string, shelf string, page int) []Book {
+func getBooksFromPage(userID string, shelf string, page int) ([]Book, error) {
 	c := colly.NewCollector()
 
 	books := []Book{}
@@ -55,7 +60,17 @@ func getBooksFromPage(userId string, shelf string, page int) []Book {
 		books = append(books, book)
 	})
 
-	c.Visit(fmt.Sprintf("https://www.goodreads.com/review/list/%s?shelf=%s&page=%d", userId, shelf, page))
+	err := c.Visit(
+		fmt.Sprintf(
+			"https://www.goodreads.com/review/list/%s?shelf=%s&page=%d",
+			userID,
+			shelf,
+			page,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	return books
+	return books, nil
 }

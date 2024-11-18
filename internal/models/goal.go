@@ -15,11 +15,11 @@ type Goal struct {
 	State       string  `json:"state"`
 } //	@name	Goal
 
-func NewGoalFromTask(task todoist.Task, userId string, state string) Goal {
+func NewGoalFromTask(task todoist.Task, userID string, state string) Goal {
 	return Goal{
-		ID:          task.Id,
-		ParentID:    task.ParentId,
-		UserID:      userId,
+		ID:          task.ID,
+		ParentID:    task.ParentID,
+		UserID:      userID,
 		Name:        task.Content,
 		IsLinked:    false,
 		TargetValue: nil,

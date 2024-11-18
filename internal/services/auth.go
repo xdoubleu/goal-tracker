@@ -1,10 +1,7 @@
 package services
 
 import (
-	"context"
 	"errors"
-	"goal-tracker/api/internal/dtos"
-	"goal-tracker/api/internal/models"
 	"net/http"
 	"time"
 
@@ -12,24 +9,32 @@ import (
 	"github.com/supabase-community/gotrue-go"
 	"github.com/supabase-community/gotrue-go/types"
 	"github.com/xhit/go-str2duration/v2"
+
+	"goal-tracker/api/internal/dtos"
+	"goal-tracker/api/internal/models"
 )
 
 type AuthService struct {
 	client gotrue.Client
 }
 
-func (service AuthService) SignInWithEmail(signInDto *dtos.SignInDto) (*string, *string, error) {
+func (service AuthService) SignInWithEmail(
+	signInDto *dtos.SignInDto,
+) (*string, *string, error) {
 	if v := signInDto.Validate(); !v.Valid() {
 		return nil, nil, errortools.ErrFailedValidation
 	}
 
+	//nolint:exhaustruct //don't need other fields
 	response, err := service.client.Token(types.TokenRequest{
 		GrantType: "password",
 		Email:     signInDto.Email,
 		Password:  signInDto.Password,
 	})
 	if err != nil {
-		return nil, nil, errortools.NewUnauthorizedError(errors.New("invalid credentials"))
+		return nil, nil, errortools.NewUnauthorizedError(
+			errors.New("invalid credentials"),
+		)
 	}
 
 	return &response.AccessToken, &response.RefreshToken, nil
@@ -46,7 +51,10 @@ func (service AuthService) GetUser(accessToken string) (*models.User, error) {
 	return &user, nil
 }
 
-func (service AuthService) SignInWithRefreshToken(refreshToken string) (*string, *string, error) {
+func (service AuthService) SignInWithRefreshToken(
+	refreshToken string,
+) (*string, *string, error) {
+	//nolint:exhaustruct //don't need other fields
 	response, err := service.client.Token(types.TokenRequest{
 		GrantType:    "refresh_token",
 		RefreshToken: refreshToken,
@@ -58,7 +66,9 @@ func (service AuthService) SignInWithRefreshToken(refreshToken string) (*string,
 	return &response.AccessToken, &response.RefreshToken, nil
 }
 
-func (service AuthService) SignOut(accessToken string) (*http.Cookie, *http.Cookie, error) {
+func (service AuthService) SignOut(
+	accessToken string,
+) (*http.Cookie, *http.Cookie, error) {
 	err := service.client.WithToken(accessToken).Logout()
 	if err != nil {
 		return nil, nil, err
@@ -97,7 +107,6 @@ func (service AuthService) GetCookieName(scope models.Scope) string {
 }
 
 func (service AuthService) CreateCookie(
-	ctx context.Context,
 	scope models.Scope,
 	token string,
 	expiry string,

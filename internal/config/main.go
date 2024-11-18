@@ -19,7 +19,7 @@ type Config struct {
 	DBDsn            string
 	Release          string
 	GotrueProjRef    string
-	GotrueApiKey     string
+	GotrueAPIKey     string
 	TodoistAPIKey    string
 	TodoistProjectID string
 	SteamAPIKey      string
@@ -40,7 +40,7 @@ func New() Config {
 	cfg.DBDsn = config.EnvStr("DB_DSN", "postgres://postgres@localhost/postgres")
 	cfg.Release = config.EnvStr("RELEASE", config.DevEnv)
 	cfg.GotrueProjRef = config.EnvStr("GOTRUE_PROJ_REF", "")
-	cfg.GotrueApiKey = config.EnvStr("GOTRUE_API_KEY", "")
+	cfg.GotrueAPIKey = config.EnvStr("GOTRUE_API_KEY", "")
 	cfg.TodoistAPIKey = config.EnvStr("TODOIST_API_KEY", "")
 	cfg.TodoistProjectID = config.EnvStr("TODOIST_PROJECT_ID", "")
 	cfg.SteamAPIKey = config.EnvStr("STEAM_API_KEY", "")
@@ -74,6 +74,6 @@ func (cfg Config) String() string {
 		cfg.DBDsn,
 		cfg.Release,
 		cfg.GotrueProjRef,
-		cfg.GotrueApiKey,
+		cfg.GotrueAPIKey,
 	)
 }

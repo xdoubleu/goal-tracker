@@ -6,20 +6,23 @@ import (
 	"net/http"
 )
 
-var SECTIONS_ENDPOINT = "sections"
+const SectionsEndpoint = "sections"
 
 type Section struct {
-	Id        string `json:"id"`
-	ProjectId string `json:"project_id"`
+	ID        string `json:"id"`
+	ProjectID string `json:"project_id"`
 	Order     int    `json:"order"`
 	Name      string `json:"name"`
 }
 
-func (client Client) GetAllSections(ctx context.Context, projectId string) (*[]Section, error) {
-	query := fmt.Sprintf("project_id=%s", projectId)
+func (client Client) GetAllSections(
+	ctx context.Context,
+	projectID string,
+) ([]Section, error) {
+	query := fmt.Sprintf("project_id=%s", projectID)
 
-	var sections *[]Section
-	err := client.sendRequest(ctx, http.MethodGet, SECTIONS_ENDPOINT, query, &sections)
+	var sections []Section
+	err := client.sendRequest(ctx, http.MethodGet, SectionsEndpoint, query, &sections)
 	if err != nil {
 		return nil, err
 	}

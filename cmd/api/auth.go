@@ -36,7 +36,6 @@ func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	secure := app.config.Env == config.ProdEnv
 	accessTokenCookie, err := app.services.Auth.CreateCookie(
-		r.Context(),
 		models.AccessScope,
 		*accessToken,
 		app.config.AccessExpiry,
@@ -52,7 +51,6 @@ func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 	if signInDto.RememberMe {
 		var refreshTokenCookie *http.Cookie
 		refreshTokenCookie, err = app.services.Auth.CreateCookie(
-			r.Context(),
 			models.RefreshScope,
 			*refreshToken,
 			app.config.RefreshExpiry,
@@ -73,7 +71,9 @@ func (app *Application) signOutHandler(w http.ResponseWriter, r *http.Request) {
 	accessToken, _ := r.Cookie("accessToken")
 	refreshToken, _ := r.Cookie("refreshToken")
 
-	deleteAccessTokenCookie, deleteRefreshTokenCookie, err := app.services.Auth.SignOut(accessToken.Value)
+	deleteAccessTokenCookie, deleteRefreshTokenCookie, err := app.services.Auth.SignOut(
+		accessToken.Value,
+	)
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return

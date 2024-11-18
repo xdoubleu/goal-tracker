@@ -9,7 +9,7 @@ import (
 	httptools "github.com/XDoubleU/essentia/pkg/communication/http"
 )
 
-var BASE_URL_REST_API = "https://api.todoist.com/rest/v2"
+const BaseURLRESTAPI = "https://api.todoist.com/rest/v2"
 
 type Client struct {
 	apiToken string
@@ -21,15 +21,21 @@ func NewClient(apiToken string) Client {
 	}
 }
 
-func (client Client) sendRequest(ctx context.Context, method string, endpoint string, query string, dst any) error {
-	u, err := url.Parse(fmt.Sprintf("%s/%s", BASE_URL_REST_API, endpoint))
+func (client Client) sendRequest(
+	ctx context.Context,
+	_ string,
+	endpoint string,
+	query string,
+	dst any,
+) error {
+	u, err := url.Parse(fmt.Sprintf("%s/%s", BaseURLRESTAPI, endpoint))
 	if err != nil {
 		return err
 	}
 
 	u.RawQuery = query
 
-	req, err := http.NewRequestWithContext(ctx, method, u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return err
 	}
@@ -40,6 +46,7 @@ func (client Client) sendRequest(ctx context.Context, method string, endpoint st
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
 	err = httptools.ReadJSON(res.Body, dst)
 	if err != nil {

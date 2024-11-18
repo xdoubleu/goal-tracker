@@ -2,13 +2,14 @@ package main
 
 import (
 	"errors"
-	"goal-tracker/api/internal/constants"
-	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/tplhelper"
 	"net/http"
 
 	"github.com/XDoubleU/essentia/pkg/context"
 	"github.com/XDoubleU/essentia/pkg/parse"
+
+	"goal-tracker/api/internal/constants"
+	"goal-tracker/api/internal/models"
+	"goal-tracker/api/internal/tplhelper"
 )
 
 func (app *Application) templateRoutes(mux *http.ServeMux) {
@@ -32,8 +33,12 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	// note: todoist will only use 4 indent levels (0: parent, 1: sub, 2: 2*sub, 3: 3*sub, 4: 4*sub)
-	goals, err := app.services.Goals.GetAllGroupedByStateAndParentGoal(r.Context(), user.ID)
+	//note: todoist will only use 4 indent levels
+	// (0: parent, 1: sub, 2: 2*sub, 3: 3*sub, 4: 4*sub)
+	goals, err := app.services.Goals.GetAllGroupedByStateAndParentGoal(
+		r.Context(),
+		user.ID,
+	)
 	if err != nil {
 		panic(err)
 	}

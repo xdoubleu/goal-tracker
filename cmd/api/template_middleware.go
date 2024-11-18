@@ -1,11 +1,12 @@
 package main
 
 import (
-	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/tplhelper"
 	"net/http"
 
 	"github.com/XDoubleU/essentia/pkg/config"
+
+	"goal-tracker/api/internal/models"
+	"goal-tracker/api/internal/tplhelper"
 )
 
 func (app *Application) authTemplateAccess(next http.HandlerFunc) http.HandlerFunc {
@@ -40,21 +41,25 @@ func (app *Application) getCurrentUser(r *http.Request) *models.User {
 	return user
 }
 
-func (app *Application) refreshTokens(w http.ResponseWriter, r *http.Request) *models.User {
+func (app *Application) refreshTokens(
+	w http.ResponseWriter,
+	r *http.Request,
+) *models.User {
 	tokenCookie, err := r.Cookie("refreshToken")
 
 	if err != nil {
 		return nil
 	}
 
-	accessToken, refreshToken, err := app.services.Auth.SignInWithRefreshToken(tokenCookie.Value)
+	accessToken, refreshToken, err := app.services.Auth.SignInWithRefreshToken(
+		tokenCookie.Value,
+	)
 	if err != nil {
 		return nil
 	}
 
 	secure := app.config.Env == config.ProdEnv
 	accessTokenCookie, err := app.services.Auth.CreateCookie(
-		r.Context(),
 		models.AccessScope,
 		*accessToken,
 		app.config.AccessExpiry,
@@ -68,7 +73,6 @@ func (app *Application) refreshTokens(w http.ResponseWriter, r *http.Request) *m
 
 	var refreshTokenCookie *http.Cookie
 	refreshTokenCookie, err = app.services.Auth.CreateCookie(
-		r.Context(),
 		models.RefreshScope,
 		*refreshToken,
 		app.config.RefreshExpiry,

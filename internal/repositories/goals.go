@@ -2,17 +2,21 @@ package repositories
 
 import (
 	"context"
-	"goal-tracker/api/internal/models"
 
 	"github.com/XDoubleU/essentia/pkg/database"
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
+
+	"goal-tracker/api/internal/models"
 )
 
 type GoalRepository struct {
 	db postgres.DB
 }
 
-func (repo GoalRepository) GetAll(ctx context.Context, userID string) ([]*models.Goal, error) {
+func (repo GoalRepository) GetAll(
+	ctx context.Context,
+	userID string,
+) ([]models.Goal, error) {
 	query := `
 		SELECT id, name, is_linked, target_value, type_id, state
 		FROM goals
@@ -24,8 +28,9 @@ func (repo GoalRepository) GetAll(ctx context.Context, userID string) ([]*models
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
 
-	goals := []*models.Goal{}
+	goals := []models.Goal{}
 	for rows.Next() {
+		//nolint:exhaustruct //other fields are initialized later
 		goal := models.Goal{
 			UserID: userID,
 		}
@@ -42,7 +47,7 @@ func (repo GoalRepository) GetAll(ctx context.Context, userID string) ([]*models
 			return nil, postgres.PgxErrorToHTTPError(err)
 		}
 
-		goals = append(goals, &goal)
+		goals = append(goals, goal)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -52,7 +57,11 @@ func (repo GoalRepository) GetAll(ctx context.Context, userID string) ([]*models
 	return goals, nil
 }
 
-func (repo GoalRepository) GetByID(ctx context.Context, id string, userID string) (*models.Goal, error) {
+func (repo GoalRepository) GetByID(
+	ctx context.Context,
+	id string,
+	userID string,
+) (*models.Goal, error) {
 	query := `
 		SELECT name, target_value, source_id, type_id, state
 		FROM goals
@@ -83,7 +92,7 @@ func (repo GoalRepository) GetByID(ctx context.Context, id string, userID string
 func (repo GoalRepository) Create(
 	ctx context.Context,
 	id string,
-	parentId *string,
+	parentID *string,
 	userID string,
 	name string,
 	isLinked bool,
@@ -92,15 +101,15 @@ func (repo GoalRepository) Create(
 	state string,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (id, parent_id, user_id, name, is_linked, target_value, type_id, state)
+		INSERT INTO goals (id, parent_id, user_id, name, 
+			is_linked, target_value, type_id, state)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id
 	`
 
-	//nolint:exhaustruct //other fields are optional
 	goal := models.Goal{
 		ID:          id,
-		ParentID:    parentId,
+		ParentID:    parentID,
 		UserID:      userID,
 		Name:        name,
 		IsLinked:    isLinked,
@@ -113,7 +122,7 @@ func (repo GoalRepository) Create(
 		ctx,
 		query,
 		id,
-		parentId,
+		parentID,
 		userID,
 		name,
 		isLinked,
@@ -137,7 +146,8 @@ func (repo GoalRepository) Update(
 ) (*models.Goal, error) {
 	query := `
 		UPDATE goals
-		SET name = $3, description = $4, date = $5, value = $6, source_id = $7, type_id = $8, score = $9, state_id = $10
+		SET name = $3, description = $4, date = $5, value = $6, source_id = $7, type_id = $8,
+		score = $9, state_id = $10
 		WHERE id = $1 AND user_id = $2
 	`
 

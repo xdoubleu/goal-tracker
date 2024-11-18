@@ -3,14 +3,15 @@ package main
 import (
 	"errors"
 	"fmt"
-	"goal-tracker/api/internal/constants"
-	"goal-tracker/api/internal/dtos"
-	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/temptools"
 	"net/http"
 
 	"github.com/XDoubleU/essentia/pkg/context"
 	"github.com/XDoubleU/essentia/pkg/parse"
+
+	"goal-tracker/api/internal/constants"
+	"goal-tracker/api/internal/dtos"
+	"goal-tracker/api/internal/models"
+	"goal-tracker/api/internal/temptools"
 )
 
 func (app *Application) goalsRoutes(prefix string, mux *http.ServeMux) {

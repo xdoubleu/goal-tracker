@@ -6,26 +6,26 @@ import (
 	"net/http"
 )
 
-var TASKS_ENDPOINT = "tasks"
+const TasksEndpoint = "tasks"
 
 type Task struct {
-	Id           string   `json:"id"`
-	ProjectId    string   `json:"project_id"`
-	SectionId    string   `json:"section_id"`
+	ID           string   `json:"id"`
+	ProjectID    string   `json:"project_id"`
+	SectionID    string   `json:"section_id"`
 	Content      string   `json:"content"`
 	Description  string   `json:"description"`
 	IsCompleted  bool     `json:"is_completed"`
 	Labels       []string `json:"labels"`
-	ParentId     *string  `json:"parent_id"`
+	ParentID     *string  `json:"parent_id"`
 	Order        int      `json:"order"`
 	Priority     int      `json:"priority"`
 	Due          Due      `json:"due"`
-	Url          string   `json:"url"`
+	URL          string   `json:"url"`
 	CommentCount int      `json:"comment_count"`
 	CreatedAt    string   `json:"created_at"`
-	CreatorId    string   `json:"creator_id"`
-	AssigneeId   string   `json:"assignee_id"`
-	AssignerId   string   `json:"assigner_id"`
+	CreatorID    string   `json:"creator_id"`
+	AssigneeID   string   `json:"assignee_id"`
+	AssignerID   string   `json:"assigner_id"`
 	Duration     Duration `json:"duration"`
 }
 
@@ -42,11 +42,14 @@ type Duration struct {
 	Unit   string `json:"unit"`
 }
 
-func (client Client) GetActiveTasks(ctx context.Context, projectId string) (*[]Task, error) {
-	query := fmt.Sprintf("project_id=%s", projectId)
+func (client Client) GetActiveTasks(
+	ctx context.Context,
+	projectID string,
+) ([]Task, error) {
+	query := fmt.Sprintf("project_id=%s", projectID)
 
-	var tasks *[]Task
-	err := client.sendRequest(ctx, http.MethodGet, TASKS_ENDPOINT, query, &tasks)
+	var tasks []Task
+	err := client.sendRequest(ctx, http.MethodGet, TasksEndpoint, query, &tasks)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +57,8 @@ func (client Client) GetActiveTasks(ctx context.Context, projectId string) (*[]T
 	return tasks, nil
 }
 
-func (client Client) GetActiveTask(ctx context.Context, taskId string) (*Task, error) {
-	endpoint := fmt.Sprintf("%s/%s", TASKS_ENDPOINT, taskId)
+func (client Client) GetActiveTask(ctx context.Context, taskID string) (*Task, error) {
+	endpoint := fmt.Sprintf("%s/%s", TasksEndpoint, taskID)
 
 	var task *Task
 	err := client.sendRequest(ctx, http.MethodGet, endpoint, "", &task)

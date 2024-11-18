@@ -5,12 +5,14 @@ type Source struct {
 	Types []Type
 } //	@name	Source
 
+//nolint:gochecknoglobals //ok
 var Sources = []Source{
 	ManualSource,
 	SteamSource,
 	GoodreadsSource,
 }
 
+//nolint:gochecknoglobals //ok
 var ManualSource = Source{
 	Name: "Manual",
 	Types: []Type{
@@ -18,6 +20,7 @@ var ManualSource = Source{
 	},
 }
 
+//nolint:gochecknoglobals //ok
 var SteamSource = Source{
 	Name: "Steam",
 	Types: []Type{
@@ -27,6 +30,7 @@ var SteamSource = Source{
 	},
 }
 
+//nolint:gochecknoglobals //ok
 var GoodreadsSource = Source{
 	Name: "Goodreads",
 	Types: []Type{
