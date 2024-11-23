@@ -42,7 +42,7 @@ type Duration struct {
 	Unit   string `json:"unit"`
 }
 
-func (client Client) GetActiveTasks(
+func (client client) GetActiveTasks(
 	ctx context.Context,
 	projectID string,
 ) ([]Task, error) {
@@ -57,7 +57,7 @@ func (client Client) GetActiveTasks(
 	return tasks, nil
 }
 
-func (client Client) GetActiveTask(ctx context.Context, taskID string) (*Task, error) {
+func (client client) GetActiveTask(ctx context.Context, taskID string) (*Task, error) {
 	endpoint := fmt.Sprintf("%s/%s", TasksEndpoint, taskID)
 
 	var task *Task

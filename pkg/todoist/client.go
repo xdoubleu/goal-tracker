@@ -11,17 +11,17 @@ import (
 
 const BaseURLRESTAPI = "https://api.todoist.com/rest/v2"
 
-type Client struct {
+type client struct {
 	apiToken string
 }
 
-func NewClient(apiToken string) Client {
-	return Client{
+func New(apiToken string) Client {
+	return client{
 		apiToken: apiToken,
 	}
 }
 
-func (client Client) sendRequest(
+func (client client) sendRequest(
 	ctx context.Context,
 	_ string,
 	endpoint string,

@@ -15,7 +15,7 @@ type Section struct {
 	Name      string `json:"name"`
 }
 
-func (client Client) GetAllSections(
+func (client client) GetAllSections(
 	ctx context.Context,
 	projectID string,
 ) ([]Section, error) {

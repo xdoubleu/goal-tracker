@@ -22,7 +22,7 @@ type Project struct {
 	URL            string `json:"url"`
 }
 
-func (client Client) GetAllProjects(ctx context.Context) ([]Project, error) {
+func (client client) GetAllProjects(ctx context.Context) ([]Project, error) {
 	var projects []Project
 	err := client.sendRequest(ctx, http.MethodGet, ProjectsEndpoint, "", &projects)
 	if err != nil {

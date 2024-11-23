@@ -78,10 +78,9 @@ func main() {
 		cfg.GotrueAPIKey,
 	)
 
-	todoistClient := todoist.NewClient(cfg.TodoistAPIKey)
+	todoistClient := todoist.New(cfg.TodoistAPIKey)
 
-	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
-	app := NewApp(logger, cfg, images, tpl, db, supabaseClient, todoistClient)
+	app := NewApp(logger, cfg, db, supabaseClient, todoistClient)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Port),
@@ -99,13 +98,13 @@ func main() {
 func NewApp(
 	logger *slog.Logger,
 	cfg config.Config,
-	images embed.FS,
-	tpl *template.Template,
 	db postgres.DB,
 	supabaseClient gotrue.Client,
 	todoistClient todoist.Client,
 ) *Application {
 	logger.Info(cfg.String())
+
+	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
 
 	//nolint:exhaustruct //other fields are optional
 	app := &Application{
@@ -116,12 +115,12 @@ func NewApp(
 	}
 
 	app.setContext()
-	app.SetDB(db, supabaseClient, todoistClient)
+	app.setDB(db, supabaseClient, todoistClient)
 
 	return app
 }
 
-func (app *Application) SetDB(
+func (app *Application) setDB(
 	db postgres.DB,
 	supabaseClient gotrue.Client,
 	todoistClient todoist.Client,

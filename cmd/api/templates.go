@@ -33,7 +33,7 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	//note: todoist will only use 4 indent levels
+	// note: todoist will only use 4 indent levels
 	// (0: parent, 1: sub, 2: 2*sub, 3: 3*sub, 4: 4*sub)
 	goals, err := app.services.Goals.GetAllGroupedByStateAndParentGoal(
 		r.Context(),

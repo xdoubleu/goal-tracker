@@ -24,9 +24,6 @@
       "datasourceTemplate": "docker"
     }
   ],
-  "pre-commit": {
-    "enabled": true
-  },
   "timezone":"Europe/Brussels",
   "labels": ["dependencies"],
   "dependencyDashboardLabels": ["dependencies"],

@@ -37,7 +37,8 @@ test/pprof:
 	go test ./cmd/api -cpuprofile cpu.prof -memprofile mem.prof -bench ./cmd/api
 
 test/cov/report:
-	go test ./cmd/api -coverpkg=./cmd/api,./internal/...,./pkg/... -covermode=set -coverprofile=coverage.out
+	go test ./cmd/api -coverpkg=./cmd/api,./internal/... -covermode=set -coverprofile=coverage.out.tmp
+	cat coverage.out.tmp | grep -v "_mock.go" > coverage.out
 
 test/cov: test/cov/report
 	go tool cover -html=coverage.out -o=coverage.html
