@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/XDoubleU/essentia/pkg/errors"
 
@@ -98,6 +99,11 @@ func (service GoalService) Link(
 		return err
 	}
 
+	var dueTime *time.Time
+	if task.Due != nil {
+		dueTime = &task.Due.Date.Time
+	}
+
 	_, err = service.goals.Create(
 		ctx,
 		id,
@@ -108,6 +114,7 @@ func (service GoalService) Link(
 		linkGoalDto.TargetValue,
 		linkGoalDto.TypeID,
 		sectionsMap[task.SectionID],
+		dueTime,
 	)
 	return err
 }

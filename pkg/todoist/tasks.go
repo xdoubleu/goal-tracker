@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 const TasksEndpoint = "tasks"
@@ -19,7 +20,7 @@ type Task struct {
 	ParentID     *string  `json:"parent_id"`
 	Order        int      `json:"order"`
 	Priority     int      `json:"priority"`
-	Due          Due      `json:"due"`
+	Due          *Due     `json:"due"`
 	URL          string   `json:"url"`
 	CommentCount int      `json:"comment_count"`
 	CreatedAt    string   `json:"created_at"`
@@ -30,11 +31,37 @@ type Task struct {
 }
 
 type Due struct {
-	String      string `json:"string"`
-	Date        string `json:"date"`
-	IsRecurring bool   `json:"is_recurring"`
-	Datetime    string `json:"datetime"`
-	Timezone    string `json:"timezone"`
+	String      string   `json:"string"`
+	Date        Date     `json:"date"`
+	IsRecurring bool     `json:"is_recurring"`
+	Datetime    DateTime `json:"datetime"`
+	Timezone    string   `json:"timezone"`
+}
+
+type Date struct {
+	time.Time
+}
+
+type DateTime struct {
+	time.Time
+}
+
+func (d *Date) UnmarshalJSON(bytes []byte) error {
+	date, err := time.Parse(`"2006-01-02"`, string(bytes))
+	if err != nil {
+		return err
+	}
+	d.Time = date
+	return nil
+}
+
+func (d *DateTime) UnmarshalJSON(bytes []byte) error {
+	date, err := time.Parse(`"2006-01-02T15:04:05"`, string(bytes))
+	if err != nil {
+		return err
+	}
+	d.Time = date
+	return nil
 }
 
 type Duration struct {
