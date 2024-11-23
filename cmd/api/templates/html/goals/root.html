@@ -1,0 +1,14 @@
+{{template "header"}}
+{{template "navbar"}}
+    {{range $pair := .}}
+        <h2>{{$pair.State}}</h2>
+        <ul>
+            {{range $goalWithSubGoals := $pair.Goals}}
+                {{template "goalWithSubGoals" $goalWithSubGoals}}
+            {{end}}
+        </ul>
+        <br/>
+        <br/>
+
+    {{end}}
+{{template "footer"}}
