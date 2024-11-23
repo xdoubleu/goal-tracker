@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"github.com/XDoubleU/essentia/pkg/database"
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
@@ -18,7 +19,7 @@ func (repo GoalRepository) GetAll(
 	userID string,
 ) ([]models.Goal, error) {
 	query := `
-		SELECT id, name, is_linked, target_value, type_id, state
+		SELECT id, name, is_linked, target_value, type_id, state, due_time
 		FROM goals
 		WHERE user_id = $1
 	`
@@ -42,6 +43,7 @@ func (repo GoalRepository) GetAll(
 			&goal.TargetValue,
 			&goal.TypeID,
 			&goal.State,
+			&goal.DueTime,
 		)
 		if err != nil {
 			return nil, postgres.PgxErrorToHTTPError(err)
@@ -63,7 +65,7 @@ func (repo GoalRepository) GetByID(
 	userID string,
 ) (*models.Goal, error) {
 	query := `
-		SELECT name, target_value, source_id, type_id, state
+		SELECT name, target_value, source_id, type_id, state, due_time
 		FROM goals
 		WHERE goals.id = $1 AND user_id = $2
 	`
@@ -81,6 +83,7 @@ func (repo GoalRepository) GetByID(
 		&goal.TargetValue,
 		&goal.TypeID,
 		&goal.State,
+		&goal.DueTime,
 	)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
@@ -99,11 +102,12 @@ func (repo GoalRepository) Create(
 	targetValue int64,
 	typeID int64,
 	state string,
+	dueTime *time.Time,
 ) (*models.Goal, error) {
 	query := `
 		INSERT INTO goals (id, parent_id, user_id, name, 
-			is_linked, target_value, type_id, state)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			is_linked, target_value, type_id, state, due_time)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id
 	`
 
@@ -116,6 +120,7 @@ func (repo GoalRepository) Create(
 		TargetValue: &targetValue,
 		TypeID:      &typeID,
 		State:       state,
+		DueTime:     dueTime,
 	}
 
 	err := repo.db.QueryRow(
@@ -129,6 +134,7 @@ func (repo GoalRepository) Create(
 		targetValue,
 		typeID,
 		state,
+		dueTime,
 	).Scan(&goal.ID)
 
 	if err != nil {

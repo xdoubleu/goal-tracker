@@ -1,9 +1,21 @@
 {{define "goalWithSubGoals"}}
+    <li>
     {{if .Goal.IsLinked}}
-        <li><a href="/{{.Goal.ID}}">{{.Goal.Name}}</a> (<a href="/edit/{{.Goal.ID}}">edit</a>) (<a href="/unlink/{{.Goal.ID}}">unlink</a>)</li>
+        <a href="/{{.Goal.ID}}">{{.Goal.Name}}</a>
     {{else}}
-        <li>{{.Goal.Name}} (<a href="/link/{{.Goal.ID}}">link</a>)</li>
+        {{.Goal.Name}}
     {{end}}
+
+    {{if .Goal.DueTime}}
+        (due <b>{{.Goal.DueTime.Format "2006-02-01"}}</b>)
+    {{end}}
+
+    {{if .Goal.IsLinked}}
+        (<a href="/edit/{{.Goal.ID}}">edit</a>) (<a href="/unlink/{{.Goal.ID}}">unlink</a>)
+    {{else}}
+        (<a href="/link/{{.Goal.ID}}">link</a>)
+    {{end}}
+    </li>
 
     {{if .HasSubgoals}}
         <ul>

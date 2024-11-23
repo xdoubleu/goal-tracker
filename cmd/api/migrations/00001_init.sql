@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS goals (
     is_linked boolean NOT NULL, 
     target_value integer,
     type_id integer,
-    state varchar(255) NOT NULL
+    state varchar(255) NOT NULL,
+    due_time timestamp
 );
 
 CREATE TABLE IF NOT EXISTS progress (
