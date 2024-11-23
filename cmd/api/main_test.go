@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"goal-tracker/api/internal/config"
-	"goal-tracker/api/internal/mocks"
-	"goal-tracker/api/pkg/todoist"
 	"os"
 	"testing"
 	"time"
@@ -13,6 +10,10 @@ import (
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
 	"github.com/XDoubleU/essentia/pkg/logging"
 	"github.com/supabase-community/gotrue-go"
+
+	"goal-tracker/api/internal/config"
+	"goal-tracker/api/internal/mocks"
+	"goal-tracker/api/pkg/todoist"
 )
 
 type TestEnv struct {
@@ -53,7 +54,13 @@ func TestMain(m *testing.M) {
 	mainTx = postgres.CreatePgxSyncTx(context.Background(), postgresDB)
 	supabaseClient = mocks.NewMockedGoTrueClient()
 	todoistClient = mocks.NewMockTodoistClient()
-	mainTestApp = NewApp(logging.NewNopLogger(), cfg, mainTx, supabaseClient, todoistClient)
+	mainTestApp = NewApp(
+		logging.NewNopLogger(),
+		cfg,
+		mainTx,
+		supabaseClient,
+		todoistClient,
+	)
 	testCtx = context.Background()
 
 	code := m.Run()

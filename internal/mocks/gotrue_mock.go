@@ -1,3 +1,4 @@
+//nolint:nilnil,exhaustruct,revive,lll //ignore
 package mocks
 
 import (
@@ -29,11 +30,15 @@ func (client MockedGoTrueClient) WithClient(httpClient http.Client) gotrue.Clien
 	return client
 }
 
-func (client MockedGoTrueClient) AdminAudit(req types.AdminAuditRequest) (*types.AdminAuditResponse, error) {
+func (client MockedGoTrueClient) AdminAudit(
+	req types.AdminAuditRequest,
+) (*types.AdminAuditResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminGenerateLink(req types.AdminGenerateLinkRequest) (*types.AdminGenerateLinkResponse, error) {
+func (client MockedGoTrueClient) AdminGenerateLink(
+	req types.AdminGenerateLinkRequest,
+) (*types.AdminGenerateLinkResponse, error) {
 	return nil, nil
 }
 
@@ -41,23 +46,33 @@ func (client MockedGoTrueClient) AdminListSSOProviders() (*types.AdminListSSOPro
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminCreateSSOProvider(req types.AdminCreateSSOProviderRequest) (*types.AdminCreateSSOProviderResponse, error) {
+func (client MockedGoTrueClient) AdminCreateSSOProvider(
+	req types.AdminCreateSSOProviderRequest,
+) (*types.AdminCreateSSOProviderResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminGetSSOProvider(req types.AdminGetSSOProviderRequest) (*types.AdminGetSSOProviderResponse, error) {
+func (client MockedGoTrueClient) AdminGetSSOProvider(
+	req types.AdminGetSSOProviderRequest,
+) (*types.AdminGetSSOProviderResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminUpdateSSOProvider(req types.AdminUpdateSSOProviderRequest) (*types.AdminUpdateSSOProviderResponse, error) {
+func (client MockedGoTrueClient) AdminUpdateSSOProvider(
+	req types.AdminUpdateSSOProviderRequest,
+) (*types.AdminUpdateSSOProviderResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminDeleteSSOProvider(req types.AdminDeleteSSOProviderRequest) (*types.AdminDeleteSSOProviderResponse, error) {
+func (client MockedGoTrueClient) AdminDeleteSSOProvider(
+	req types.AdminDeleteSSOProviderRequest,
+) (*types.AdminDeleteSSOProviderResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminCreateUser(req types.AdminCreateUserRequest) (*types.AdminCreateUserResponse, error) {
+func (client MockedGoTrueClient) AdminCreateUser(
+	req types.AdminCreateUserRequest,
+) (*types.AdminCreateUserResponse, error) {
 	return nil, nil
 }
 
@@ -65,47 +80,69 @@ func (client MockedGoTrueClient) AdminListUsers() (*types.AdminListUsersResponse
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminGetUser(req types.AdminGetUserRequest) (*types.AdminGetUserResponse, error) {
+func (client MockedGoTrueClient) AdminGetUser(
+	req types.AdminGetUserRequest,
+) (*types.AdminGetUserResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminUpdateUser(req types.AdminUpdateUserRequest) (*types.AdminUpdateUserResponse, error) {
+func (client MockedGoTrueClient) AdminUpdateUser(
+	req types.AdminUpdateUserRequest,
+) (*types.AdminUpdateUserResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminDeleteUser(req types.AdminDeleteUserRequest) error {
+func (client MockedGoTrueClient) AdminDeleteUser(
+	req types.AdminDeleteUserRequest,
+) error {
 	return nil
 }
 
-func (client MockedGoTrueClient) AdminListUserFactors(req types.AdminListUserFactorsRequest) (*types.AdminListUserFactorsResponse, error) {
+func (client MockedGoTrueClient) AdminListUserFactors(
+	req types.AdminListUserFactorsRequest,
+) (*types.AdminListUserFactorsResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminUpdateUserFactor(req types.AdminUpdateUserFactorRequest) (*types.AdminUpdateUserFactorResponse, error) {
+func (client MockedGoTrueClient) AdminUpdateUserFactor(
+	req types.AdminUpdateUserFactorRequest,
+) (*types.AdminUpdateUserFactorResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) AdminDeleteUserFactor(req types.AdminDeleteUserFactorRequest) error {
+func (client MockedGoTrueClient) AdminDeleteUserFactor(
+	req types.AdminDeleteUserFactorRequest,
+) error {
 	return nil
 }
 
-func (client MockedGoTrueClient) Authorize(req types.AuthorizeRequest) (*types.AuthorizeResponse, error) {
+func (client MockedGoTrueClient) Authorize(
+	req types.AuthorizeRequest,
+) (*types.AuthorizeResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) EnrollFactor(req types.EnrollFactorRequest) (*types.EnrollFactorResponse, error) {
+func (client MockedGoTrueClient) EnrollFactor(
+	req types.EnrollFactorRequest,
+) (*types.EnrollFactorResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) ChallengeFactor(req types.ChallengeFactorRequest) (*types.ChallengeFactorResponse, error) {
+func (client MockedGoTrueClient) ChallengeFactor(
+	req types.ChallengeFactorRequest,
+) (*types.ChallengeFactorResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) VerifyFactor(req types.VerifyFactorRequest) (*types.VerifyFactorResponse, error) {
+func (client MockedGoTrueClient) VerifyFactor(
+	req types.VerifyFactorRequest,
+) (*types.VerifyFactorResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) UnenrollFactor(req types.UnenrollFactorRequest) (*types.UnenrollFactorResponse, error) {
+func (client MockedGoTrueClient) UnenrollFactor(
+	req types.UnenrollFactorRequest,
+) (*types.UnenrollFactorResponse, error) {
 	return nil, nil
 }
 
@@ -113,7 +150,9 @@ func (client MockedGoTrueClient) HealthCheck() (*types.HealthCheckResponse, erro
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) Invite(req types.InviteRequest) (*types.InviteResponse, error) {
+func (client MockedGoTrueClient) Invite(
+	req types.InviteRequest,
+) (*types.InviteResponse, error) {
 	return nil, nil
 }
 
@@ -141,23 +180,33 @@ func (client MockedGoTrueClient) GetSettings() (*types.SettingsResponse, error) 
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) Signup(req types.SignupRequest) (*types.SignupResponse, error) {
+func (client MockedGoTrueClient) Signup(
+	req types.SignupRequest,
+) (*types.SignupResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) SignInWithEmailPassword(email, password string) (*types.TokenResponse, error) {
+func (client MockedGoTrueClient) SignInWithEmailPassword(
+	email, password string,
+) (*types.TokenResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) SignInWithPhonePassword(phone, password string) (*types.TokenResponse, error) {
+func (client MockedGoTrueClient) SignInWithPhonePassword(
+	phone, password string,
+) (*types.TokenResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) RefreshToken(refreshToken string) (*types.TokenResponse, error) {
+func (client MockedGoTrueClient) RefreshToken(
+	refreshToken string,
+) (*types.TokenResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) Token(req types.TokenRequest) (*types.TokenResponse, error) {
+func (client MockedGoTrueClient) Token(
+	req types.TokenRequest,
+) (*types.TokenResponse, error) {
 	return nil, nil
 }
 
@@ -174,15 +223,21 @@ func (client MockedGoTrueClient) GetUser() (*types.UserResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) UpdateUser(req types.UpdateUserRequest) (*types.UpdateUserResponse, error) {
+func (client MockedGoTrueClient) UpdateUser(
+	req types.UpdateUserRequest,
+) (*types.UpdateUserResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) Verify(req types.VerifyRequest) (*types.VerifyResponse, error) {
+func (client MockedGoTrueClient) Verify(
+	req types.VerifyRequest,
+) (*types.VerifyResponse, error) {
 	return nil, nil
 }
 
-func (client MockedGoTrueClient) VerifyForUser(req types.VerifyForUserRequest) (*types.VerifyForUserResponse, error) {
+func (client MockedGoTrueClient) VerifyForUser(
+	req types.VerifyForUserRequest,
+) (*types.VerifyForUserResponse, error) {
 	return nil, nil
 }
 

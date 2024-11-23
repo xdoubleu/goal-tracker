@@ -13,7 +13,7 @@ tools/lint/go:
 lint: tools/lint
 	golangci-lint run
 
-lint/fix:
+lint/fix: tools/lint
 	golines . -m 88 -w
 	golangci-lint run --fix
 	gci write --skip-generated -s standard -s default -s "prefix(goal-tracker/api)" .
