@@ -43,6 +43,18 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(
 	}
 
 	for _, task := range tasks {
+		exists := false
+		for _, goal := range goals {
+			if goal.ID == task.ID {
+				exists = true
+				break
+			}
+		}
+
+		if exists {
+			continue
+		}
+
 		goal := models.NewGoalFromTask(task, userID, sectionsIDNameMap[task.SectionID])
 		goals = append(goals, goal)
 	}

@@ -1,0 +1,33 @@
+{{template "header"}}
+{{template "navbar"}}
+    <h1>{{.Goal.Name}}</h1>
+    <div>
+        <canvas id="chart"></canvas>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('chart');
+
+        const targetValue = {{.Goal.TargetValue}};
+        const progressLabels = {{.ProgressLabels}};
+        const progressValues = {{.ProgressValues}};
+        const targetValues = Array(progressLabels.length).fill(targetValue);
+      
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: progressLabels,
+            datasets: [{
+                label: 'Progress',
+                data: progressValues
+            },
+            {
+                label: 'Goal',
+                data: targetValues,
+                borderDash: [5, 10]
+            }]
+          }
+        });
+      </script>
+{{template "footer"}}
