@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/XDoubleU/essentia/pkg/context"
 	"github.com/XDoubleU/essentia/pkg/parse"
@@ -24,6 +25,10 @@ func (app *Application) templateRoutes(mux *http.ServeMux) {
 	mux.HandleFunc(
 		"GET /link/{id}",
 		app.authTemplateAccess(app.linkHandler),
+	)
+	mux.HandleFunc(
+		"GET /{id}",
+		app.authTemplateAccess(app.graphHandler),
 	)
 }
 
@@ -72,4 +77,54 @@ func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
 		Sources: models.Sources,
 	}
 	tplhelper.RenderWithPanic(app.tpl, w, "link.html", goalAndSources)
+}
+
+type GoalAndProgress struct {
+	Goal           models.Goal
+	ProgressLabels []string
+	ProgressValues []int64
+}
+
+func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parse.URLParam[string](r, "id", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	user := context.GetValue[models.User](r.Context(), constants.UserContextKey)
+	if user == nil {
+		panic(errors.New("not signed in"))
+	}
+
+	goal, err := app.services.Goals.GetByID(r.Context(), id, *user)
+	if err != nil {
+		panic(err)
+	}
+
+	//nolint:godox //i'm aware
+	//TODO: fetch progress
+	now := time.Now()
+	yesterday := now.Add(-24 * time.Hour)
+	yesterdaySquared := yesterday.Add(-24 * time.Hour)
+	format := "2006-01-02"
+
+	progressLabels := []string{
+		yesterdaySquared.Format(format),
+		yesterday.Format(format),
+		now.Format(format),
+	}
+
+	progressValues := []int64{
+		10,
+		5,
+		10,
+	}
+
+	goalAndProgress := GoalAndProgress{
+		Goal:           *goal,
+		ProgressLabels: progressLabels,
+		ProgressValues: progressValues,
+	}
+
+	tplhelper.RenderWithPanic(app.tpl, w, "graph.html", goalAndProgress)
 }

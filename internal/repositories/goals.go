@@ -65,7 +65,7 @@ func (repo GoalRepository) GetByID(
 	userID string,
 ) (*models.Goal, error) {
 	query := `
-		SELECT name, target_value, source_id, type_id, state, due_time
+		SELECT name, target_value, type_id, state, due_time
 		FROM goals
 		WHERE goals.id = $1 AND user_id = $2
 	`
