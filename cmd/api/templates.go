@@ -101,6 +101,7 @@ func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	//nolint:godox //i'm aware
 	//TODO: fetch progress
 	now := time.Now()
 	yesterday := now.Add(-24 * time.Hour)
