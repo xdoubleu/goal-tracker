@@ -23,6 +23,7 @@ import (
 	"goal-tracker/api/internal/config"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/internal/services"
+	"goal-tracker/api/pkg/steam"
 	"goal-tracker/api/pkg/todoist"
 )
 
@@ -79,8 +80,9 @@ func main() {
 	)
 
 	todoistClient := todoist.New(cfg.TodoistAPIKey)
+	steamClient := steam.New(cfg.SteamAPIKey)
 
-	app := NewApp(logger, cfg, db, supabaseClient, todoistClient)
+	app := NewApp(logger, cfg, db, supabaseClient, todoistClient, steamClient)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Port),
@@ -101,6 +103,7 @@ func NewApp(
 	db postgres.DB,
 	supabaseClient gotrue.Client,
 	todoistClient todoist.Client,
+	steamClient steam.Client,
 ) *Application {
 	logger.Info(cfg.String())
 
@@ -115,7 +118,7 @@ func NewApp(
 	}
 
 	app.setContext()
-	app.setDB(db, supabaseClient, todoistClient)
+	app.setDB(db, supabaseClient, todoistClient, steamClient)
 
 	return app
 }
@@ -124,6 +127,7 @@ func (app *Application) setDB(
 	db postgres.DB,
 	supabaseClient gotrue.Client,
 	todoistClient todoist.Client,
+	steamClient steam.Client,
 ) {
 	// make sure previous app is cancelled internally
 	app.ctxCancel()
@@ -138,6 +142,7 @@ func (app *Application) setDB(
 		repositories.New(app.db),
 		supabaseClient,
 		todoistClient,
+		steamClient,
 	)
 }
 

@@ -13,6 +13,7 @@ import (
 
 	"goal-tracker/api/internal/config"
 	"goal-tracker/api/internal/mocks"
+	"goal-tracker/api/pkg/steam"
 	"goal-tracker/api/pkg/todoist"
 )
 
@@ -28,6 +29,7 @@ var mainTestApp *Application     //nolint:gochecknoglobals //needed for tests
 var testCtx context.Context      //nolint:gochecknoglobals //needed for tests
 var supabaseClient gotrue.Client //nolint:gochecknoglobals //needed for tests
 var todoistClient todoist.Client //nolint:gochecknoglobals //needed for tests
+var steamClient steam.Client     //nolint:gochecknoglobals //needed for tests
 
 func TestMain(m *testing.M) {
 	var err error
@@ -54,12 +56,15 @@ func TestMain(m *testing.M) {
 	mainTx = postgres.CreatePgxSyncTx(context.Background(), postgresDB)
 	supabaseClient = mocks.NewMockedGoTrueClient()
 	todoistClient = mocks.NewMockTodoistClient()
+	steamClient = mocks.NewMockSteamClient()
+
 	mainTestApp = NewApp(
 		logging.NewNopLogger(),
 		cfg,
 		mainTx,
 		supabaseClient,
 		todoistClient,
+		steamClient,
 	)
 	testCtx = context.Background()
 
@@ -77,7 +82,7 @@ func setup(_ *testing.T) (*TestEnv, *Application) {
 	tx := postgres.CreatePgxSyncTx(context.Background(), mainTx)
 
 	testApp := *mainTestApp
-	testApp.setDB(tx, supabaseClient, todoistClient)
+	testApp.setDB(tx, supabaseClient, todoistClient, steamClient)
 
 	testEnv := &TestEnv{
 		ctx: testCtx,

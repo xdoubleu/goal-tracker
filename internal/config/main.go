@@ -23,6 +23,7 @@ type Config struct {
 	TodoistAPIKey    string
 	TodoistProjectID string
 	SteamAPIKey      string
+	SteamUserID      string
 	GoodreadsURL     string
 }
 
@@ -44,6 +45,7 @@ func New() Config {
 	cfg.TodoistAPIKey = config.EnvStr("TODOIST_API_KEY", "")
 	cfg.TodoistProjectID = config.EnvStr("TODOIST_PROJECT_ID", "")
 	cfg.SteamAPIKey = config.EnvStr("STEAM_API_KEY", "")
+	cfg.SteamUserID = config.EnvStr("STEAM_USER_ID", "")
 	cfg.GoodreadsURL = config.EnvStr("GOODREADS_URL", "")
 
 	return cfg

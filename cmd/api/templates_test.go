@@ -26,7 +26,7 @@ func TestRoot(t *testing.T) {
 	testEnv, testApp := setup(t)
 	defer testEnv.teardown()
 
-	testApp.setDB(testEnv.tx, supabaseClient, todoistClient)
+	testApp.setDB(testEnv.tx, supabaseClient, todoistClient, steamClient)
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
@@ -43,7 +43,7 @@ func TestLink(t *testing.T) {
 	testEnv, testApp := setup(t)
 	defer testEnv.teardown()
 
-	testApp.setDB(testEnv.tx, supabaseClient, todoistClient)
+	testApp.setDB(testEnv.tx, supabaseClient, todoistClient, steamClient)
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),

@@ -25,7 +25,6 @@ var SteamSource = Source{
 	Name: "Steam",
 	Types: []Type{
 		SteamCompletionPercentage,
-		ActualCompletionPercentage,
 		CompletedGames,
 	},
 }

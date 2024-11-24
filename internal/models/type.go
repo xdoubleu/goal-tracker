@@ -18,22 +18,15 @@ var SteamCompletionPercentage = Type{
 }
 
 //nolint:gochecknoglobals //ok
-var ActualCompletionPercentage = Type{
-	//nolint:mnd //ok
-	ID:   2,
-	Name: "Actual completion percentage",
-}
-
-//nolint:gochecknoglobals //ok
 var CompletedGames = Type{
 	//nolint:mnd //ok
-	ID:   3,
+	ID:   2,
 	Name: "Completed games",
 }
 
 //nolint:gochecknoglobals //ok
 var FinishedBooks = Type{
 	//nolint:mnd //ok
-	ID:   4,
+	ID:   3,
 	Name: "Finished books",
 }
