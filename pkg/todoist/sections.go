@@ -22,7 +22,14 @@ func (client client) GetAllSections(
 	query := fmt.Sprintf("project_id=%s", projectID)
 
 	var sections []Section
-	err := client.sendRequest(ctx, http.MethodGet, SectionsEndpoint, query, nil, &sections)
+	err := client.sendRequest(
+		ctx,
+		http.MethodGet,
+		SectionsEndpoint,
+		query,
+		nil,
+		&sections,
+	)
 	if err != nil {
 		return nil, err
 	}

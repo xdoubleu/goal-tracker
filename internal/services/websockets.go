@@ -2,14 +2,15 @@ package services
 
 import (
 	"context"
-	"goal-tracker/api/internal/dtos"
-	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/temptools"
 	"net/http"
 	"strconv"
 	"time"
 
 	wstools "github.com/XDoubleU/essentia/pkg/communication/ws"
+
+	"goal-tracker/api/internal/dtos"
+	"goal-tracker/api/internal/models"
+	"goal-tracker/api/internal/temptools"
 )
 
 type WebSocketService struct {
@@ -45,10 +46,14 @@ func (service WebSocketService) Handler() http.HandlerFunc {
 	return service.handler.Handler()
 }
 
-func (service WebSocketService) UpdateState(id string, isRunning bool, lastRunTime time.Time) {
+func (service WebSocketService) UpdateState(
+	id string,
+	isRunning bool,
+	lastRunTime *time.Time,
+) {
 	service.topics[id].EnqueueEvent(dtos.StateMessageDto{
 		IsRefreshing: isRunning,
-		LastRefresh:  &lastRunTime,
+		LastRefresh:  lastRunTime,
 	})
 }
 
@@ -59,9 +64,13 @@ func (service WebSocketService) registerTopics() {
 	}
 
 	for _, topic := range topics {
-		registeredTopic, err := service.handler.AddTopic(topic, service.allowedOrigins, func(ctx context.Context, tp *wstools.Topic) (any, error) {
-			return service.fetchState(tp), nil
-		})
+		registeredTopic, err := service.handler.AddTopic(
+			topic,
+			service.allowedOrigins,
+			func(_ context.Context, tp *wstools.Topic) (any, error) {
+				return service.fetchState(tp), nil
+			},
+		)
 		if err != nil {
 			panic(err)
 		}

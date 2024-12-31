@@ -1,6 +1,8 @@
 package services
 
 import (
+	"log/slog"
+
 	"github.com/supabase-community/gotrue-go"
 
 	"goal-tracker/api/internal/config"
@@ -19,6 +21,7 @@ type Services struct {
 }
 
 func New(
+	logger slog.Logger,
 	config config.Config,
 	jobQueue *temptools.JobQueue,
 	repositories repositories.Repositories,
@@ -28,7 +31,11 @@ func New(
 ) Services {
 	auth := AuthService{client: supabaseClient}
 	todoist := TodoistService{client: todoistClient, projectID: config.TodoistProjectID}
-	steam := SteamService{client: steamClient, userID: config.SteamUserID}
+	steam := SteamService{
+		logger: logger,
+		client: steamClient,
+		userID: config.SteamUserID,
+	}
 	goals := GoalService{
 		webURL:   config.WebURL,
 		goals:    repositories.Goals,

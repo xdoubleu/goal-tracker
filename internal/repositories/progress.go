@@ -13,7 +13,10 @@ type ProgressRepository struct {
 	db postgres.DB
 }
 
-func (repo ProgressRepository) Fetch(ctx context.Context, typeID int64) ([]models.Progress, error) {
+func (repo ProgressRepository) Fetch(
+	ctx context.Context,
+	typeID int64,
+) ([]models.Progress, error) {
 	query := `
 		SELECT value, date 
 		FROM progress 
@@ -29,6 +32,7 @@ func (repo ProgressRepository) Fetch(ctx context.Context, typeID int64) ([]model
 	progresses := []models.Progress{}
 
 	for rows.Next() {
+		//nolint:exhaustruct //other fields are assigned later
 		progress := models.Progress{
 			TypeID: typeID,
 		}

@@ -98,15 +98,37 @@ func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	progressLabels, progressValues, err := app.services.Goals.FetchProgress(r.Context(), *goal.TypeID)
+	progressLabels, progressValues, err := app.services.Goals.FetchProgress(
+		r.Context(),
+		*goal.TypeID,
+	)
 	if err != nil {
 		panic(err)
 	}
 
 	// only get last year
+	//nolint:godox //I know
 	// TODO make this dynamic
-	dateNow := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
-	dateYearAgo := time.Date(dateNow.Year()-1, dateNow.Month(), dateNow.Day(), 0, 0, 0, 0, time.UTC)
+	dateNow := time.Date(
+		time.Now().Year(),
+		time.Now().Month(),
+		time.Now().Day(),
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
+	dateYearAgo := time.Date(
+		dateNow.Year()-1,
+		dateNow.Month(),
+		dateNow.Day(),
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
 
 	i := 0
 	for i < len(progressLabels) {

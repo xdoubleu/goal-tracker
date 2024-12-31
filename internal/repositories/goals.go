@@ -112,6 +112,7 @@ func (repo GoalRepository) GetByTypeID(
 	goals := []models.Goal{}
 
 	for rows.Next() {
+		//nolint:exhaustruct //other fields are assigned later
 		goal := models.Goal{
 			TypeID: &id,
 		}
@@ -154,12 +155,13 @@ func (repo GoalRepository) Create(
 	order int,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (id, parent_id, name, is_linked, target_value, type_id, state, due_time, "order")
+		INSERT INTO goals (id, parent_id, name, is_linked, target_value, 
+		type_id, state, due_time, "order")
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id
 	`
 
-	var dueTime *time.Time = nil
+	var dueTime *time.Time
 	if due != nil {
 		dueTime = &due.Date.Time
 	}

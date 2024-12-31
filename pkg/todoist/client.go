@@ -40,12 +40,18 @@ func (client client) sendRequest(
 
 	var req *http.Request
 	if body != nil {
-		marshalled, err := json.Marshal(body)
+		var marshalled []byte
+		marshalled, err = json.Marshal(body)
 		if err != nil {
 			return err
 		}
 
-		req, err = http.NewRequestWithContext(ctx, method, u.String(), bytes.NewBuffer(marshalled))
+		req, err = http.NewRequestWithContext(
+			ctx,
+			method,
+			u.String(),
+			bytes.NewBuffer(marshalled),
+		)
 		if err != nil {
 			return err
 		}

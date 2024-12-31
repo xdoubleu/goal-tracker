@@ -110,6 +110,7 @@ func NewApp(
 ) *Application {
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
 
+	//nolint:mnd //no magic number
 	jobQueue := temptools.NewJobQueue(*logger, 100)
 
 	//nolint:exhaustruct //other fields are optional
@@ -124,14 +125,21 @@ func NewApp(
 	app.setContext()
 	app.setDB(db, supabaseClient, todoistClient, steamClient)
 
-	app.jobQueue.Push(
+	err := app.jobQueue.Push(
 		jobs.NewTodoistJob(app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
-	app.jobQueue.Push(
+	if err != nil {
+		panic(err)
+	}
+
+	err = app.jobQueue.Push(
 		jobs.NewSteamJob(app.services.Steam, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	return app
 }
@@ -151,6 +159,7 @@ func (app *Application) setDB(
 
 	app.db = spandb
 	app.services = services.New(
+		*app.logger,
 		app.config,
 		app.jobQueue,
 		repositories.New(app.db),

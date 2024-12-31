@@ -45,7 +45,8 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(
 		goalsMap[goal.Goal.State] = append(goalsMap[goal.Goal.State], goal)
 	}
 
-	//TODO deal with this in a better way
+	//nolint:godox //I know
+	// TODO deal with this in a better way
 	// important that the order is static (maybe configureable)
 	// important that the actual string can be dynamic
 	// important that we don't do unnecessary API calls to obtain this
@@ -106,17 +107,24 @@ func (service GoalService) ImportFromTodoist(ctx context.Context) error {
 		task, ok := tasksMap[goal.ID]
 
 		if !ok {
-			service.goals.Delete(ctx, &goal)
+			err = service.goals.Delete(ctx, &goal)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 
-		service.goals.Update(ctx, sectionsIDNameMap, goal, task)
+		_, err = service.goals.Update(ctx, sectionsIDNameMap, goal, task)
+		if err != nil {
+			return err
+		}
+
 		delete(tasksMap, goal.ID)
 	}
 
 	// only new tasks remain
 	for _, task := range tasksMap {
-		_, err := service.goals.Create(
+		_, err = service.goals.Create(
 			ctx,
 			task.ID,
 			task.ParentID,
@@ -159,10 +167,17 @@ func (service GoalService) Link(
 		return err
 	}
 
-	return service.todoist.UpdateTask(ctx, goal.ID, fmt.Sprintf("%s/%s", service.webURL, goal.ID))
+	return service.todoist.UpdateTask(
+		ctx,
+		goal.ID,
+		fmt.Sprintf("%s/%s", service.webURL, goal.ID),
+	)
 }
 
-func (service GoalService) FetchProgress(ctx context.Context, typeID int64) ([]string, []int64, error) {
+func (service GoalService) FetchProgress(
+	ctx context.Context,
+	typeID int64,
+) ([]string, []int64, error) {
 	progresses, err := service.progress.Fetch(ctx, typeID)
 	if err != nil {
 		return nil, nil, err
@@ -172,16 +187,29 @@ func (service GoalService) FetchProgress(ctx context.Context, typeID int64) ([]s
 	progressValues := []int64{}
 
 	for _, progress := range progresses {
-		progressLabels = append(progressLabels, progress.Date.Time.Format(models.ProgressDateFormat))
+		progressLabels = append(
+			progressLabels,
+			progress.Date.Time.Format(models.ProgressDateFormat),
+		)
 		progressValues = append(progressValues, progress.Value)
 	}
 
 	return progressLabels, progressValues, nil
 }
 
-func (service GoalService) SaveProgress(ctx context.Context, typeID int64, progressLabels []string, progressValues []int64) error {
+func (service GoalService) SaveProgress(
+	ctx context.Context,
+	typeID int64,
+	progressLabels []string,
+	progressValues []int64,
+) error {
 	for i := 0; i < len(progressLabels); i++ {
-		_, err := service.progress.Save(ctx, typeID, progressLabels[i], progressValues[i])
+		_, err := service.progress.Save(
+			ctx,
+			typeID,
+			progressLabels[i],
+			progressValues[i],
+		)
 		if err != nil {
 			return err
 		}

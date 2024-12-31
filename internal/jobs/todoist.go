@@ -2,8 +2,9 @@ package jobs
 
 import (
 	"context"
-	"goal-tracker/api/internal/services"
 	"time"
+
+	"goal-tracker/api/internal/services"
 )
 
 type TodoistJob struct {
@@ -21,6 +22,7 @@ func (j TodoistJob) ID() string {
 }
 
 func (j TodoistJob) RunEvery() *time.Duration {
+	//nolint:mnd //no magic number
 	period := 24 * time.Hour
 	return &period
 }

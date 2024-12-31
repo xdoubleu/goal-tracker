@@ -3,18 +3,25 @@ package services
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"time"
+
 	"goal-tracker/api/internal/helper"
 	"goal-tracker/api/pkg/steam"
-	"time"
 )
 
 type SteamService struct {
+	logger slog.Logger
 	client steam.Client
 	userID string
 }
 
-func (service SteamService) GetSteamCompletionRateProgress(ctx context.Context) ([]string, []int64, error) {
-	achievementsPerGame, totalAchievementsPerGame, err := service.fetchAchievementsFromApi(ctx)
+func (service SteamService) GetSteamCompletionRateProgress(
+	ctx context.Context,
+) ([]string, []int64, error) {
+	achievementsPerGame, totalAchievementsPerGame, err := service.fetchAchievementsFromAPI(
+		ctx,
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -36,19 +43,30 @@ func (service SteamService) GetSteamCompletionRateProgress(ctx context.Context) 
 	return dates, percentages, nil
 }
 
-func (service SteamService) fetchAchievementsFromApi(ctx context.Context) (map[int][]steam.Achievement, map[int]int, error) {
-	fmt.Println("fetching owned games")
+func (service SteamService) fetchAchievementsFromAPI(
+	ctx context.Context,
+) (map[int][]steam.Achievement, map[int]int, error) {
+	service.logger.Debug("fetching owned games")
 	ownedGamesResponse, err := service.client.GetOwnedGames(ctx, service.userID)
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Printf("fetched %d games\n", ownedGamesResponse.Response.GameCount)
+	service.logger.Debug(
+		fmt.Sprintf("fetched %d games\n", ownedGamesResponse.Response.GameCount),
+	)
 
 	totalAchievementsPerGame := map[int]int{}
 	achievements := map[int][]steam.Achievement{}
 	for i, game := range ownedGamesResponse.Response.Games {
-		fmt.Printf("fetching achievements for game %d (%s)\n", (i + 1), game.Name)
-		achievementsForGame, err := service.client.GetPlayerAchievements(ctx, service.userID, game.AppID)
+		service.logger.Debug(
+			fmt.Sprintf("fetching achievements for game %d (%s)\n", (i + 1), game.Name),
+		)
+		var achievementsForGame *steam.AchievementsResponse
+		achievementsForGame, err = service.client.GetPlayerAchievements(
+			ctx,
+			service.userID,
+			game.AppID,
+		)
 		if err != nil {
 			return nil, nil, err
 		}

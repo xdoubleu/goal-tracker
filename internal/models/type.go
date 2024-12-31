@@ -13,7 +13,7 @@ var SteamCompletionRate = Type{
 
 //nolint:gochecknoglobals //ok
 var FinishedBooks = Type{
-	//nolint:mnd //ok
+
 	ID:   1,
 	Name: "Finished books",
 }

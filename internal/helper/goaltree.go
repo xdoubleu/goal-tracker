@@ -1,12 +1,13 @@
 package helper
 
 import (
-	"goal-tracker/api/internal/models"
 	"slices"
+
+	"goal-tracker/api/internal/models"
 )
 
 // note: todoist will only use 4 indent levels
-// (0: parent, 1: sub, 2: 2*sub, 3: 3*sub, 4: 4*sub)
+// (0: parent, 1: sub, 2: 2*sub, 3: 3*sub, 4: 4*sub).
 type GoalTree struct {
 	rootGoal *models.Goal
 	// contains IDs of all (grand*)children

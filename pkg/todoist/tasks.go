@@ -30,7 +30,9 @@ type Task struct {
 	Duration     Duration `json:"duration"`
 }
 
+//nolint:godox //I know
 // TODO due, duration
+
 type UpdateTaskDto struct {
 	Content     *string   `json:"content,omitempty"`
 	Description *string   `json:"description,omitempty"`
@@ -105,7 +107,11 @@ func (client client) GetActiveTask(ctx context.Context, taskID string) (*Task, e
 	return task, nil
 }
 
-func (client client) UpdateTask(ctx context.Context, taskID string, updateTaskDto UpdateTaskDto) (*Task, error) {
+func (client client) UpdateTask(
+	ctx context.Context,
+	taskID string,
+	updateTaskDto UpdateTaskDto,
+) (*Task, error) {
 	endpoint := fmt.Sprintf("%s/%s", TasksEndpoint, taskID)
 
 	var task *Task

@@ -2,10 +2,11 @@ package jobs
 
 import (
 	"context"
-	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/services"
 	"strconv"
 	"time"
+
+	"goal-tracker/api/internal/models"
+	"goal-tracker/api/internal/services"
 )
 
 type SteamJob struct {
@@ -13,7 +14,10 @@ type SteamJob struct {
 	goalService  services.GoalService
 }
 
-func NewSteamJob(steamService services.SteamService, goalService services.GoalService) SteamJob {
+func NewSteamJob(
+	steamService services.SteamService,
+	goalService services.GoalService,
+) SteamJob {
 	return SteamJob{
 		steamService: steamService,
 		goalService:  goalService,
@@ -32,10 +36,17 @@ func (j SteamJob) RunEvery() *time.Duration {
 func (j SteamJob) Run() error {
 	ctx := context.Background()
 
-	progressLabels, progressValues, err := j.steamService.GetSteamCompletionRateProgress(ctx)
+	progressLabels, progressValues, err := j.steamService.GetSteamCompletionRateProgress(
+		ctx,
+	)
 	if err != nil {
 		return err
 	}
 
-	return j.goalService.SaveProgress(ctx, models.SteamCompletionRate.ID, progressLabels, progressValues)
+	return j.goalService.SaveProgress(
+		ctx,
+		models.SteamCompletionRate.ID,
+		progressLabels,
+		progressValues,
+	)
 }

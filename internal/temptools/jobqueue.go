@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type CallbackFunc = func(id string, isRunning bool, lastRunTime time.Time)
+type CallbackFunc = func(id string, isRunning bool, lastRunTime *time.Time)
 
 type JobQueue struct {
 	logger        slog.Logger
@@ -43,9 +43,11 @@ func NewJobQueue(logger slog.Logger, size int) JobQueue {
 
 func (q *JobQueue) Push(job Job, callback CallbackFunc) error {
 	jobContainer := &jobContainer{
-		job:      job,
-		period:   job.RunEvery(),
-		callback: callback,
+		job:         job,
+		period:      job.RunEvery(),
+		callback:    callback,
+		lastRunTime: nil,
+		isPushed:    false,
 	}
 
 	if jobContainer.period != nil {
@@ -111,15 +113,17 @@ func (q *JobQueue) startScheduler() {
 }
 
 func getSmallestPeriod(jobContainers map[string]*jobContainer) time.Duration {
-	var smallestPeriod *time.Duration = nil
+	var smallestPeriod *time.Duration
 
 	for _, c := range jobContainers {
-		if smallestPeriod == nil || c.period.Nanoseconds() < smallestPeriod.Nanoseconds() {
+		if smallestPeriod == nil ||
+			c.period.Nanoseconds() < smallestPeriod.Nanoseconds() {
 			smallestPeriod = c.period
 		}
 	}
 
 	if smallestPeriod == nil {
+		//nolint:mnd //no magic number
 		return 10 * time.Second
 	}
 
@@ -131,7 +135,7 @@ func (c *jobContainer) run() error {
 		c.isPushed = false
 	}()
 
-	c.callback(c.job.ID(), true, *c.lastRunTime)
+	c.callback(c.job.ID(), true, c.lastRunTime)
 
 	nowUTC := time.Now().UTC()
 	c.lastRunTime = &nowUTC
@@ -141,10 +145,11 @@ func (c *jobContainer) run() error {
 		return err
 	}
 
-	c.callback(c.job.ID(), false, *c.lastRunTime)
+	c.callback(c.job.ID(), false, c.lastRunTime)
 	return nil
 }
 
 func (c jobContainer) shouldRun() bool {
-	return !c.isPushed && (c.lastRunTime == nil || c.lastRunTime.Add(*c.period).After(time.Now().UTC()))
+	return !c.isPushed &&
+		(c.lastRunTime == nil || c.lastRunTime.Add(*c.period).After(time.Now().UTC()))
 }

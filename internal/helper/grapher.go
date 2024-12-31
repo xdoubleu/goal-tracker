@@ -1,10 +1,11 @@
 package helper
 
 import (
-	"goal-tracker/api/internal/models"
 	"math"
 	"slices"
 	"time"
+
+	"goal-tracker/api/internal/models"
 )
 
 type Grapher struct {
@@ -15,7 +16,9 @@ type Grapher struct {
 
 func NewGrapher(totalAchievementsPerGame map[int]int) Grapher {
 	return Grapher{
-		totalAchievementsPerGame: totalAchievementsPerGame,
+		dateStrings:               []string{},
+		achievementsPerGamePerDay: []map[int]int{},
+		totalAchievementsPerGame:  totalAchievementsPerGame,
 	}
 }
 
@@ -37,28 +40,41 @@ func (grapher Grapher) GetFirstDay() time.Time {
 }
 
 func (grapher Grapher) GetLastDay() time.Time {
-	date, _ := time.Parse(models.ProgressDateFormat, grapher.dateStrings[len(grapher.dateStrings)-1])
+	date, _ := time.Parse(
+		models.ProgressDateFormat,
+		grapher.dateStrings[len(grapher.dateStrings)-1],
+	)
 	return date
 }
 
 func (grapher *Grapher) addDays(dateStr string) {
 	if len(grapher.dateStrings) == 0 {
 		grapher.dateStrings = append(grapher.dateStrings, dateStr)
-		grapher.achievementsPerGamePerDay = append(grapher.achievementsPerGamePerDay, map[int]int{})
+		grapher.achievementsPerGamePerDay = append(
+			grapher.achievementsPerGamePerDay,
+			map[int]int{},
+		)
 		return
 	}
 
 	dateDay, _ := time.Parse(models.ProgressDateFormat, dateStr)
 	smallestDate, _ := time.Parse(models.ProgressDateFormat, grapher.dateStrings[0])
-	largestDate, _ := time.Parse(models.ProgressDateFormat, grapher.dateStrings[len(grapher.dateStrings)-1])
+	largestDate, _ := time.Parse(
+		models.ProgressDateFormat,
+		grapher.dateStrings[len(grapher.dateStrings)-1],
+	)
 
 	if dateDay.Before(smallestDate) {
 		i := smallestDate
 		for i.After(dateDay) {
 			i = i.AddDate(0, 0, -1)
 
-			grapher.dateStrings = append([]string{i.Format(models.ProgressDateFormat)}, grapher.dateStrings...)
-			grapher.achievementsPerGamePerDay = append([]map[int]int{{}}, grapher.achievementsPerGamePerDay...)
+			grapher.dateStrings = append(
+				[]string{i.Format(models.ProgressDateFormat)},
+				grapher.dateStrings...)
+			grapher.achievementsPerGamePerDay = append(
+				[]map[int]int{{}},
+				grapher.achievementsPerGamePerDay...)
 		}
 	}
 
@@ -67,8 +83,16 @@ func (grapher *Grapher) addDays(dateStr string) {
 		for i.Before(dateDay) {
 			i = i.AddDate(0, 0, 1)
 
-			grapher.dateStrings = append(grapher.dateStrings, i.Format(models.ProgressDateFormat))
-			grapher.achievementsPerGamePerDay = append(grapher.achievementsPerGamePerDay, copyMap(grapher.achievementsPerGamePerDay[len(grapher.achievementsPerGamePerDay)-1]))
+			grapher.dateStrings = append(
+				grapher.dateStrings,
+				i.Format(models.ProgressDateFormat),
+			)
+			grapher.achievementsPerGamePerDay = append(
+				grapher.achievementsPerGamePerDay,
+				copyMap(
+					grapher.achievementsPerGamePerDay[len(grapher.achievementsPerGamePerDay)-1],
+				),
+			)
 		}
 	}
 }
@@ -100,14 +124,19 @@ func (grapher Grapher) ToSlices() ([]string, []int64) {
 		for gameID, achievements := range achievementsPerGame {
 			games++
 
-			totalAchievements := grapher.totalAchievementsPerGame[int(gameID)]
-			totalPercentageDay += calculateCompletionRate(achievements, totalAchievements)
+			totalAchievements := grapher.totalAchievementsPerGame[gameID]
+			totalPercentageDay += calculateCompletionRate(
+				achievements,
+				totalAchievements,
+			)
 		}
 
 		avgCompletionRate := calculateAvgCompletionRate(totalPercentageDay, games)
 		if avgCompletionRate == 0 {
 			dateStringsIndex := i - droppedCount
-			grapher.dateStrings = append(grapher.dateStrings[:dateStringsIndex], grapher.dateStrings[dateStringsIndex+1:]...)
+			grapher.dateStrings = append(
+				grapher.dateStrings[:dateStringsIndex],
+				grapher.dateStrings[dateStringsIndex+1:]...)
 			droppedCount++
 			continue
 		}
@@ -123,5 +152,6 @@ func calculateCompletionRate(achieved int, total int) float64 {
 }
 
 func calculateAvgCompletionRate(percentageSum float64, totalGames int) int64 {
+	//nolint:mnd //no magic number
 	return int64(math.Floor(percentageSum / float64(totalGames) * 100.0))
 }
