@@ -1,10 +1,13 @@
 package models
 
-import "time"
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+const ProgressDateFormat = "2006-01-02"
 
 type Progress struct {
-	ID        int64     `json:"id"`
-	GoalID    string    `json:"goalId"`
-	Value     int64     `json:"value"`
-	CreatedAt time.Time `json:"createdAt"`
+	TypeID int64            `json:"typeId"`
+	Date   pgtype.Timestamp `json:"date"`
+	Value  int64            `json:"value"`
 } //	@name	Progress

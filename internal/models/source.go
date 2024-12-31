@@ -7,25 +7,15 @@ type Source struct {
 
 //nolint:gochecknoglobals //ok
 var Sources = []Source{
-	ManualSource,
 	SteamSource,
 	GoodreadsSource,
-}
-
-//nolint:gochecknoglobals //ok
-var ManualSource = Source{
-	Name: "Manual",
-	Types: []Type{
-		AmountType,
-	},
 }
 
 //nolint:gochecknoglobals //ok
 var SteamSource = Source{
 	Name: "Steam",
 	Types: []Type{
-		SteamCompletionPercentage,
-		CompletedGames,
+		SteamCompletionRate,
 	},
 }
 

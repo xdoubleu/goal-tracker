@@ -10,7 +10,7 @@ const BaseImgURL = "http://media.steampowered.com/steamcommunity/public/images/a
 type Achievement struct {
 	APIName     string `json:"apiname"`
 	Achieved    int    `json:"achieved"`
-	UnlockTime  int    `json:"unlocktime"`
+	UnlockTime  int64  `json:"unlocktime"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
@@ -59,7 +59,7 @@ func (client client) GetOwnedGames(
 	err := client.sendRequest(
 		ctx,
 		"IPlayerService/GetOwnedGames/v0001",
-		fmt.Sprintf("steamid=%s&include_appinfo=true", steamID),
+		fmt.Sprintf("steamid=%s&include_appinfo=true&include_played_free_games=true&skip_unvetted_apps=false&include_free_sub=true", steamID),
 		&ownedGamesResponse,
 	)
 	if err != nil {

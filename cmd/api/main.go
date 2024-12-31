@@ -21,8 +21,10 @@ import (
 	"github.com/supabase-community/gotrue-go"
 
 	"goal-tracker/api/internal/config"
+	"goal-tracker/api/internal/jobs"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/internal/services"
+	"goal-tracker/api/internal/temptools"
 	"goal-tracker/api/pkg/steam"
 	"goal-tracker/api/pkg/todoist"
 )
@@ -45,6 +47,7 @@ type Application struct {
 	images    embed.FS
 	services  services.Services
 	tpl       *template.Template
+	jobQueue  *temptools.JobQueue
 }
 
 //	@title			goal-tracker API
@@ -63,8 +66,8 @@ func main() {
 		cfg.DBDsn,
 		25, //nolint:mnd //no magic number
 		"15m",
-		30,             //nolint:mnd //no magic number
-		30*time.Second, //nolint:mnd //no magic number
+		60,             //nolint:mnd //no magic number
+		10*time.Second, //nolint:mnd //no magic number
 		5*time.Minute,  //nolint:mnd //no magic number
 	)
 	if err != nil {
@@ -105,20 +108,30 @@ func NewApp(
 	todoistClient todoist.Client,
 	steamClient steam.Client,
 ) *Application {
-	logger.Info(cfg.String())
-
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
+
+	jobQueue := temptools.NewJobQueue(*logger, 100)
 
 	//nolint:exhaustruct //other fields are optional
 	app := &Application{
-		logger: logger,
-		config: cfg,
-		images: images,
-		tpl:    tpl,
+		logger:   logger,
+		config:   cfg,
+		images:   images,
+		tpl:      tpl,
+		jobQueue: &jobQueue,
 	}
 
 	app.setContext()
 	app.setDB(db, supabaseClient, todoistClient, steamClient)
+
+	app.jobQueue.Push(
+		jobs.NewTodoistJob(app.services.Goals),
+		app.services.WebSocket.UpdateState,
+	)
+	app.jobQueue.Push(
+		jobs.NewSteamJob(app.services.Steam, app.services.Goals),
+		app.services.WebSocket.UpdateState,
+	)
 
 	return app
 }
@@ -139,6 +152,7 @@ func (app *Application) setDB(
 	app.db = spandb
 	app.services = services.New(
 		app.config,
+		app.jobQueue,
 		repositories.New(app.db),
 		supabaseClient,
 		todoistClient,

@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/XDoubleU/essentia/pkg/errors"
 
@@ -10,9 +10,11 @@ import (
 	"goal-tracker/api/internal/helper"
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/repositories"
+	"goal-tracker/api/pkg/todoist"
 )
 
 type GoalService struct {
+	webURL   string
 	goals    repositories.GoalRepository
 	progress repositories.ProgressRepository
 	todoist  TodoistService
@@ -25,44 +27,16 @@ type StateGoalsPair struct {
 
 func (service GoalService) GetAllGroupedByStateAndParentGoal(
 	ctx context.Context,
-	userID string,
 ) ([]StateGoalsPair, error) {
-	sections, sectionsIDNameMap, err := service.todoist.GetSections(ctx)
+	goals, err := service.goals.GetAll(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	tasks, err := service.todoist.GetTasks(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	goals, err := service.goals.GetAll(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, task := range tasks {
-		exists := false
-		for _, goal := range goals {
-			if goal.ID == task.ID {
-				exists = true
-				break
-			}
-		}
-
-		if exists {
-			continue
-		}
-
-		goal := models.NewGoalFromTask(task, userID, sectionsIDNameMap[task.SectionID])
-		goals = append(goals, goal)
 	}
 
 	goalTree := helper.NewGoalTree()
 	for _, goal := range goals {
 		if !goalTree.TryAdd(goal) {
-			return nil, err
+			return nil, fmt.Errorf("failed to add goal %s to tree", goal.ID)
 		}
 	}
 
@@ -71,11 +45,21 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(
 		goalsMap[goal.Goal.State] = append(goalsMap[goal.Goal.State], goal)
 	}
 
+	//TODO deal with this in a better way
+	// important that the order is static (maybe configureable)
+	// important that the actual string can be dynamic
+	// important that we don't do unnecessary API calls to obtain this
+	states := []string{
+		"In Progress",
+		"Planned",
+		"Backlog",
+	}
+
 	result := []StateGoalsPair{}
-	for _, section := range sections {
+	for _, state := range states {
 		pair := StateGoalsPair{
-			State: section.Name,
-			Goals: goalsMap[section.Name],
+			State: state,
+			Goals: goalsMap[state],
 		}
 		result = append(result, pair)
 	}
@@ -86,47 +70,121 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(
 func (service GoalService) GetByID(
 	ctx context.Context,
 	id string,
-	user models.User,
 ) (*models.Goal, error) {
-	return service.goals.GetByID(ctx, id, user.ID)
+	return service.goals.GetByID(ctx, id)
+}
+
+func (service GoalService) GetByTypeID(
+	ctx context.Context,
+	id int64,
+) ([]models.Goal, error) {
+	return service.goals.GetByTypeID(ctx, id)
+}
+
+func (service GoalService) ImportFromTodoist(ctx context.Context) error {
+	_, sectionsIDNameMap, err := service.todoist.GetSections(ctx)
+	if err != nil {
+		return err
+	}
+
+	tasks, err := service.todoist.GetTasks(ctx)
+	if err != nil {
+		return err
+	}
+
+	tasksMap := map[string]todoist.Task{}
+	for _, task := range tasks {
+		tasksMap[task.ID] = task
+	}
+
+	existingGoals, err := service.goals.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, goal := range existingGoals {
+		task, ok := tasksMap[goal.ID]
+
+		if !ok {
+			service.goals.Delete(ctx, &goal)
+			continue
+		}
+
+		service.goals.Update(ctx, sectionsIDNameMap, goal, task)
+		delete(tasksMap, goal.ID)
+	}
+
+	// only new tasks remain
+	for _, task := range tasksMap {
+		_, err := service.goals.Create(
+			ctx,
+			task.ID,
+			task.ParentID,
+			task.Content,
+			false,
+			nil,
+			nil,
+			sectionsIDNameMap[task.SectionID],
+			task.Due,
+			task.Order,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (service GoalService) Link(
 	ctx context.Context,
 	id string,
-	user models.User,
 	linkGoalDto *dtos.LinkGoalDto,
 ) error {
 	if v := linkGoalDto.Validate(); !v.Valid() {
 		return errors.ErrFailedValidation
 	}
 
-	_, sectionsMap, err := service.todoist.GetSections(ctx)
+	goal, err := service.goals.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	task, err := service.todoist.GetTaskByID(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	var dueTime *time.Time
-	if task.Due != nil {
-		dueTime = &task.Due.Date.Time
-	}
-
-	_, err = service.goals.Create(
+	err = service.goals.Link(
 		ctx,
-		id,
-		task.ParentID,
-		user.ID,
-		task.Content,
-		true,
-		linkGoalDto.TargetValue,
-		linkGoalDto.TypeID,
-		sectionsMap[task.SectionID],
-		dueTime,
+		*goal,
+		*linkGoalDto,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return service.todoist.UpdateTask(ctx, goal.ID, fmt.Sprintf("%s/%s", service.webURL, goal.ID))
+}
+
+func (service GoalService) FetchProgress(ctx context.Context, typeID int64) ([]string, []int64, error) {
+	progresses, err := service.progress.Fetch(ctx, typeID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	progressLabels := []string{}
+	progressValues := []int64{}
+
+	for _, progress := range progresses {
+		progressLabels = append(progressLabels, progress.Date.Time.Format(models.ProgressDateFormat))
+		progressValues = append(progressValues, progress.Value)
+	}
+
+	return progressLabels, progressValues, nil
+}
+
+func (service GoalService) SaveProgress(ctx context.Context, typeID int64, progressLabels []string, progressValues []int64) error {
+	for i := 0; i < len(progressLabels); i++ {
+		_, err := service.progress.Save(ctx, typeID, progressLabels[i], progressValues[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

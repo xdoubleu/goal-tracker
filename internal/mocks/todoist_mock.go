@@ -40,3 +40,11 @@ func (client MockTodoistClient) GetAllSections(
 ) ([]todoist.Section, error) {
 	return []todoist.Section{}, nil
 }
+
+func (client MockTodoistClient) UpdateTask(
+	ctx context.Context,
+	taskID string,
+	updateTaskDto todoist.UpdateTaskDto,
+) (*todoist.Task, error) {
+	return &todoist.Task{}, nil
+}

@@ -1,7 +1,9 @@
 package todoist
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -23,9 +25,10 @@ func New(apiToken string) Client {
 
 func (client client) sendRequest(
 	ctx context.Context,
-	_ string,
+	method string,
 	endpoint string,
 	query string,
+	body any,
 	dst any,
 ) error {
 	u, err := url.Parse(fmt.Sprintf("%s/%s", BaseURLRESTAPI, endpoint))
@@ -35,9 +38,24 @@ func (client client) sendRequest(
 
 	u.RawQuery = query
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	if err != nil {
-		return err
+	var req *http.Request
+	if body != nil {
+		marshalled, err := json.Marshal(body)
+		if err != nil {
+			return err
+		}
+
+		req, err = http.NewRequestWithContext(ctx, method, u.String(), bytes.NewBuffer(marshalled))
+		if err != nil {
+			return err
+		}
+
+		req.Header.Add("Content-Type", "application/json")
+	} else {
+		req, err = http.NewRequestWithContext(ctx, method, u.String(), nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", client.apiToken))

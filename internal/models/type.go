@@ -6,27 +6,14 @@ type Type struct {
 } //	@name	Type
 
 //nolint:gochecknoglobals //ok
-var AmountType = Type{
+var SteamCompletionRate = Type{
 	ID:   0,
-	Name: "Amount",
-}
-
-//nolint:gochecknoglobals //ok
-var SteamCompletionPercentage = Type{
-	ID:   1,
-	Name: "Steam completion percentage",
-}
-
-//nolint:gochecknoglobals //ok
-var CompletedGames = Type{
-	//nolint:mnd //ok
-	ID:   2,
-	Name: "Completed games",
+	Name: "Steam completion rate",
 }
 
 //nolint:gochecknoglobals //ok
 var FinishedBooks = Type{
 	//nolint:mnd //ok
-	ID:   3,
+	ID:   1,
 	Name: "Finished books",
 }

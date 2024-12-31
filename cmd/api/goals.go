@@ -40,7 +40,7 @@ func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = app.services.Goals.Link(r.Context(), id, *user, &linkGoalDto)
+	err = app.services.Goals.Link(r.Context(), id, &linkGoalDto)
 	if err != nil {
 		temptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
 		return

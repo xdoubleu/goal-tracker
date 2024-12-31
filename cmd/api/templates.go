@@ -38,11 +38,8 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	// note: todoist will only use 4 indent levels
-	// (0: parent, 1: sub, 2: 2*sub, 3: 3*sub, 4: 4*sub)
 	goals, err := app.services.Goals.GetAllGroupedByStateAndParentGoal(
 		r.Context(),
-		user.ID,
 	)
 	if err != nil {
 		panic(err)
@@ -67,13 +64,13 @@ func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	task, err := app.services.Todoist.GetTaskByID(r.Context(), id)
+	goal, err := app.services.Goals.GetByID(r.Context(), id)
 	if err != nil {
 		panic(err)
 	}
 
 	goalAndSources := GoalAndSources{
-		Goal:    models.NewGoalFromTask(*task, user.ID, ""),
+		Goal:    *goal,
 		Sources: models.Sources,
 	}
 	tplhelper.RenderWithPanic(app.tpl, w, "link.html", goalAndSources)
@@ -96,28 +93,31 @@ func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	goal, err := app.services.Goals.GetByID(r.Context(), id, *user)
+	goal, err := app.services.Goals.GetByID(r.Context(), id)
 	if err != nil {
 		panic(err)
 	}
 
-	//nolint:godox //i'm aware
-	//TODO: fetch progress
-	now := time.Now()
-	yesterday := now.Add(-24 * time.Hour)
-	yesterdaySquared := yesterday.Add(-24 * time.Hour)
-	format := "2006-01-02"
-
-	progressLabels := []string{
-		yesterdaySquared.Format(format),
-		yesterday.Format(format),
-		now.Format(format),
+	progressLabels, progressValues, err := app.services.Goals.FetchProgress(r.Context(), *goal.TypeID)
+	if err != nil {
+		panic(err)
 	}
 
-	progressValues := []int64{
-		10,
-		5,
-		10,
+	// only get last year
+	// TODO make this dynamic
+	dateNow := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
+	dateYearAgo := time.Date(dateNow.Year()-1, dateNow.Month(), dateNow.Day(), 0, 0, 0, 0, time.UTC)
+
+	i := 0
+	for i < len(progressLabels) {
+		progressTime, _ := time.Parse(models.ProgressDateFormat, progressLabels[i])
+		if progressTime.Before(dateYearAgo) {
+			progressLabels = append(progressLabels[:i], progressLabels[i+1:]...)
+			progressValues = append(progressValues[:i], progressValues[i+1:]...)
+			continue
+		}
+
+		i++
 	}
 
 	goalAndProgress := GoalAndProgress{

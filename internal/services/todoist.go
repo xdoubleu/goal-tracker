@@ -37,3 +37,11 @@ func (service TodoistService) GetTaskByID(
 ) (*todoist.Task, error) {
 	return service.client.GetActiveTask(ctx, id)
 }
+
+func (service TodoistService) UpdateTask(ctx context.Context, id string, description string) error {
+	_, err := service.client.UpdateTask(ctx, id, todoist.UpdateTaskDto{
+		Description: &description,
+	})
+
+	return err
+}

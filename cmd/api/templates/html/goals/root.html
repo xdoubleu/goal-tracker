@@ -1,5 +1,9 @@
 {{template "header"}}
 {{template "navbar"}}
+    {{template "ws" "todoist"}}
+    <br/>
+    <br/>
+
     {{range $pair := .}}
         <h2>{{$pair.State}}</h2>
         <ul>

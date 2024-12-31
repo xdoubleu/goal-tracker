@@ -5,18 +5,16 @@ import (
 )
 
 type LinkGoalDto struct {
-	ID               string            `json:"id"`
 	TargetValue      int64             `json:"targetValue"`
 	TypeID           int64             `json:"typeId"`
 	ValidationErrors map[string]string `json:"-"`
-} //	@name	CreateGoalDto
+} //	@name	LinkGoalDto
 
-type UpdateGoalDto struct {
+type RelinkGoalDto struct {
 	TargetValue      *int64            `json:"targetValue"`
-	SourceID         *int64            `json:"sourceId"`
 	TypeID           *int64            `json:"typeId"`
 	ValidationErrors map[string]string `json:"-"`
-} //	@name	UpdateGoalDto
+} //	@name	RelinkGoalDto
 
 func (dto *LinkGoalDto) Validate() *validate.Validator {
 	v := validate.New()
@@ -26,7 +24,7 @@ func (dto *LinkGoalDto) Validate() *validate.Validator {
 	return v
 }
 
-func (dto *UpdateGoalDto) Validate() *validate.Validator {
+func (dto *RelinkGoalDto) Validate() *validate.Validator {
 	v := validate.New()
 
 	dto.ValidationErrors = v.Errors
