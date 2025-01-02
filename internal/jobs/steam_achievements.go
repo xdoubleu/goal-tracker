@@ -33,7 +33,7 @@ func (j SteamAchievementsJob) ID() string {
 }
 
 func (j SteamAchievementsJob) RunEvery() *time.Duration {
-	period := time.Hour
+	period := 24 * time.Hour
 	return &period
 }
 
@@ -65,7 +65,7 @@ func (j SteamAchievementsJob) Run(logger slog.Logger) error {
 		totalAchievementsPerGame[game] = len(achievementsPerGame[game])
 	}
 
-	grapher := helper.NewGrapher(totalAchievementsPerGame)
+	grapher := helper.NewAchievementsGrapher(totalAchievementsPerGame)
 
 	totalAchievedAchievements := 0
 	for gameID, achievements := range achievementsPerGame {
@@ -85,6 +85,7 @@ func (j SteamAchievementsJob) Run(logger slog.Logger) error {
 
 	progressLabels, progressValues := grapher.ToSlices()
 
+	logger.Debug("saving progress")
 	return j.goalService.SaveProgress(
 		ctx,
 		models.SteamCompletionRate.ID,

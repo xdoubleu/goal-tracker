@@ -16,15 +16,17 @@ type ProgressRepository struct {
 func (repo ProgressRepository) Fetch(
 	ctx context.Context,
 	typeID int64,
+	dateStart time.Time,
+	dateEnd time.Time,
 ) ([]models.Progress, error) {
 	query := `
 		SELECT value, date 
 		FROM progress 
-		WHERE type_id = $1 
+		WHERE type_id = $1 AND date >= $2 AND date <= $3
 		ORDER BY date ASC
 	`
 
-	rows, err := repo.db.Query(ctx, query, typeID)
+	rows, err := repo.db.Query(ctx, query, typeID, dateStart, dateEnd)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}

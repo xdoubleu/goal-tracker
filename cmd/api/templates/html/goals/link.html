@@ -3,10 +3,6 @@
     <h1>{{.Goal.Name}}</h1>
     <form method="POST" action="/api/goals/{{.Goal.ID}}/link" class="col-lg-6">
         <div class="row mb-3">
-            <label for="targetValue" class="form-label">Target value</label>
-            <input type="number" class="form-control" name="targetValue">
-        </div>
-        <div class="row mb-3">
             <label for="typeId" class="form-label">Type</label>
             <select name="typeId">
                 <option selected>Select a type</option>
@@ -18,6 +14,10 @@
                     </optgroup>
                 {{end}}
             </select>
+        </div>
+        <div class="row mb-3">
+            <label for="targetValue" class="form-label">Target value</label>
+            <input type="number" class="form-control" name="targetValue">
         </div>
         <button type="submit" class="btn btn-primary">Link</button>
     </form>

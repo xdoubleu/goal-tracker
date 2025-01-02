@@ -28,7 +28,7 @@ func (app *Application) templateRoutes(mux *http.ServeMux) {
 	)
 	mux.HandleFunc(
 		"GET /goals/{id}",
-		app.authTemplateAccess(app.graphHandler),
+		app.authTemplateAccess(app.goalProgressHandler),
 	)
 }
 
@@ -82,7 +82,7 @@ type GoalAndProgress struct {
 	ProgressValues []string
 }
 
-func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := parse.URLParam[string](r, "id", nil)
 	if err != nil {
 		panic(err)
@@ -98,48 +98,69 @@ func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	//nolint:godox //I know
+	// TODO make this based on duration of goal
+
+	var dateStart time.Time
+	var dateEnd time.Time
+
+	switch *goal.TypeID {
+	case models.SteamCompletionRate.ID:
+		// only get the past year
+		dateStart = time.Date(
+			time.Now().Year()-1,
+			time.Now().Month(),
+			time.Now().Day(),
+			0,
+			0,
+			0,
+			0,
+			time.UTC,
+		)
+		dateEnd = time.Date(
+			time.Now().Year(),
+			time.Now().Month(),
+			time.Now().Day(),
+			0,
+			0,
+			0,
+			0,
+			time.UTC,
+		)
+	case models.FinishedBooksThisYear.ID:
+		// only get this year
+		dateStart = time.Date(
+			time.Now().Year(),
+			1,
+			1,
+			0,
+			0,
+			0,
+			0,
+			time.UTC,
+		)
+		dateEnd = time.Date(
+			time.Now().Year(),
+			12,
+			31,
+			0,
+			0,
+			0,
+			0,
+			time.UTC,
+		)
+	default:
+		panic("not implemented")
+	}
+
 	progressLabels, progressValues, err := app.services.Goals.FetchProgress(
 		r.Context(),
 		*goal.TypeID,
+		dateStart,
+		dateEnd,
 	)
 	if err != nil {
 		panic(err)
-	}
-
-	// only get last year
-	//nolint:godox //I know
-	// TODO make this dynamic
-	dateNow := time.Date(
-		time.Now().Year(),
-		time.Now().Month(),
-		time.Now().Day(),
-		0,
-		0,
-		0,
-		0,
-		time.UTC,
-	)
-	dateYearAgo := time.Date(
-		dateNow.Year()-1,
-		dateNow.Month(),
-		dateNow.Day(),
-		0,
-		0,
-		0,
-		0,
-		time.UTC,
-	)
-
-	i := 0
-	for i < len(progressLabels) {
-		progressTime, _ := time.Parse(models.ProgressDateFormat, progressLabels[i])
-		if progressTime.Before(dateYearAgo) {
-			progressLabels = append(progressLabels[:i], progressLabels[i+1:]...)
-			progressValues = append(progressValues[:i], progressValues[i+1:]...)
-			continue
-		}
-
-		i++
 	}
 
 	goalAndProgress := GoalAndProgress{

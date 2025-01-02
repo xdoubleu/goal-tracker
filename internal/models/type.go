@@ -12,8 +12,7 @@ var SteamCompletionRate = Type{
 }
 
 //nolint:gochecknoglobals //ok
-var FinishedBooks = Type{
-
+var FinishedBooksThisYear = Type{
 	ID:   1,
-	Name: "Finished books",
+	Name: "Finished books this year",
 }

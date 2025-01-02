@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/XDoubleU/essentia/pkg/errors"
 
@@ -77,12 +78,13 @@ func (service GoalService) GetByTypeID(
 	return service.goals.GetByTypeID(ctx, id)
 }
 
-func (service GoalService) ImportFromTodoist(ctx context.Context) error {
+func (service GoalService) ImportStatesFromTodoist(ctx context.Context) error {
 	states, err := service.states.GetAll(ctx)
 	if err != nil {
 		return err
 	}
 
+	//TODO deal with section updates
 	if len(states) == 0 {
 		sections, err := service.todoist.GetSections(ctx)
 		if err != nil {
@@ -99,6 +101,10 @@ func (service GoalService) ImportFromTodoist(ctx context.Context) error {
 		}
 	}
 
+	return nil
+}
+
+func (service GoalService) ImportGoalsFromTodoist(ctx context.Context) error {
 	tasks, err := service.todoist.GetTasks(ctx)
 	if err != nil {
 		return err
@@ -212,8 +218,10 @@ func (service GoalService) Unlink(
 func (service GoalService) FetchProgress(
 	ctx context.Context,
 	typeID int64,
+	dateStart time.Time,
+	dateEnd time.Time,
 ) ([]string, []string, error) {
-	progresses, err := service.progress.Fetch(ctx, typeID)
+	progresses, err := service.progress.Fetch(ctx, typeID, dateStart, dateEnd)
 	if err != nil {
 		return nil, nil, err
 	}

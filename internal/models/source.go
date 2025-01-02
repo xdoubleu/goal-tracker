@@ -23,6 +23,6 @@ var SteamSource = Source{
 var GoodreadsSource = Source{
 	Name: "Goodreads",
 	Types: []Type{
-		FinishedBooks,
+		FinishedBooksThisYear,
 	},
 }

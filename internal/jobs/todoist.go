@@ -28,8 +28,15 @@ func (j TodoistJob) RunEvery() *time.Duration {
 	return &period
 }
 
-func (j TodoistJob) Run(_ slog.Logger) error {
+func (j TodoistJob) Run(logger slog.Logger) error {
 	ctx := context.Background()
 
-	return j.goalService.ImportFromTodoist(ctx)
+	logger.Debug("importing states")
+	err := j.goalService.ImportStatesFromTodoist(ctx)
+	if err != nil {
+		return err
+	}
+
+	logger.Debug("importing goals")
+	return j.goalService.ImportGoalsFromTodoist(ctx)
 }

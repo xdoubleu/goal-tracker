@@ -17,6 +17,7 @@ type Services struct {
 	Goals     GoalService
 	Todoist   TodoistService
 	Steam     SteamService
+	Goodreads GoodreadsService
 	WebSocket *WebSocketService
 }
 
@@ -30,6 +31,7 @@ func New(
 	steamClient steam.Client,
 ) Services {
 	auth := AuthService{client: supabaseClient}
+	goodreads := GoodreadsService{profileURL: config.GoodreadsURL}
 	todoist := TodoistService{client: todoistClient, projectID: config.TodoistProjectID}
 	steam := SteamService{
 		logger: logger,
@@ -50,6 +52,7 @@ func New(
 		Goals:     goals,
 		Todoist:   todoist,
 		Steam:     steam,
+		Goodreads: goodreads,
 		WebSocket: NewWebSocketService([]string{config.WebURL}, jobQueue),
 	}
 }

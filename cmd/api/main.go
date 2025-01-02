@@ -134,12 +134,22 @@ func NewApp(
 	}
 
 	err = app.jobQueue.Push(
+		jobs.NewGoodreadsJob(app.services.Goodreads, app.services.Goals),
+		app.services.WebSocket.UpdateState,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	err = app.jobQueue.Push(
 		jobs.NewSteamAchievementsJob(app.services.Steam, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {
 		panic(err)
 	}
+
+	app.services.WebSocket.RegisterTopics(app.jobQueue.FetchRecurringJobIDs())
 
 	return app
 }

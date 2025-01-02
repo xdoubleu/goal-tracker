@@ -3,13 +3,11 @@ package services
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"time"
 
 	wstools "github.com/XDoubleU/essentia/pkg/communication/ws"
 
 	"goal-tracker/api/internal/dtos"
-	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/temptools"
 )
 
@@ -37,7 +35,6 @@ func NewWebSocketService(
 	)
 
 	service.handler = &handler
-	service.registerTopics()
 
 	return &service
 }
@@ -62,12 +59,7 @@ func (service WebSocketService) UpdateState(
 	})
 }
 
-func (service WebSocketService) registerTopics() {
-	topics := []string{
-		"todoist",
-		strconv.Itoa(int(models.SteamCompletionRate.ID)),
-	}
-
+func (service WebSocketService) RegisterTopics(topics []string) {
 	for _, topic := range topics {
 		registeredTopic, err := service.handler.AddTopic(
 			topic,

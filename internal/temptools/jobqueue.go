@@ -3,6 +3,7 @@ package temptools
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -74,6 +75,14 @@ func (q *JobQueue) ForceRun(id string) {
 	q.push(rj)
 }
 
+func (q *JobQueue) FetchRecurringJobIDs() []string {
+	result := []string{}
+	for _, rj := range q.recurringJobs {
+		result = append(result, rj.job.ID())
+	}
+	return result
+}
+
 func (q *JobQueue) FetchState(id string) (bool, *time.Time) {
 	rj, ok := q.recurringJobs[id]
 	if !ok {
@@ -143,10 +152,12 @@ func (c *jobContainer) run(logger slog.Logger) error {
 	nowUTC := time.Now().UTC()
 	c.lastRunTime = &nowUTC
 
+	logger.Debug(fmt.Sprintf("started job %s", c.job.ID()))
 	err := c.job.Run(logger)
 	if err != nil {
 		return err
 	}
+	logger.Debug(fmt.Sprintf("successfully finished job %s", c.job.ID()))
 
 	c.callback(c.job.ID(), false, c.lastRunTime)
 	return nil

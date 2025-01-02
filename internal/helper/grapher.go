@@ -2,57 +2,58 @@ package helper
 
 import (
 	"fmt"
-	"slices"
-	"time"
-
 	"goal-tracker/api/internal/models"
+	"slices"
+	"strconv"
+	"time"
 )
 
-type Grapher struct {
-	dateStrings               []string
-	achievementsPerGamePerDay []map[int]int
-	totalAchievementsPerGame  map[int]int
+type GraphType int
+type Numeric interface {
+	int | int64 | float64
 }
 
-func NewGrapher(totalAchievementsPerGame map[int]int) Grapher {
-	return Grapher{
-		dateStrings:               []string{},
-		achievementsPerGamePerDay: []map[int]int{},
-		totalAchievementsPerGame:  totalAchievementsPerGame,
+const (
+	Normal     GraphType = iota
+	Cumulative GraphType = iota
+)
+
+type Grapher[T Numeric] struct {
+	graphType   GraphType
+	dateStrings []string
+	values      []T
+}
+
+// TODO: allow to specify if you should graph per day, month, year
+// TODO: allow to specify a period that should be graphed (day, month, year)
+//   - the first point determines the correct period
+//   - invalid points will throw an error
+func NewGrapher[T Numeric](graphType GraphType) *Grapher[T] {
+	return &Grapher[T]{
+		graphType:   graphType,
+		dateStrings: []string{},
+		values:      []T{},
 	}
 }
 
-func (grapher *Grapher) AddPoint(date time.Time, gameID int) {
+func (grapher *Grapher[T]) AddPoint(date time.Time, value T) {
 	dateStr := date.Format(models.ProgressDateFormat)
 	dateIndex := slices.Index(grapher.dateStrings, dateStr)
 
 	if dateIndex == -1 {
 		grapher.addDays(dateStr)
-		dateIndex = len(grapher.dateStrings) - 1
+		dateIndex = slices.Index(grapher.dateStrings, dateStr)
 	}
 
-	grapher.updateDays(dateIndex, gameID)
+	grapher.updateDays(dateIndex, value)
 }
 
-func (grapher Grapher) GetFirstDay() time.Time {
-	date, _ := time.Parse(models.ProgressDateFormat, grapher.dateStrings[0])
-	return date
-}
-
-func (grapher Grapher) GetLastDay() time.Time {
-	date, _ := time.Parse(
-		models.ProgressDateFormat,
-		grapher.dateStrings[len(grapher.dateStrings)-1],
-	)
-	return date
-}
-
-func (grapher *Grapher) addDays(dateStr string) {
+func (grapher *Grapher[T]) addDays(dateStr string) {
 	if len(grapher.dateStrings) == 0 {
 		grapher.dateStrings = append(grapher.dateStrings, dateStr)
-		grapher.achievementsPerGamePerDay = append(
-			grapher.achievementsPerGamePerDay,
-			map[int]int{},
+		grapher.values = append(
+			grapher.values,
+			*new(T),
 		)
 		return
 	}
@@ -72,9 +73,9 @@ func (grapher *Grapher) addDays(dateStr string) {
 			grapher.dateStrings = append(
 				[]string{i.Format(models.ProgressDateFormat)},
 				grapher.dateStrings...)
-			grapher.achievementsPerGamePerDay = append(
-				[]map[int]int{{}},
-				grapher.achievementsPerGamePerDay...)
+			grapher.values = append(
+				[]T{*new(T)},
+				grapher.values...)
 		}
 	}
 
@@ -87,72 +88,41 @@ func (grapher *Grapher) addDays(dateStr string) {
 				grapher.dateStrings,
 				i.Format(models.ProgressDateFormat),
 			)
-			grapher.achievementsPerGamePerDay = append(
-				grapher.achievementsPerGamePerDay,
-				copyMap(
-					grapher.achievementsPerGamePerDay[len(grapher.achievementsPerGamePerDay)-1],
-				),
+			grapher.values = append(
+				grapher.values,
+				grapher.values[len(grapher.values)-1],
 			)
 		}
 	}
 }
 
-func copyMap(original map[int]int) map[int]int {
-	target := map[int]int{}
-
-	for k, v := range original {
-		target[k] = v
-	}
-
-	return target
-}
-
-func (grapher *Grapher) updateDays(dateIndex int, gameID int) {
+func (grapher *Grapher[T]) updateDays(dateIndex int, value T) {
 	for i := dateIndex; i < len(grapher.dateStrings); i++ {
-		grapher.achievementsPerGamePerDay[i][gameID]++
+		switch grapher.graphType {
+		case Normal:
+			grapher.values[i] = value
+		case Cumulative:
+			grapher.values[i] += value
+		}
 	}
 }
 
-func (grapher Grapher) ToSlices() ([]string, []string) {
-	percentages := []string{}
+func (grapher Grapher[T]) ToStringSlices() ([]string, []string) {
+	strValues := []string{}
 
-	droppedCount := 0
-	for i, achievementsPerGame := range grapher.achievementsPerGamePerDay {
-		games := 0
-		totalPercentageDay := 0.0
-
-		for gameID, achievements := range achievementsPerGame {
-			games++
-
-			totalAchievements := grapher.totalAchievementsPerGame[gameID]
-			totalPercentageDay += calculateCompletionRate(
-				achievements,
-				totalAchievements,
-			)
+	for _, value := range grapher.values {
+		strValue := ""
+		switch v := any(value).(type) {
+		case int:
+			strValue = strconv.Itoa(v)
+		case int64:
+			strValue = strconv.Itoa(int(v))
+		case float64:
+			strValue = fmt.Sprintf("%.2f", v)
 		}
 
-		rawAvgCompletionRate, avgCompletionRate := calculateAvgCompletionRate(totalPercentageDay, games)
-		if rawAvgCompletionRate == 0 {
-			dateStringsIndex := i - droppedCount
-			grapher.dateStrings = append(
-				grapher.dateStrings[:dateStringsIndex],
-				grapher.dateStrings[dateStringsIndex+1:]...)
-			droppedCount++
-			continue
-		}
-
-		percentages = append(percentages, avgCompletionRate)
+		strValues = append(strValues, strValue)
 	}
 
-	return grapher.dateStrings, percentages
-}
-
-func calculateCompletionRate(achieved int, total int) float64 {
-	return float64(achieved) / float64(total)
-}
-
-func calculateAvgCompletionRate(percentageSum float64, totalGames int) (int, string) {
-	//nolint:mnd //no magic number
-	raw := percentageSum / float64(totalGames) * 100.0
-	return int(raw), fmt.Sprintf("%.2f", raw)
+	return grapher.dateStrings, strValues
 }
