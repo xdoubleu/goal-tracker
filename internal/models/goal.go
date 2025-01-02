@@ -11,7 +11,7 @@ type Goal struct {
 	IsLinked    bool       `json:"isLinked"`
 	TargetValue *int64     `json:"targetValue"`
 	TypeID      *int64     `json:"typeId"`
-	State       string     `json:"state"`
+	StateID     string     `json:"stateId"`
 	DueTime     *time.Time `json:"time"`
 	Order       int        `json:"order"`
 } //	@name	Goal

@@ -19,6 +19,10 @@ func (app *Application) goalsRoutes(prefix string, mux *http.ServeMux) {
 		fmt.Sprintf("POST %s/goals/{id}/link", prefix),
 		app.authAccess(app.linkGoalHandler),
 	)
+	mux.HandleFunc(
+		fmt.Sprintf("GET %s/goals/{id}/unlink", prefix),
+		app.authAccess(app.unlinkGoalHandler),
+	)
 }
 
 func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +47,25 @@ func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) 
 	err = app.services.Goals.Link(r.Context(), id, &linkGoalDto)
 	if err != nil {
 		temptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/goals/%s", id), http.StatusSeeOther)
+}
+
+func (app *Application) unlinkGoalHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parse.URLParam[string](r, "id", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	user := context.GetValue[models.User](r.Context(), constants.UserContextKey)
+	if user == nil {
+		panic(errors.New("not signed in"))
+	}
+
+	err = app.services.Goals.Unlink(r.Context(), id)
+	if err != nil {
 		return
 	}
 

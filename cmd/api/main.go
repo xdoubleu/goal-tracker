@@ -83,7 +83,7 @@ func main() {
 	)
 
 	todoistClient := todoist.New(cfg.TodoistAPIKey)
-	steamClient := steam.New(cfg.SteamAPIKey)
+	steamClient := steam.New(logger, cfg.SteamAPIKey)
 
 	app := NewApp(logger, cfg, db, supabaseClient, todoistClient, steamClient)
 
@@ -134,7 +134,7 @@ func NewApp(
 	}
 
 	err = app.jobQueue.Push(
-		jobs.NewSteamJob(app.services.Steam, app.services.Goals),
+		jobs.NewSteamAchievementsJob(app.services.Steam, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {

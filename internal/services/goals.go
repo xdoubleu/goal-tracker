@@ -16,6 +16,7 @@ import (
 type GoalService struct {
 	webURL   string
 	goals    repositories.GoalRepository
+	states   repositories.StateRepository
 	progress repositories.ProgressRepository
 	todoist  TodoistService
 }
@@ -42,25 +43,19 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(
 
 	goalsMap := map[string][]helper.GoalWithSubGoals{}
 	for _, goal := range goalTree.ToSlice() {
-		goalsMap[goal.Goal.State] = append(goalsMap[goal.Goal.State], goal)
+		goalsMap[goal.Goal.StateID] = append(goalsMap[goal.Goal.StateID], goal)
 	}
 
-	//nolint:godox //I know
-	// TODO deal with this in a better way
-	// important that the order is static (maybe configureable)
-	// important that the actual string can be dynamic
-	// important that we don't do unnecessary API calls to obtain this
-	states := []string{
-		"In Progress",
-		"Planned",
-		"Backlog",
+	states, err := service.states.GetAll(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	result := []StateGoalsPair{}
 	for _, state := range states {
 		pair := StateGoalsPair{
-			State: state,
-			Goals: goalsMap[state],
+			State: state.Name,
+			Goals: goalsMap[state.ID],
 		}
 		result = append(result, pair)
 	}
@@ -83,9 +78,25 @@ func (service GoalService) GetByTypeID(
 }
 
 func (service GoalService) ImportFromTodoist(ctx context.Context) error {
-	_, sectionsIDNameMap, err := service.todoist.GetSections(ctx)
+	states, err := service.states.GetAll(ctx)
 	if err != nil {
 		return err
+	}
+
+	if len(states) == 0 {
+		sections, err := service.todoist.GetSections(ctx)
+		if err != nil {
+			return err
+		}
+
+		for _, section := range sections {
+			state, err := service.states.Create(ctx, section.ID, section.Name, section.Order)
+			if err != nil {
+				return err
+			}
+
+			states = append(states, *state)
+		}
 	}
 
 	tasks, err := service.todoist.GetTasks(ctx)
@@ -114,7 +125,7 @@ func (service GoalService) ImportFromTodoist(ctx context.Context) error {
 			continue
 		}
 
-		_, err = service.goals.Update(ctx, sectionsIDNameMap, goal, task)
+		_, err = service.goals.Update(ctx, goal, task)
 		if err != nil {
 			return err
 		}
@@ -132,7 +143,7 @@ func (service GoalService) ImportFromTodoist(ctx context.Context) error {
 			false,
 			nil,
 			nil,
-			sectionsIDNameMap[task.SectionID],
+			task.SectionID,
 			task.Due,
 			task.Order,
 		)
@@ -174,17 +185,41 @@ func (service GoalService) Link(
 	)
 }
 
+func (service GoalService) Unlink(
+	ctx context.Context,
+	id string,
+) error {
+	goal, err := service.goals.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = service.goals.Unlink(
+		ctx,
+		*goal,
+	)
+	if err != nil {
+		return err
+	}
+
+	return service.todoist.UpdateTask(
+		ctx,
+		goal.ID,
+		"",
+	)
+}
+
 func (service GoalService) FetchProgress(
 	ctx context.Context,
 	typeID int64,
-) ([]string, []int64, error) {
+) ([]string, []string, error) {
 	progresses, err := service.progress.Fetch(ctx, typeID)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	progressLabels := []string{}
-	progressValues := []int64{}
+	progressValues := []string{}
 
 	for _, progress := range progresses {
 		progressLabels = append(
@@ -201,7 +236,7 @@ func (service GoalService) SaveProgress(
 	ctx context.Context,
 	typeID int64,
 	progressLabels []string,
-	progressValues []int64,
+	progressValues []string,
 ) error {
 	for i := 0; i < len(progressLabels); i++ {
 		_, err := service.progress.Save(

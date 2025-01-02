@@ -48,6 +48,7 @@ type PlayerStats struct {
 	SteamID      string        `json:"steamID"`
 	GameName     string        `json:"gameName"`
 	Achievements []Achievement `json:"achievements"`
+	Success      bool          `json:"success"`
 }
 
 func (client client) GetOwnedGames(
@@ -56,7 +57,7 @@ func (client client) GetOwnedGames(
 ) (*OwnedGamesResponse, error) {
 	var ownedGamesResponse OwnedGamesResponse
 
-	err := client.sendRequest(
+	err := client.sendRequestAPI(
 		ctx,
 		"IPlayerService/GetOwnedGames/v0001",
 		fmt.Sprintf(
@@ -83,7 +84,7 @@ func (client client) GetPlayerAchievements(
 ) (*AchievementsResponse, error) {
 	var achievementsResponse AchievementsResponse
 
-	err := client.sendRequest(
+	err := client.sendRequestAPI(
 		ctx,
 		"ISteamUserStats/GetPlayerAchievements/v0001",
 		fmt.Sprintf("steamid=%s&appid=%d", steamID, appID),

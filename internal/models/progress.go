@@ -9,5 +9,5 @@ const ProgressDateFormat = "2006-01-02"
 type Progress struct {
 	TypeID int64            `json:"typeId"`
 	Date   pgtype.Timestamp `json:"date"`
-	Value  int64            `json:"value"`
+	Value  string           `json:"value"`
 } //	@name	Progress

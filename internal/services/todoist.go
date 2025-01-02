@@ -13,18 +13,13 @@ type TodoistService struct {
 
 func (service TodoistService) GetSections(
 	ctx context.Context,
-) ([]todoist.Section, map[string]string, error) {
+) ([]todoist.Section, error) {
 	sections, err := service.client.GetAllSections(ctx, service.projectID)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	sectionsIDNameMap := map[string]string{}
-	for _, section := range sections {
-		sectionsIDNameMap[section.ID] = section.Name
-	}
-
-	return sections, sectionsIDNameMap, nil
+	return sections, nil
 }
 
 func (service TodoistService) GetTasks(ctx context.Context) ([]todoist.Task, error) {

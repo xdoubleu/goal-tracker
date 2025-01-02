@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"math"
+	"fmt"
 	"slices"
 	"time"
 
@@ -113,8 +113,8 @@ func (grapher *Grapher) updateDays(dateIndex int, gameID int) {
 	}
 }
 
-func (grapher Grapher) ToSlices() ([]string, []int64) {
-	percentages := []int64{}
+func (grapher Grapher) ToSlices() ([]string, []string) {
+	percentages := []string{}
 
 	droppedCount := 0
 	for i, achievementsPerGame := range grapher.achievementsPerGamePerDay {
@@ -131,8 +131,8 @@ func (grapher Grapher) ToSlices() ([]string, []int64) {
 			)
 		}
 
-		avgCompletionRate := calculateAvgCompletionRate(totalPercentageDay, games)
-		if avgCompletionRate == 0 {
+		rawAvgCompletionRate, avgCompletionRate := calculateAvgCompletionRate(totalPercentageDay, games)
+		if rawAvgCompletionRate == 0 {
 			dateStringsIndex := i - droppedCount
 			grapher.dateStrings = append(
 				grapher.dateStrings[:dateStringsIndex],
@@ -151,7 +151,8 @@ func calculateCompletionRate(achieved int, total int) float64 {
 	return float64(achieved) / float64(total)
 }
 
-func calculateAvgCompletionRate(percentageSum float64, totalGames int) int64 {
+func calculateAvgCompletionRate(percentageSum float64, totalGames int) (int, string) {
 	//nolint:mnd //no magic number
-	return int64(math.Floor(percentageSum / float64(totalGames) * 100.0))
+	raw := percentageSum / float64(totalGames) * 100.0
+	return int(raw), fmt.Sprintf("%.2f", raw)
 }

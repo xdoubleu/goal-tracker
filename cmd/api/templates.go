@@ -27,7 +27,7 @@ func (app *Application) templateRoutes(mux *http.ServeMux) {
 		app.authTemplateAccess(app.linkHandler),
 	)
 	mux.HandleFunc(
-		"GET /{id}",
+		"GET /goals/{id}",
 		app.authTemplateAccess(app.graphHandler),
 	)
 }
@@ -79,7 +79,7 @@ func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
 type GoalAndProgress struct {
 	Goal           models.Goal
 	ProgressLabels []string
-	ProgressValues []int64
+	ProgressValues []string
 }
 
 func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {

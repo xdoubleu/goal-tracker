@@ -60,7 +60,7 @@ func (repo ProgressRepository) Save(
 	ctx context.Context,
 	typeID int64,
 	dateStr string,
-	value int64,
+	value string,
 ) (*models.Progress, error) {
 	query := `
 		INSERT INTO progress (type_id, value, date)

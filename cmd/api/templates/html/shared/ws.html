@@ -26,7 +26,11 @@
                 return;
             }
 
-            btn.disabled = false;
+            if (!t.isRefreshing && btn.disabled) {
+                location.reload();
+                return;
+            }
+
             btn.innerHTML = `Refresh (last: ${new Date(t.lastRefresh).toLocaleString("en-GB")})`
         };
 

@@ -23,5 +23,8 @@ func (app *Application) refreshProgressHandler(_ http.ResponseWriter, r *http.Re
 		panic(err)
 	}
 
+	_, lastRunTime := app.jobQueue.FetchState(id)
+	app.services.WebSocket.UpdateState(id, true, lastRunTime)
+
 	app.jobQueue.ForceRun(id)
 }

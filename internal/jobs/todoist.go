@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"goal-tracker/api/internal/services"
@@ -27,7 +28,8 @@ func (j TodoistJob) RunEvery() *time.Duration {
 	return &period
 }
 
-func (j TodoistJob) Run() error {
+func (j TodoistJob) Run(_ slog.Logger) error {
 	ctx := context.Background()
+
 	return j.goalService.ImportFromTodoist(ctx)
 }

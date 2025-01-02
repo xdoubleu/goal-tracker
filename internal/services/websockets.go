@@ -51,7 +51,12 @@ func (service WebSocketService) UpdateState(
 	isRunning bool,
 	lastRunTime *time.Time,
 ) {
-	service.topics[id].EnqueueEvent(dtos.StateMessageDto{
+	topic, ok := service.topics[id]
+	if !ok {
+		return
+	}
+
+	topic.EnqueueEvent(dtos.StateMessageDto{
 		IsRefreshing: isRunning,
 		LastRefresh:  lastRunTime,
 	})

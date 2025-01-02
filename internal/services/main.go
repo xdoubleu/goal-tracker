@@ -35,9 +35,11 @@ func New(
 		logger: logger,
 		client: steamClient,
 		userID: config.SteamUserID,
+		games:  repositories.Games,
 	}
 	goals := GoalService{
 		webURL:   config.WebURL,
+		states:   repositories.States,
 		goals:    repositories.Goals,
 		progress: repositories.Progress,
 		todoist:  todoist,

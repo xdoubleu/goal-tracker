@@ -20,7 +20,7 @@ func (repo GoalRepository) GetAll(
 	ctx context.Context,
 ) ([]models.Goal, error) {
 	query := `
-		SELECT id, name, type_id, target_value, state, is_linked, parent_id, due_time, "order"
+		SELECT id, name, type_id, target_value, state_id, is_linked, parent_id, due_time, "order"
 		FROM goals
 		ORDER BY parent_id DESC
 	`
@@ -40,7 +40,7 @@ func (repo GoalRepository) GetAll(
 			&goal.Name,
 			&goal.TypeID,
 			&goal.TargetValue,
-			&goal.State,
+			&goal.StateID,
 			&goal.IsLinked,
 			&goal.ParentID,
 			&goal.DueTime,
@@ -65,7 +65,7 @@ func (repo GoalRepository) GetByID(
 	id string,
 ) (*models.Goal, error) {
 	query := `
-		SELECT name, type_id, target_value, state, is_linked, parent_id, due_time, "order"
+		SELECT name, type_id, target_value, state_id, is_linked, parent_id, due_time, "order"
 		FROM goals
 		WHERE goals.id = $1
 	`
@@ -81,7 +81,7 @@ func (repo GoalRepository) GetByID(
 		&goal.Name,
 		&goal.TypeID,
 		&goal.TargetValue,
-		&goal.State,
+		&goal.StateID,
 		&goal.IsLinked,
 		&goal.ParentID,
 		&goal.DueTime,
@@ -99,7 +99,7 @@ func (repo GoalRepository) GetByTypeID(
 	id int64,
 ) ([]models.Goal, error) {
 	query := `
-		SELECT id, name, target_value, state, is_linked, parent_id, due_time, "order"
+		SELECT id, name, target_value, state_id, is_linked, parent_id, due_time, "order"
 		FROM goals
 		WHERE goals.type_id = $1
 	`
@@ -121,7 +121,7 @@ func (repo GoalRepository) GetByTypeID(
 			&goal.ID,
 			&goal.Name,
 			&goal.TargetValue,
-			&goal.State,
+			&goal.StateID,
 			&goal.IsLinked,
 			&goal.ParentID,
 			&goal.DueTime,
@@ -150,13 +150,13 @@ func (repo GoalRepository) Create(
 	isLinked bool,
 	targetValue *int64,
 	typeID *int64,
-	state string,
+	stateID string,
 	due *todoist.Due,
 	order int,
 ) (*models.Goal, error) {
 	query := `
 		INSERT INTO goals (id, parent_id, name, is_linked, target_value, 
-		type_id, state, due_time, "order")
+		type_id, state_id, due_time, "order")
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id
 	`
@@ -173,7 +173,7 @@ func (repo GoalRepository) Create(
 		IsLinked:    isLinked,
 		TargetValue: targetValue,
 		TypeID:      typeID,
-		State:       state,
+		StateID:     stateID,
 		DueTime:     dueTime,
 		Order:       order,
 	}
@@ -187,7 +187,7 @@ func (repo GoalRepository) Create(
 		isLinked,
 		targetValue,
 		typeID,
-		state,
+		stateID,
 		dueTime,
 		order,
 	).Scan(&goal.ID)
@@ -230,21 +230,48 @@ func (repo GoalRepository) Link(
 	return nil
 }
 
+func (repo GoalRepository) Unlink(
+	ctx context.Context,
+	goal models.Goal,
+) error {
+	query := `
+		UPDATE goals
+		SET is_linked = false, target_value = null, type_id = null
+		WHERE id = $1
+	`
+
+	result, err := repo.db.Exec(
+		ctx,
+		query,
+		goal.ID,
+	)
+
+	if err != nil {
+		return postgres.PgxErrorToHTTPError(err)
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return database.ErrResourceNotFound
+	}
+
+	return nil
+}
+
 func (repo GoalRepository) Update(
 	ctx context.Context,
-	sectionsIDNameMap map[string]string,
 	goal models.Goal,
 	task todoist.Task,
 ) (*models.Goal, error) {
 	query := `
 		UPDATE goals
-		SET parent_id = $2, name = $3, state = $4, due_time = $5, "order" = $6
+		SET parent_id = $2, name = $3, state_id = $4, due_time = $5, "order" = $6
 		WHERE id = $1
 	`
 
 	goal.ParentID = task.ParentID
 	goal.Name = task.Content
-	goal.State = sectionsIDNameMap[task.SectionID]
+	goal.StateID = task.SectionID
 	goal.Order = task.Order
 
 	if task.Due != nil {
@@ -256,7 +283,7 @@ func (repo GoalRepository) Update(
 		goal.ID,
 		goal.ParentID,
 		goal.Name,
-		goal.State,
+		goal.StateID,
 		goal.DueTime,
 		goal.Order,
 	)

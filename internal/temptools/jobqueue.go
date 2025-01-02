@@ -1,9 +1,12 @@
 package temptools
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"time"
+
+	"github.com/XDoubleU/essentia/pkg/sentry"
 )
 
 type CallbackFunc = func(id string, isRunning bool, lastRunTime *time.Time)
@@ -16,7 +19,7 @@ type JobQueue struct {
 
 type Job interface {
 	ID() string
-	Run() error
+	Run(slog.Logger) error
 	RunEvery() *time.Duration
 }
 
@@ -86,19 +89,19 @@ func (q *JobQueue) push(jobContainer *jobContainer) {
 }
 
 func (q *JobQueue) startWorker() {
-	go func() {
+	go sentry.GoRoutineErrorHandler(context.Background(), "JobQueueWorker", func(_ context.Context) error {
 		for {
 			jobContainer := <-q.c
-			err := jobContainer.run()
+			err := jobContainer.run(q.logger)
 			if err != nil {
 				q.logger.Error(err.Error())
 			}
 		}
-	}()
+	})
 }
 
 func (q *JobQueue) startScheduler() {
-	go func() {
+	go sentry.GoRoutineErrorHandler(context.Background(), "JobQueueScheduler", func(_ context.Context) error {
 		for {
 			for k := range q.recurringJobs {
 				job := q.recurringJobs[k]
@@ -109,7 +112,7 @@ func (q *JobQueue) startScheduler() {
 
 			time.Sleep(getSmallestPeriod(q.recurringJobs))
 		}
-	}()
+	})
 }
 
 func getSmallestPeriod(jobContainers map[string]*jobContainer) time.Duration {
@@ -130,7 +133,7 @@ func getSmallestPeriod(jobContainers map[string]*jobContainer) time.Duration {
 	return *smallestPeriod
 }
 
-func (c *jobContainer) run() error {
+func (c *jobContainer) run(logger slog.Logger) error {
 	defer func() {
 		c.isPushed = false
 	}()
@@ -140,7 +143,7 @@ func (c *jobContainer) run() error {
 	nowUTC := time.Now().UTC()
 	c.lastRunTime = &nowUTC
 
-	err := c.job.Run()
+	err := c.job.Run(logger)
 	if err != nil {
 		return err
 	}
