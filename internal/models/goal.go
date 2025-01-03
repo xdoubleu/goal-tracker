@@ -10,6 +10,7 @@ type Goal struct {
 	Name        string             `json:"name"`
 	IsLinked    bool               `json:"isLinked"`
 	TargetValue *int64             `json:"targetValue"`
+	SourceID    *int64             `json:"sourceId"`
 	TypeID      *int64             `json:"typeId"`
 	StateID     string             `json:"stateId"`
 	DueTime     *time.Time         `json:"time"`

@@ -13,32 +13,32 @@ import (
 	"goal-tracker/api/pkg/steam"
 )
 
-type SteamAchievementsJob struct {
+type SteamJob struct {
 	steamService services.SteamService
 	goalService  services.GoalService
 }
 
-func NewSteamAchievementsJob(
+func NewSteamJob(
 	steamService services.SteamService,
 	goalService services.GoalService,
-) SteamAchievementsJob {
-	return SteamAchievementsJob{
+) SteamJob {
+	return SteamJob{
 		steamService: steamService,
 		goalService:  goalService,
 	}
 }
 
-func (j SteamAchievementsJob) ID() string {
-	return strconv.Itoa(int(models.SteamCompletionRate.ID))
+func (j SteamJob) ID() string {
+	return strconv.Itoa(int(models.SteamSource.ID))
 }
 
-func (j SteamAchievementsJob) RunEvery() *time.Duration {
+func (j SteamJob) RunEvery() *time.Duration {
 	//nolint:mnd //no magic number
 	period := 24 * time.Hour
 	return &period
 }
 
-func (j SteamAchievementsJob) Run(logger slog.Logger) error {
+func (j SteamJob) Run(logger slog.Logger) error {
 	ctx := context.Background()
 
 	logger.Debug("fetching owned games")

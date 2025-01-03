@@ -21,8 +21,8 @@ func (repo GoalRepository) GetAll(
 	ctx context.Context,
 ) ([]models.Goal, error) {
 	query := `
-		SELECT id, name, type_id, target_value, state_id, 
-		is_linked, parent_id, due_time, "order", config
+		SELECT id, name, type_id, source_id, target_value, 
+		state_id, is_linked, parent_id, due_time, "order", config
 		FROM goals
 		ORDER BY parent_id DESC
 	`
@@ -41,6 +41,7 @@ func (repo GoalRepository) GetAll(
 			&goal.ID,
 			&goal.Name,
 			&goal.TypeID,
+			&goal.SourceID,
 			&goal.TargetValue,
 			&goal.StateID,
 			&goal.IsLinked,
@@ -68,8 +69,8 @@ func (repo GoalRepository) GetByID(
 	id string,
 ) (*models.Goal, error) {
 	query := `
-		SELECT name, type_id, target_value, state_id, 
-		is_linked, parent_id, due_time, "order", config
+		SELECT name, type_id, source_id, target_value, 
+		state_id, is_linked, parent_id, due_time, "order", config
 		FROM goals
 		WHERE goals.id = $1
 	`
@@ -84,6 +85,7 @@ func (repo GoalRepository) GetByID(
 		id).Scan(
 		&goal.Name,
 		&goal.TypeID,
+		&goal.SourceID,
 		&goal.TargetValue,
 		&goal.StateID,
 		&goal.IsLinked,
@@ -104,7 +106,7 @@ func (repo GoalRepository) GetByTypeID(
 	id int64,
 ) ([]models.Goal, error) {
 	query := `
-		SELECT id, name, target_value, state_id,
+		SELECT id, name, source_id, target_value, state_id,
 		is_linked, parent_id, due_time, "order", config
 		FROM goals
 		WHERE goals.type_id = $1
@@ -126,6 +128,7 @@ func (repo GoalRepository) GetByTypeID(
 		err = rows.Scan(
 			&goal.ID,
 			&goal.Name,
+			&goal.SourceID,
 			&goal.TargetValue,
 			&goal.StateID,
 			&goal.IsLinked,
@@ -154,17 +157,13 @@ func (repo GoalRepository) Create(
 	id string,
 	parentID *string,
 	name string,
-	isLinked bool,
-	targetValue *int64,
-	typeID *int64,
 	stateID string,
 	due *todoist.Due,
 	order int,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (id, parent_id, name, is_linked, target_value, 
-		type_id, state_id, due_time, "order")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO goals (id, parent_id, name, state_id, due_time, "order")
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id
 	`
 
@@ -173,17 +172,15 @@ func (repo GoalRepository) Create(
 		dueTime = &due.Date.Time
 	}
 
+	//nolint:exhaustruct //other fields are optional
 	goal := models.Goal{
-		ID:          id,
-		ParentID:    parentID,
-		Name:        name,
-		IsLinked:    isLinked,
-		TargetValue: targetValue,
-		TypeID:      typeID,
-		StateID:     stateID,
-		DueTime:     dueTime,
-		Order:       order,
-		Config:      nil,
+		ID:       id,
+		ParentID: parentID,
+		Name:     name,
+		StateID:  stateID,
+		DueTime:  dueTime,
+		Order:    order,
+		Config:   nil,
 	}
 
 	err := repo.db.QueryRow(
@@ -192,9 +189,6 @@ func (repo GoalRepository) Create(
 		id,
 		parentID,
 		name,
-		isLinked,
-		targetValue,
-		typeID,
 		stateID,
 		dueTime,
 		order,
@@ -214,7 +208,7 @@ func (repo GoalRepository) Link(
 ) error {
 	query := `
 		UPDATE goals
-		SET is_linked = true, target_value = $2, type_id = $3, config = $4
+		SET is_linked = true, target_value = $2, type_id = $3, source_id = $4, config = $5
 		WHERE id = $1
 	`
 
@@ -232,6 +226,7 @@ func (repo GoalRepository) Link(
 		goal.ID,
 		linkGoalDto.TargetValue,
 		linkGoalDto.TypeID,
+		models.SourcesTypeIDMap[linkGoalDto.TypeID].ID,
 		string(bytesConfig),
 	)
 

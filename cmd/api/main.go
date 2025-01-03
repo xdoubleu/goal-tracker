@@ -144,7 +144,7 @@ func NewApp(
 	}
 
 	err = app.jobQueue.Push(
-		jobs.NewGoodreadsBooksJob(app.services.Goodreads, app.services.Goals),
+		jobs.NewGoodreadsJob(app.services.Goodreads, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {
@@ -152,23 +152,7 @@ func NewApp(
 	}
 
 	err = app.jobQueue.Push(
-		jobs.NewGoodreadsListBooksJob(app.services.Goodreads, app.services.Goals),
-		app.services.WebSocket.UpdateState,
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	err = app.jobQueue.Push(
-		jobs.NewGoodreadsTagJob(app.services.Goodreads, app.services.Goals),
-		app.services.WebSocket.UpdateState,
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	err = app.jobQueue.Push(
-		jobs.NewSteamAchievementsJob(app.services.Steam, app.services.Goals),
+		jobs.NewSteamJob(app.services.Steam, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {

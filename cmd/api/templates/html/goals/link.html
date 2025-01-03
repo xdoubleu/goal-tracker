@@ -39,6 +39,9 @@
             targetValue.style.display = "none";
             tag.style.display = "none";
 
+            targetValue.getElementsByTagName("input")[0].value = "";
+            tag.getElementsByTagName("select")[0].selectedIndex = 0;
+
             switch (e.target.value) {
                 case "0":
                 case "1":
