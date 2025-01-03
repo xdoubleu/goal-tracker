@@ -38,10 +38,7 @@ func (service TodoistService) UpdateTask(
 	id string,
 	description string,
 ) error {
-	//nolint:godox //I know
-	//TODO: other fields
-
-	//nolint:exhaustruct //other fields are skipped for now
+	//nolint:exhaustruct //other fields aren't necessary for now
 	_, err := service.client.UpdateTask(ctx, id, todoist.UpdateTaskDto{
 		Description: &description,
 	})

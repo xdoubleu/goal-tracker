@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/XDoubleU/essentia/pkg/database"
@@ -20,7 +21,8 @@ func (repo GoalRepository) GetAll(
 	ctx context.Context,
 ) ([]models.Goal, error) {
 	query := `
-		SELECT id, name, type_id, target_value, state_id, is_linked, parent_id, due_time, "order"
+		SELECT id, name, type_id, target_value, state_id, 
+		is_linked, parent_id, due_time, "order", config
 		FROM goals
 		ORDER BY parent_id DESC
 	`
@@ -45,6 +47,7 @@ func (repo GoalRepository) GetAll(
 			&goal.ParentID,
 			&goal.DueTime,
 			&goal.Order,
+			&goal.Config,
 		)
 		if err != nil {
 			return nil, postgres.PgxErrorToHTTPError(err)
@@ -65,7 +68,8 @@ func (repo GoalRepository) GetByID(
 	id string,
 ) (*models.Goal, error) {
 	query := `
-		SELECT name, type_id, target_value, state_id, is_linked, parent_id, due_time, "order"
+		SELECT name, type_id, target_value, state_id, 
+		is_linked, parent_id, due_time, "order", config
 		FROM goals
 		WHERE goals.id = $1
 	`
@@ -86,6 +90,7 @@ func (repo GoalRepository) GetByID(
 		&goal.ParentID,
 		&goal.DueTime,
 		&goal.Order,
+		&goal.Config,
 	)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
@@ -99,7 +104,8 @@ func (repo GoalRepository) GetByTypeID(
 	id int64,
 ) ([]models.Goal, error) {
 	query := `
-		SELECT id, name, target_value, state_id, is_linked, parent_id, due_time, "order"
+		SELECT id, name, target_value, state_id,
+		is_linked, parent_id, due_time, "order", config
 		FROM goals
 		WHERE goals.type_id = $1
 	`
@@ -126,6 +132,7 @@ func (repo GoalRepository) GetByTypeID(
 			&goal.ParentID,
 			&goal.DueTime,
 			&goal.Order,
+			&goal.Config,
 		)
 
 		if err != nil {
@@ -176,6 +183,7 @@ func (repo GoalRepository) Create(
 		StateID:     stateID,
 		DueTime:     dueTime,
 		Order:       order,
+		Config:      nil,
 	}
 
 	err := repo.db.QueryRow(
@@ -201,14 +209,22 @@ func (repo GoalRepository) Create(
 
 func (repo GoalRepository) Link(
 	ctx context.Context,
-	goal models.Goal,
+	goal *models.Goal,
 	linkGoalDto dtos.LinkGoalDto,
 ) error {
 	query := `
 		UPDATE goals
-		SET is_linked = true, target_value = $2, type_id = $3
+		SET is_linked = true, target_value = $2, type_id = $3, config = $4
 		WHERE id = $1
 	`
+
+	config := map[string]string{}
+	config["tag"] = *linkGoalDto.Tag
+
+	bytesConfig, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
 
 	result, err := repo.db.Exec(
 		ctx,
@@ -216,6 +232,7 @@ func (repo GoalRepository) Link(
 		goal.ID,
 		linkGoalDto.TargetValue,
 		linkGoalDto.TypeID,
+		string(bytesConfig),
 	)
 
 	if err != nil {
@@ -227,6 +244,8 @@ func (repo GoalRepository) Link(
 		return database.ErrResourceNotFound
 	}
 
+	goal.Config = &config
+
 	return nil
 }
 
@@ -236,7 +255,7 @@ func (repo GoalRepository) Unlink(
 ) error {
 	query := `
 		UPDATE goals
-		SET is_linked = false, target_value = null, type_id = null
+		SET is_linked = false, target_value = null, type_id = null, config = null
 		WHERE id = $1
 	`
 

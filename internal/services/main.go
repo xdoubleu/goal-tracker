@@ -8,6 +8,7 @@ import (
 	"goal-tracker/api/internal/config"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/internal/temptools"
+	"goal-tracker/api/pkg/goodreads"
 	"goal-tracker/api/pkg/steam"
 	"goal-tracker/api/pkg/todoist"
 )
@@ -29,22 +30,28 @@ func New(
 	supabaseClient gotrue.Client,
 	todoistClient todoist.Client,
 	steamClient steam.Client,
+	goodreadsClient goodreads.Client,
 ) Services {
 	auth := AuthService{client: supabaseClient}
-	goodreads := GoodreadsService{profileURL: config.GoodreadsURL}
+	goodreads := GoodreadsService{
+		logger:     logger,
+		profileURL: config.GoodreadsURL,
+		goodreads:  repositories.Goodreads,
+		client:     goodreadsClient,
+	}
 	todoist := TodoistService{client: todoistClient, projectID: config.TodoistProjectID}
 	steam := SteamService{
 		logger: logger,
 		client: steamClient,
 		userID: config.SteamUserID,
-		games:  repositories.Games,
 	}
 	goals := GoalService{
-		webURL:   config.WebURL,
-		states:   repositories.States,
-		goals:    repositories.Goals,
-		progress: repositories.Progress,
-		todoist:  todoist,
+		webURL:    config.WebURL,
+		states:    repositories.States,
+		goals:     repositories.Goals,
+		progress:  repositories.Progress,
+		listItems: repositories.ListItems,
+		todoist:   todoist,
 	}
 
 	return Services{

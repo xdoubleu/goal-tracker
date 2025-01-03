@@ -38,9 +38,9 @@
             webSocket.close();
         };
 
-        document.getElementById("refresh-btn").addEventListener("click", function() {
+        document.getElementById("refresh-btn").onclick = () => {
             fetch(`${url}/api/progress/{{.}}/refresh`)
-        });
+        };
     </script>
 {{end}}
 

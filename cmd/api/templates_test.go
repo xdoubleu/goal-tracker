@@ -26,7 +26,7 @@ func TestRoot(t *testing.T) {
 	testEnv, testApp := setup(t)
 	defer testEnv.teardown()
 
-	testApp.setDB(testEnv.tx, supabaseClient, todoistClient, steamClient)
+	testApp.setDB(testEnv.tx)
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),

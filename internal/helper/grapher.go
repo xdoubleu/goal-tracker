@@ -2,10 +2,11 @@ package helper
 
 import (
 	"fmt"
-	"goal-tracker/api/internal/models"
 	"slices"
 	"strconv"
 	"time"
+
+	"goal-tracker/api/internal/models"
 )
 
 type GraphType int
@@ -24,10 +25,12 @@ type Grapher[T Numeric] struct {
 	values      []T
 }
 
+//nolint:godox //I know
 // TODO: allow to specify if you should graph per day, month, year
 // TODO: allow to specify a period that should be graphed (day, month, year)
 //   - the first point determines the correct period
 //   - invalid points will throw an error
+
 func NewGrapher[T Numeric](graphType GraphType) *Grapher[T] {
 	return &Grapher[T]{
 		graphType:   graphType,

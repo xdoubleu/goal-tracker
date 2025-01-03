@@ -8,7 +8,9 @@ import (
 	"goal-tracker/api/internal/models"
 )
 
+//nolint:godox //I know
 // TODO use Grapher?
+
 type AchievementsGrapher struct {
 	dateStrings               []string
 	achievementsPerGamePerDay []map[int]int
@@ -119,7 +121,10 @@ func (grapher AchievementsGrapher) ToSlices() ([]string, []string) {
 			)
 		}
 
-		rawAvgCompletionRate, avgCompletionRate := calculateAvgCompletionRate(totalPercentageDay, games)
+		rawAvgCompletionRate, avgCompletionRate := calculateAvgCompletionRate(
+			totalPercentageDay,
+			games,
+		)
 		if rawAvgCompletionRate == 0 {
 			dateStringsIndex := i - droppedCount
 			grapher.dateStrings = append(

@@ -2,9 +2,11 @@ package repositories
 
 import (
 	"context"
-	"goal-tracker/api/internal/models"
 
+	"github.com/XDoubleU/essentia/pkg/database"
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
+
+	"goal-tracker/api/internal/models"
 )
 
 type StateRepository struct {
@@ -49,7 +51,7 @@ func (repo StateRepository) GetAll(
 	return states, nil
 }
 
-func (repo StateRepository) Create(
+func (repo StateRepository) Upsert(
 	ctx context.Context,
 	id string,
 	name string,
@@ -58,6 +60,8 @@ func (repo StateRepository) Create(
 	query := `
 		INSERT INTO states (id, name, "order")
 		VALUES ($1, $2, $3)
+		ON CONFLICT (id)
+		DO UPDATE SET name = $2, "order" = $3
 		RETURNING id
 	`
 
@@ -80,4 +84,26 @@ func (repo StateRepository) Create(
 	}
 
 	return &state, nil
+}
+
+func (repo StateRepository) Delete(
+	ctx context.Context,
+	state *models.State,
+) error {
+	query := `
+		DELETE FROM states
+		WHERE id = $1
+	`
+
+	result, err := repo.db.Exec(ctx, query, state.ID)
+	if err != nil {
+		return postgres.PgxErrorToHTTPError(err)
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return database.ErrResourceNotFound
+	}
+
+	return nil
 }

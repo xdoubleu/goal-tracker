@@ -15,11 +15,12 @@ import (
 )
 
 type GoalService struct {
-	webURL   string
-	goals    repositories.GoalRepository
-	states   repositories.StateRepository
-	progress repositories.ProgressRepository
-	todoist  TodoistService
+	webURL    string
+	goals     repositories.GoalRepository
+	states    repositories.StateRepository
+	progress  repositories.ProgressRepository
+	listItems repositories.ListItemRepository
+	todoist   TodoistService
 }
 
 type StateGoalsPair struct {
@@ -27,7 +28,7 @@ type StateGoalsPair struct {
 	Goals []helper.GoalWithSubGoals
 }
 
-func (service GoalService) GetAllGroupedByStateAndParentGoal(
+func (service GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 	ctx context.Context,
 ) ([]StateGoalsPair, error) {
 	goals, err := service.goals.GetAll(ctx)
@@ -64,14 +65,14 @@ func (service GoalService) GetAllGroupedByStateAndParentGoal(
 	return result, nil
 }
 
-func (service GoalService) GetByID(
+func (service GoalService) GetGoalByID(
 	ctx context.Context,
 	id string,
 ) (*models.Goal, error) {
 	return service.goals.GetByID(ctx, id)
 }
 
-func (service GoalService) GetByTypeID(
+func (service GoalService) GetGoalsByTypeID(
 	ctx context.Context,
 	id int64,
 ) ([]models.Goal, error) {
@@ -79,25 +80,38 @@ func (service GoalService) GetByTypeID(
 }
 
 func (service GoalService) ImportStatesFromTodoist(ctx context.Context) error {
-	states, err := service.states.GetAll(ctx)
+	sections, err := service.todoist.GetSections(ctx)
 	if err != nil {
 		return err
 	}
 
-	//TODO deal with section updates
-	if len(states) == 0 {
-		sections, err := service.todoist.GetSections(ctx)
+	sectionsMap := map[string]todoist.Section{}
+	for _, section := range sections {
+		sectionsMap[section.ID] = section
+	}
+
+	existingStates, err := service.states.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, state := range existingStates {
+		_, ok := sectionsMap[state.ID]
+
+		if ok {
+			continue
+		}
+
+		err = service.states.Delete(ctx, &state)
 		if err != nil {
 			return err
 		}
+	}
 
-		for _, section := range sections {
-			state, err := service.states.Create(ctx, section.ID, section.Name, section.Order)
-			if err != nil {
-				return err
-			}
-
-			states = append(states, *state)
+	for _, section := range sections {
+		_, err = service.states.Upsert(ctx, section.ID, section.Name, section.Order)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -161,7 +175,7 @@ func (service GoalService) ImportGoalsFromTodoist(ctx context.Context) error {
 	return nil
 }
 
-func (service GoalService) Link(
+func (service GoalService) LinkGoal(
 	ctx context.Context,
 	id string,
 	linkGoalDto *dtos.LinkGoalDto,
@@ -177,7 +191,7 @@ func (service GoalService) Link(
 
 	err = service.goals.Link(
 		ctx,
-		*goal,
+		goal,
 		*linkGoalDto,
 	)
 	if err != nil {
@@ -191,7 +205,7 @@ func (service GoalService) Link(
 	)
 }
 
-func (service GoalService) Unlink(
+func (service GoalService) UnlinkGoal(
 	ctx context.Context,
 	id string,
 ) error {
@@ -215,13 +229,18 @@ func (service GoalService) Unlink(
 	)
 }
 
-func (service GoalService) FetchProgress(
+func (service GoalService) GetProgressByTypeIDAndDates(
 	ctx context.Context,
 	typeID int64,
 	dateStart time.Time,
 	dateEnd time.Time,
 ) ([]string, []string, error) {
-	progresses, err := service.progress.Fetch(ctx, typeID, dateStart, dateEnd)
+	progresses, err := service.progress.GetByTypeIDAndDates(
+		ctx,
+		typeID,
+		dateStart,
+		dateEnd,
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -247,7 +266,7 @@ func (service GoalService) SaveProgress(
 	progressValues []string,
 ) error {
 	for i := 0; i < len(progressLabels); i++ {
-		_, err := service.progress.Save(
+		_, err := service.progress.Upsert(
 			ctx,
 			typeID,
 			progressLabels[i],
@@ -258,4 +277,21 @@ func (service GoalService) SaveProgress(
 		}
 	}
 	return nil
+}
+
+func (service GoalService) GetListItemsByGoalID(
+	ctx context.Context,
+	goalID string,
+) ([]models.ListItem, error) {
+	return service.listItems.GetByGoalID(ctx, goalID)
+}
+
+func (service GoalService) SaveListItem(
+	ctx context.Context,
+	id int64,
+	goalID string,
+	value string,
+	completed bool,
+) (*models.ListItem, error) {
+	return service.listItems.Upsert(ctx, id, goalID, value, completed)
 }

@@ -26,8 +26,21 @@ func New(logger *slog.Logger, apiToken string) Client {
 	}
 }
 
-func (client client) sendRequestAPI(ctx context.Context, endpoint string, query string, dst any) error {
-	return sendRequest(ctx, client.logger, client.apiToken, BaseURLRESTAPI, endpoint, query, dst)
+func (client client) sendRequestAPI(
+	ctx context.Context,
+	endpoint string,
+	query string,
+	dst any,
+) error {
+	return sendRequest(
+		ctx,
+		client.logger,
+		client.apiToken,
+		BaseURLRESTAPI,
+		endpoint,
+		query,
+		dst,
+	)
 }
 
 func sendRequest(
@@ -62,6 +75,7 @@ func sendRequest(
 
 	if res.StatusCode == http.StatusTooManyRequests {
 		logger.Debug("hit 429, sleeping 60s")
+		//nolint:mnd //no magic number
 		time.Sleep(60 * time.Second)
 		return sendRequest(ctx, logger, apiToken, baseURL, endpoint, query, dst)
 	}

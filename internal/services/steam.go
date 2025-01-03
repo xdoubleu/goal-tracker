@@ -4,14 +4,12 @@ import (
 	"context"
 	"log/slog"
 
-	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/pkg/steam"
 )
 
 type SteamService struct {
 	logger slog.Logger
 	client steam.Client
-	games  repositories.GamesRepository
 	userID string
 }
 
@@ -30,7 +28,10 @@ func (service SteamService) GetOwnedGames(ctx context.Context) ([]int, error) {
 	return ownedGames, nil
 }
 
-func (service SteamService) GetAchievementsForGame(ctx context.Context, appID int) ([]steam.Achievement, error) {
+func (service SteamService) GetAchievementsForGame(
+	ctx context.Context,
+	appID int,
+) ([]steam.Achievement, error) {
 	achievementsForGame, err := service.client.GetPlayerAchievements(
 		ctx,
 		service.userID,

@@ -98,30 +98,38 @@ func (q *JobQueue) push(jobContainer *jobContainer) {
 }
 
 func (q *JobQueue) startWorker() {
-	go sentry.GoRoutineErrorHandler(context.Background(), "JobQueueWorker", func(_ context.Context) error {
-		for {
-			jobContainer := <-q.c
-			err := jobContainer.run(q.logger)
-			if err != nil {
-				q.logger.Error(err.Error())
+	go sentry.GoRoutineErrorHandler(
+		context.Background(),
+		"JobQueueWorker",
+		func(_ context.Context) error {
+			for {
+				jobContainer := <-q.c
+				err := jobContainer.run(q.logger)
+				if err != nil {
+					q.logger.Error(err.Error())
+				}
 			}
-		}
-	})
+		},
+	)
 }
 
 func (q *JobQueue) startScheduler() {
-	go sentry.GoRoutineErrorHandler(context.Background(), "JobQueueScheduler", func(_ context.Context) error {
-		for {
-			for k := range q.recurringJobs {
-				job := q.recurringJobs[k]
-				if job.shouldRun() {
-					q.push(job)
+	go sentry.GoRoutineErrorHandler(
+		context.Background(),
+		"JobQueueScheduler",
+		func(_ context.Context) error {
+			for {
+				for k := range q.recurringJobs {
+					job := q.recurringJobs[k]
+					if job.shouldRun() {
+						q.push(job)
+					}
 				}
-			}
 
-			time.Sleep(getSmallestPeriod(q.recurringJobs))
-		}
-	})
+				time.Sleep(getSmallestPeriod(q.recurringJobs))
+			}
+		},
+	)
 }
 
 func getSmallestPeriod(jobContainers map[string]*jobContainer) time.Duration {

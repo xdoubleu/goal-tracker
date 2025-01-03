@@ -12,12 +12,13 @@ CREATE TABLE IF NOT EXISTS goals (
     id varchar(255) NOT NULL PRIMARY KEY,
     parent_id varchar(255),
     name varchar(255) NOT NULL,
-    is_linked boolean NOT NULL,
-    target_value integer,
-    type_id integer,
     state_id varchar(255) NOT NULL REFERENCES states,
+    "order" integer NOT NULL,
+    is_linked boolean NOT NULL,
+    type_id integer,
+    target_value integer,
     due_time timestamp,
-    "order" integer NOT NULL
+    config json
 );
 
 CREATE TABLE IF NOT EXISTS progress (
@@ -26,6 +27,23 @@ CREATE TABLE IF NOT EXISTS progress (
     value varchar(255) NOT NULL,
     PRIMARY KEY (type_id, date)
 );
+
+CREATE TABLE IF NOT EXISTS list_items (
+    id integer NOT NULL,
+    goal_id varchar(255) NOT NULL REFERENCES goals,
+    value varchar(255) NOT NULL,
+    completed boolean NOT NULL,
+    PRIMARY KEY (id, goal_id)
+);
+
+CREATE TABLE IF NOT EXISTS goodreads_books (
+    id integer PRIMARY KEY,
+    shelf varchar(255) NOT NULL,
+    tags varchar(255) [] NOT NULL,
+    title varchar(255) NOT NULL,
+    author varchar(255) NOT NULL,
+    dates_read timestamp []
+);
 -- +goose StatementEnd
 
 -- +goose Down
@@ -33,4 +51,6 @@ CREATE TABLE IF NOT EXISTS progress (
 DROP TABLE IF EXISTS states;
 DROP TABLE IF EXISTS goals;
 DROP TABLE IF EXISTS progress;
+DROP TABLE IF EXISTS list_items;
+DROP TABLE IF EXISTS goodreads_books;
 -- +goose StatementEnd

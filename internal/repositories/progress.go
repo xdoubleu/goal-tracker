@@ -13,7 +13,7 @@ type ProgressRepository struct {
 	db postgres.DB
 }
 
-func (repo ProgressRepository) Fetch(
+func (repo ProgressRepository) GetByTypeIDAndDates(
 	ctx context.Context,
 	typeID int64,
 	dateStart time.Time,
@@ -58,7 +58,7 @@ func (repo ProgressRepository) Fetch(
 	return progresses, nil
 }
 
-func (repo ProgressRepository) Save(
+func (repo ProgressRepository) Upsert(
 	ctx context.Context,
 	typeID int64,
 	dateStr string,

@@ -42,6 +42,7 @@ func (client MockSteamClient) GetPlayerAchievements(
 ) (*steam.AchievementsResponse, error) {
 	response := steam.AchievementsResponse{
 		PlayerStats: steam.PlayerStats{
+			Success:  true,
 			SteamID:  steamID,
 			GameName: "test",
 			Achievements: []steam.Achievement{

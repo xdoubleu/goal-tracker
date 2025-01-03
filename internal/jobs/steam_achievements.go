@@ -33,6 +33,7 @@ func (j SteamAchievementsJob) ID() string {
 }
 
 func (j SteamAchievementsJob) RunEvery() *time.Duration {
+	//nolint:mnd //no magic number
 	period := 24 * time.Hour
 	return &period
 }
@@ -56,7 +57,8 @@ func (j SteamAchievementsJob) Run(logger slog.Logger) error {
 			fmt.Sprintf("fetching achievements for game %d", (i + 1)),
 		)
 
-		achievementsForGame, err := j.steamService.GetAchievementsForGame(ctx, game)
+		var achievementsForGame []steam.Achievement
+		achievementsForGame, err = j.steamService.GetAchievementsForGame(ctx, game)
 		if err != nil {
 			return err
 		}
@@ -81,7 +83,9 @@ func (j SteamAchievementsJob) Run(logger slog.Logger) error {
 		}
 	}
 
-	logger.Debug(fmt.Sprintf("achieved %d achievements in total", totalAchievedAchievements))
+	logger.Debug(
+		fmt.Sprintf("achieved %d achievements in total", totalAchievedAchievements),
+	)
 
 	progressLabels, progressValues := grapher.ToSlices()
 

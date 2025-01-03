@@ -38,7 +38,7 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	goals, err := app.services.Goals.GetAllGroupedByStateAndParentGoal(
+	goals, err := app.services.Goals.GetAllGoalsGroupedByStateAndParentGoal(
 		r.Context(),
 	)
 	if err != nil {
@@ -48,9 +48,10 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 	tplhelper.RenderWithPanic(app.tpl, w, "root.html", goals)
 }
 
-type GoalAndSources struct {
+type LinkTemplateData struct {
 	Goal    models.Goal
 	Sources []models.Source
+	Tags    []string
 }
 
 func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
@@ -64,22 +65,22 @@ func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	goal, err := app.services.Goals.GetByID(r.Context(), id)
+	goal, err := app.services.Goals.GetGoalByID(r.Context(), id)
 	if err != nil {
 		panic(err)
 	}
 
-	goalAndSources := GoalAndSources{
+	tags, err := app.services.Goodreads.GetAllTags(r.Context())
+	if err != nil {
+		panic(err)
+	}
+
+	goalAndSources := LinkTemplateData{
 		Goal:    *goal,
 		Sources: models.Sources,
+		Tags:    tags,
 	}
 	tplhelper.RenderWithPanic(app.tpl, w, "link.html", goalAndSources)
-}
-
-type GoalAndProgress struct {
-	Goal           models.Goal
-	ProgressLabels []string
-	ProgressValues []string
 }
 
 func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,11 +94,31 @@ func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Reque
 		panic(errors.New("not signed in"))
 	}
 
-	goal, err := app.services.Goals.GetByID(r.Context(), id)
+	goal, err := app.services.Goals.GetGoalByID(r.Context(), id)
 	if err != nil {
 		panic(err)
 	}
 
+	viewType := models.Types[*goal.TypeID].ViewType
+	switch viewType {
+	case models.Graph:
+		app.graphViewProgress(w, r, goal)
+	case models.List:
+		app.listViewProgress(w, r, goal)
+	}
+}
+
+type GraphData struct {
+	Goal           models.Goal
+	ProgressLabels []string
+	ProgressValues []string
+}
+
+func (app *Application) graphViewProgress(
+	w http.ResponseWriter,
+	r *http.Request,
+	goal *models.Goal,
+) {
 	//nolint:godox //I know
 	// TODO make this based on duration of goal
 
@@ -153,7 +174,7 @@ func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Reque
 		panic("not implemented")
 	}
 
-	progressLabels, progressValues, err := app.services.Goals.FetchProgress(
+	progressLabels, progressValues, err := app.services.Goals.GetProgressByTypeIDAndDates(
 		r.Context(),
 		*goal.TypeID,
 		dateStart,
@@ -163,11 +184,33 @@ func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Reque
 		panic(err)
 	}
 
-	goalAndProgress := GoalAndProgress{
+	graphData := GraphData{
 		Goal:           *goal,
 		ProgressLabels: progressLabels,
 		ProgressValues: progressValues,
 	}
 
-	tplhelper.RenderWithPanic(app.tpl, w, "graph.html", goalAndProgress)
+	tplhelper.RenderWithPanic(app.tpl, w, "graph.html", graphData)
+}
+
+type ListData struct {
+	Goal      models.Goal
+	ListItems []models.ListItem
+}
+
+func (app *Application) listViewProgress(
+	w http.ResponseWriter,
+	r *http.Request,
+	goal *models.Goal,
+) {
+	listItems, err := app.services.Goals.GetListItemsByGoalID(r.Context(), goal.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	listData := ListData{
+		Goal:      *goal,
+		ListItems: listItems,
+	}
+	tplhelper.RenderWithPanic(app.tpl, w, "list.html", listData)
 }

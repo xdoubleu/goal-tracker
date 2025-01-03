@@ -2,7 +2,7 @@ package models
 
 type Source struct {
 	Name  string `json:"name"`
-	Types []Type
+	Types []Type `json:"types"`
 } //	@name	Source
 
 //nolint:gochecknoglobals //ok
@@ -24,5 +24,7 @@ var GoodreadsSource = Source{
 	Name: "Goodreads",
 	Types: []Type{
 		FinishedBooksThisYear,
+		SpecificBooks,
+		BooksFromSpecificTag,
 	},
 }

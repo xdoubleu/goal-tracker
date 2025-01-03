@@ -25,6 +25,7 @@ import (
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/internal/services"
 	"goal-tracker/api/internal/temptools"
+	"goal-tracker/api/pkg/goodreads"
 	"goal-tracker/api/pkg/steam"
 	"goal-tracker/api/pkg/todoist"
 )
@@ -45,9 +46,17 @@ type Application struct {
 	db        postgres.DB
 	config    config.Config
 	images    embed.FS
+	clients   Clients
 	services  services.Services
 	tpl       *template.Template
 	jobQueue  *temptools.JobQueue
+}
+
+type Clients struct {
+	Supabase  gotrue.Client
+	Steam     steam.Client
+	Todoist   todoist.Client
+	Goodreads goodreads.Client
 }
 
 //	@title			goal-tracker API
@@ -77,15 +86,17 @@ func main() {
 
 	ApplyMigrations(logger, db)
 
-	supabaseClient := gotrue.New(
-		cfg.GotrueProjRef,
-		cfg.GotrueAPIKey,
-	)
+	clients := Clients{
+		Supabase: gotrue.New(
+			cfg.GotrueProjRef,
+			cfg.GotrueAPIKey,
+		),
+		Todoist:   todoist.New(cfg.TodoistAPIKey),
+		Steam:     steam.New(logger, cfg.SteamAPIKey),
+		Goodreads: goodreads.New(logger),
+	}
 
-	todoistClient := todoist.New(cfg.TodoistAPIKey)
-	steamClient := steam.New(logger, cfg.SteamAPIKey)
-
-	app := NewApp(logger, cfg, db, supabaseClient, todoistClient, steamClient)
+	app := NewApp(logger, cfg, db, clients)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Port),
@@ -104,9 +115,7 @@ func NewApp(
 	logger *slog.Logger,
 	cfg config.Config,
 	db postgres.DB,
-	supabaseClient gotrue.Client,
-	todoistClient todoist.Client,
-	steamClient steam.Client,
+	clients Clients,
 ) *Application {
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
 
@@ -116,6 +125,7 @@ func NewApp(
 	//nolint:exhaustruct //other fields are optional
 	app := &Application{
 		logger:   logger,
+		clients:  clients,
 		config:   cfg,
 		images:   images,
 		tpl:      tpl,
@@ -123,7 +133,7 @@ func NewApp(
 	}
 
 	app.setContext()
-	app.setDB(db, supabaseClient, todoistClient, steamClient)
+	app.setDB(db)
 
 	err := app.jobQueue.Push(
 		jobs.NewTodoistJob(app.services.Goals),
@@ -134,7 +144,23 @@ func NewApp(
 	}
 
 	err = app.jobQueue.Push(
-		jobs.NewGoodreadsJob(app.services.Goodreads, app.services.Goals),
+		jobs.NewGoodreadsBooksJob(app.services.Goodreads, app.services.Goals),
+		app.services.WebSocket.UpdateState,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	err = app.jobQueue.Push(
+		jobs.NewGoodreadsListBooksJob(app.services.Goodreads, app.services.Goals),
+		app.services.WebSocket.UpdateState,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	err = app.jobQueue.Push(
+		jobs.NewGoodreadsTagJob(app.services.Goodreads, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {
@@ -156,9 +182,6 @@ func NewApp(
 
 func (app *Application) setDB(
 	db postgres.DB,
-	supabaseClient gotrue.Client,
-	todoistClient todoist.Client,
-	steamClient steam.Client,
 ) {
 	// make sure previous app is cancelled internally
 	app.ctxCancel()
@@ -173,9 +196,10 @@ func (app *Application) setDB(
 		app.config,
 		app.jobQueue,
 		repositories.New(app.db),
-		supabaseClient,
-		todoistClient,
-		steamClient,
+		app.clients.Supabase,
+		app.clients.Todoist,
+		app.clients.Steam,
+		app.clients.Goodreads,
 	)
 }
 
