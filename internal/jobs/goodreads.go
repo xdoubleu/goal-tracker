@@ -14,15 +14,18 @@ import (
 )
 
 type GoodreadsJob struct {
+	authService      services.AuthService
 	goodreadsService services.GoodreadsService
 	goalService      services.GoalService
 }
 
 func NewGoodreadsJob(
+	authService services.AuthService,
 	goodreadsService services.GoodreadsService,
 	goalService services.GoalService,
 ) GoodreadsJob {
 	return GoodreadsJob{
+		authService:      authService,
 		goodreadsService: goodreadsService,
 		goalService:      goalService,
 	}
@@ -41,24 +44,40 @@ func (j GoodreadsJob) RunEvery() *time.Duration {
 func (j GoodreadsJob) Run(logger slog.Logger) error {
 	ctx := context.Background()
 
-	err := j.updateProgress(ctx, logger)
+	users, err := j.authService.GetAllUsers()
 	if err != nil {
 		return err
 	}
 
-	logger.Debug("checking goals which track specific tags")
-	err = j.specificTags(ctx)
-	if err != nil {
-		return err
+	for _, user := range users {
+		err = j.updateProgress(ctx, logger, user.ID)
+		if err != nil {
+			return err
+		}
+
+		logger.Debug("checking goals which track specific tags")
+		err = j.specificTags(ctx, user.ID)
+		if err != nil {
+			return err
+		}
+
+		logger.Debug("checking goals which track specific books")
+		err = j.specificBooks(ctx, user.ID)
+		if err != nil {
+			return err
+		}
 	}
 
-	logger.Debug("checking goals which track specific books")
-	return j.specificBooks(ctx)
+	return nil
 }
 
-func (j GoodreadsJob) updateProgress(ctx context.Context, logger slog.Logger) error {
+func (j GoodreadsJob) updateProgress(
+	ctx context.Context,
+	logger slog.Logger,
+	userID string,
+) error {
 	logger.Debug("fetching books")
-	books, err := j.goodreadsService.ImportAllBooks(ctx)
+	books, err := j.goodreadsService.ImportAllBooks(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -76,9 +95,7 @@ func (j GoodreadsJob) updateProgress(ctx context.Context, logger slog.Logger) er
 		0,
 	)
 
-	for i, book := range books {
-		logger.Debug(fmt.Sprintf("processing book %d", i))
-
+	for _, book := range books {
 		if len(book.DatesRead) == 0 {
 			continue
 		}
@@ -113,20 +130,29 @@ func (j GoodreadsJob) updateProgress(ctx context.Context, logger slog.Logger) er
 	return j.goalService.SaveProgress(
 		ctx,
 		models.FinishedBooksThisYear.ID,
+		userID,
 		progressLabels,
 		progressValues,
 	)
 }
 
-func (j GoodreadsJob) specificTags(ctx context.Context) error {
-	goals, err := j.goalService.GetGoalsByTypeID(ctx, models.BooksFromSpecificTag.ID)
+func (j GoodreadsJob) specificTags(ctx context.Context, userID string) error {
+	goals, err := j.goalService.GetGoalsByTypeID(
+		ctx,
+		models.BooksFromSpecificTag.ID,
+		userID,
+	)
 	if err != nil {
 		return err
 	}
 
 	for _, goal := range goals {
 		var books []goodreads.Book
-		books, err = j.goodreadsService.GetBooksByTag(ctx, (*goal.Config)["tag"])
+		books, err = j.goodreadsService.GetBooksByTag(
+			ctx,
+			(*goal.Config)["tag"],
+			userID,
+		)
 		if err != nil {
 			return err
 		}
@@ -138,6 +164,7 @@ func (j GoodreadsJob) specificTags(ctx context.Context) error {
 			_, err = j.goalService.SaveListItem(
 				ctx,
 				book.ID,
+				userID,
 				goal.ID,
 				fmt.Sprintf("%s - %s", book.Title, book.Author),
 				len(book.DatesRead) > 0,
@@ -151,15 +178,15 @@ func (j GoodreadsJob) specificTags(ctx context.Context) error {
 	return nil
 }
 
-func (j GoodreadsJob) specificBooks(ctx context.Context) error {
-	goals, err := j.goalService.GetGoalsByTypeID(ctx, models.SpecificBooks.ID)
+func (j GoodreadsJob) specificBooks(ctx context.Context, userID string) error {
+	goals, err := j.goalService.GetGoalsByTypeID(ctx, models.SpecificBooks.ID, userID)
 	if err != nil {
 		return err
 	}
 
 	for _, goal := range goals {
 		var listItems []models.ListItem
-		listItems, err = j.goalService.GetListItemsByGoalID(ctx, goal.ID)
+		listItems, err = j.goalService.GetListItemsByGoalID(ctx, goal.ID, userID)
 		if err != nil {
 			return err
 		}
@@ -170,7 +197,7 @@ func (j GoodreadsJob) specificBooks(ctx context.Context) error {
 		}
 
 		var books []goodreads.Book
-		books, err = j.goodreadsService.GetBooksByIDs(ctx, bookIDs)
+		books, err = j.goodreadsService.GetBooksByIDs(ctx, bookIDs, userID)
 		if err != nil {
 			return err
 		}
@@ -182,6 +209,7 @@ func (j GoodreadsJob) specificBooks(ctx context.Context) error {
 			_, err = j.goalService.SaveListItem(
 				ctx,
 				book.ID,
+				userID,
 				goal.ID,
 				fmt.Sprintf("%s - %s", book.Title, book.Author),
 				len(book.DatesRead) > 0,

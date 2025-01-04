@@ -4,7 +4,7 @@ type Source struct {
 	ID    int64  `json:"id"`
 	Name  string `json:"name"`
 	Types []Type `json:"types"`
-} //	@name	Source
+}
 
 //nolint:gochecknoglobals //ok
 var Sources = []Source{

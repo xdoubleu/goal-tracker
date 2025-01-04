@@ -9,11 +9,16 @@ import (
 )
 
 type TodoistJob struct {
+	authService services.AuthService
 	goalService services.GoalService
 }
 
-func NewTodoistJob(goalService services.GoalService) TodoistJob {
+func NewTodoistJob(
+	authService services.AuthService,
+	goalService services.GoalService,
+) TodoistJob {
 	return TodoistJob{
+		authService: authService,
 		goalService: goalService,
 	}
 }
@@ -31,12 +36,24 @@ func (j TodoistJob) RunEvery() *time.Duration {
 func (j TodoistJob) Run(logger slog.Logger) error {
 	ctx := context.Background()
 
-	logger.Debug("importing states")
-	err := j.goalService.ImportStatesFromTodoist(ctx)
+	users, err := j.authService.GetAllUsers()
 	if err != nil {
 		return err
 	}
 
-	logger.Debug("importing goals")
-	return j.goalService.ImportGoalsFromTodoist(ctx)
+	for _, user := range users {
+		logger.Debug("importing states")
+		err = j.goalService.ImportStatesFromTodoist(ctx, user.ID)
+		if err != nil {
+			return err
+		}
+
+		logger.Debug("importing goals")
+		err = j.goalService.ImportGoalsFromTodoist(ctx, user.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

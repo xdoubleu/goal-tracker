@@ -88,8 +88,8 @@ func main() {
 
 	clients := Clients{
 		Supabase: gotrue.New(
-			cfg.GotrueProjRef,
-			cfg.GotrueAPIKey,
+			cfg.SupabaseProjRef,
+			cfg.SupabaseAPIKey,
 		),
 		Todoist:   todoist.New(cfg.TodoistAPIKey),
 		Steam:     steam.New(logger, cfg.SteamAPIKey),
@@ -136,7 +136,7 @@ func NewApp(
 	app.setDB(db)
 
 	err := app.jobQueue.Push(
-		jobs.NewTodoistJob(app.services.Goals),
+		jobs.NewTodoistJob(app.services.Auth, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {
@@ -144,7 +144,11 @@ func NewApp(
 	}
 
 	err = app.jobQueue.Push(
-		jobs.NewGoodreadsJob(app.services.Goodreads, app.services.Goals),
+		jobs.NewGoodreadsJob(
+			app.services.Auth,
+			app.services.Goodreads,
+			app.services.Goals,
+		),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {
@@ -152,7 +156,7 @@ func NewApp(
 	}
 
 	err = app.jobQueue.Push(
-		jobs.NewSteamJob(app.services.Steam, app.services.Goals),
+		jobs.NewSteamJob(app.services.Auth, app.services.Steam, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {

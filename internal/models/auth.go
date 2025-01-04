@@ -12,7 +12,7 @@ const (
 type User struct {
 	ID    string `json:"id"`
 	Email string `json:"email"`
-} //	@name	User
+}
 
 func UserFromTypesUser(user types.User) User {
 	return User{

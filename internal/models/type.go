@@ -12,7 +12,7 @@ type Type struct {
 	ID       int64    `json:"id"`
 	ViewType ViewType `json:"viewType"`
 	Name     string   `json:"name"`
-} //	@name	Type
+}
 
 //nolint:gochecknoglobals //ok
 var SteamCompletionRate = Type{

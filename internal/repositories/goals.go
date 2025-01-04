@@ -19,15 +19,17 @@ type GoalRepository struct {
 
 func (repo GoalRepository) GetAll(
 	ctx context.Context,
+	userID string,
 ) ([]models.Goal, error) {
 	query := `
 		SELECT id, name, type_id, source_id, target_value, 
 		state_id, is_linked, parent_id, due_time, "order", config
 		FROM goals
+		WHERE user_id = $1
 		ORDER BY parent_id DESC
 	`
 
-	rows, err := repo.db.Query(ctx, query)
+	rows, err := repo.db.Query(ctx, query, userID)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -67,12 +69,13 @@ func (repo GoalRepository) GetAll(
 func (repo GoalRepository) GetByID(
 	ctx context.Context,
 	id string,
+	userID string,
 ) (*models.Goal, error) {
 	query := `
 		SELECT name, type_id, source_id, target_value, 
 		state_id, is_linked, parent_id, due_time, "order", config
 		FROM goals
-		WHERE goals.id = $1
+		WHERE id = $1 AND user_id = $2
 	`
 
 	//nolint:exhaustruct //other fields are optional
@@ -82,7 +85,8 @@ func (repo GoalRepository) GetByID(
 	err := repo.db.QueryRow(
 		ctx,
 		query,
-		id).Scan(
+		id,
+		userID).Scan(
 		&goal.Name,
 		&goal.TypeID,
 		&goal.SourceID,
@@ -104,15 +108,16 @@ func (repo GoalRepository) GetByID(
 func (repo GoalRepository) GetByTypeID(
 	ctx context.Context,
 	id int64,
+	userID string,
 ) ([]models.Goal, error) {
 	query := `
 		SELECT id, name, source_id, target_value, state_id,
 		is_linked, parent_id, due_time, "order", config
 		FROM goals
-		WHERE goals.type_id = $1
+		WHERE type_id = $1 AND user_id = $2
 	`
 
-	rows, err := repo.db.Query(ctx, query, id)
+	rows, err := repo.db.Query(ctx, query, id, userID)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -152,9 +157,10 @@ func (repo GoalRepository) GetByTypeID(
 	return goals, nil
 }
 
-func (repo GoalRepository) Create(
+func (repo GoalRepository) Upsert(
 	ctx context.Context,
 	id string,
+	userID string,
 	parentID *string,
 	name string,
 	stateID string,
@@ -162,8 +168,10 @@ func (repo GoalRepository) Create(
 	order int,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (id, parent_id, name, state_id, due_time, "order")
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO goals (id, user_id, parent_id, name, state_id, due_time, "order")
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		ON CONFLICT (id, user_id)
+		DO UPDATE SET parent_id = $3, name = $4, state_id = $5, due_time = $6, "order" = $7
 		RETURNING id
 	`
 
@@ -187,6 +195,7 @@ func (repo GoalRepository) Create(
 		ctx,
 		query,
 		id,
+		userID,
 		parentID,
 		name,
 		stateID,
@@ -204,12 +213,13 @@ func (repo GoalRepository) Create(
 func (repo GoalRepository) Link(
 	ctx context.Context,
 	goal *models.Goal,
+	userID string,
 	linkGoalDto dtos.LinkGoalDto,
 ) error {
 	query := `
 		UPDATE goals
-		SET is_linked = true, target_value = $2, type_id = $3, source_id = $4, config = $5
-		WHERE id = $1
+		SET is_linked = true, target_value = $3, type_id = $4, source_id = $5, config = $6
+		WHERE id = $1 AND user_id = $2
 	`
 
 	config := map[string]string{}
@@ -224,6 +234,7 @@ func (repo GoalRepository) Link(
 		ctx,
 		query,
 		goal.ID,
+		userID,
 		linkGoalDto.TargetValue,
 		linkGoalDto.TypeID,
 		models.SourcesTypeIDMap[linkGoalDto.TypeID].ID,
@@ -247,17 +258,19 @@ func (repo GoalRepository) Link(
 func (repo GoalRepository) Unlink(
 	ctx context.Context,
 	goal models.Goal,
+	userID string,
 ) error {
 	query := `
 		UPDATE goals
 		SET is_linked = false, target_value = null, type_id = null, config = null
-		WHERE id = $1
+		WHERE id = $1 AND user_id = $2
 	`
 
 	result, err := repo.db.Exec(
 		ctx,
 		query,
 		goal.ID,
+		userID,
 	)
 
 	if err != nil {
@@ -272,58 +285,17 @@ func (repo GoalRepository) Unlink(
 	return nil
 }
 
-func (repo GoalRepository) Update(
-	ctx context.Context,
-	goal models.Goal,
-	task todoist.Task,
-) (*models.Goal, error) {
-	query := `
-		UPDATE goals
-		SET parent_id = $2, name = $3, state_id = $4, due_time = $5, "order" = $6
-		WHERE id = $1
-	`
-
-	goal.ParentID = task.ParentID
-	goal.Name = task.Content
-	goal.StateID = task.SectionID
-	goal.Order = task.Order
-
-	if task.Due != nil {
-		goal.DueTime = &task.Due.Date.Time
-	}
-	resultLocation, err := repo.db.Exec(
-		ctx,
-		query,
-		goal.ID,
-		goal.ParentID,
-		goal.Name,
-		goal.StateID,
-		goal.DueTime,
-		goal.Order,
-	)
-
-	if err != nil {
-		return nil, postgres.PgxErrorToHTTPError(err)
-	}
-
-	rowsAffected := resultLocation.RowsAffected()
-	if rowsAffected == 0 {
-		return nil, database.ErrResourceNotFound
-	}
-
-	return &goal, nil
-}
-
 func (repo GoalRepository) Delete(
 	ctx context.Context,
 	goal *models.Goal,
+	userID string,
 ) error {
 	query := `
 		DELETE FROM goals
-		WHERE id = $1
+		WHERE id = $1 AND user_id = $2
 	`
 
-	result, err := repo.db.Exec(ctx, query, goal.ID)
+	result, err := repo.db.Exec(ctx, query, goal.ID, userID)
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}

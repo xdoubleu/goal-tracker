@@ -16,17 +16,18 @@ type ProgressRepository struct {
 func (repo ProgressRepository) GetByTypeIDAndDates(
 	ctx context.Context,
 	typeID int64,
+	userID string,
 	dateStart time.Time,
 	dateEnd time.Time,
 ) ([]models.Progress, error) {
 	query := `
 		SELECT value, date 
 		FROM progress 
-		WHERE type_id = $1 AND date >= $2 AND date <= $3
+		WHERE type_id = $1 AND user_id = $2 AND date >= $3 AND date <= $4
 		ORDER BY date ASC
 	`
 
-	rows, err := repo.db.Query(ctx, query, typeID, dateStart, dateEnd)
+	rows, err := repo.db.Query(ctx, query, typeID, userID, dateStart, dateEnd)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -61,14 +62,15 @@ func (repo ProgressRepository) GetByTypeIDAndDates(
 func (repo ProgressRepository) Upsert(
 	ctx context.Context,
 	typeID int64,
+	userID string,
 	dateStr string,
 	value string,
 ) (*models.Progress, error) {
 	query := `
-		INSERT INTO progress (type_id, value, date)
-		VALUES ($1, $2, $3)
-		ON CONFLICT (type_id, date)
-		DO UPDATE SET type_id = $1, value = $2, date = $3
+		INSERT INTO progress (type_id, user_id, date, value)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (type_id, user_id, date)
+		DO UPDATE SET value = $4
 		RETURNING date
 	`
 
@@ -84,8 +86,9 @@ func (repo ProgressRepository) Upsert(
 		ctx,
 		query,
 		typeID,
-		value,
+		userID,
 		date,
+		value,
 	).Scan(&progress.Date)
 
 	if err != nil {

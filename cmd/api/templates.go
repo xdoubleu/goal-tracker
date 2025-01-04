@@ -40,6 +40,7 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	goals, err := app.services.Goals.GetAllGoalsGroupedByStateAndParentGoal(
 		r.Context(),
+		user.ID,
 	)
 	if err != nil {
 		panic(err)
@@ -65,12 +66,12 @@ func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	goal, err := app.services.Goals.GetGoalByID(r.Context(), id)
+	goal, err := app.services.Goals.GetGoalByID(r.Context(), id, user.ID)
 	if err != nil {
 		panic(err)
 	}
 
-	tags, err := app.services.Goodreads.GetAllTags(r.Context())
+	tags, err := app.services.Goodreads.GetAllTags(r.Context(), user.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +95,7 @@ func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Reque
 		panic(errors.New("not signed in"))
 	}
 
-	goal, err := app.services.Goals.GetGoalByID(r.Context(), id)
+	goal, err := app.services.Goals.GetGoalByID(r.Context(), id, user.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -102,9 +103,9 @@ func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Reque
 	viewType := models.Types[*goal.TypeID].ViewType
 	switch viewType {
 	case models.Graph:
-		app.graphViewProgress(w, r, goal)
+		app.graphViewProgress(w, r, goal, user.ID)
 	case models.List:
-		app.listViewProgress(w, r, goal)
+		app.listViewProgress(w, r, goal, user.ID)
 	}
 }
 
@@ -118,6 +119,7 @@ func (app *Application) graphViewProgress(
 	w http.ResponseWriter,
 	r *http.Request,
 	goal *models.Goal,
+	userID string,
 ) {
 	//nolint:godox //I know
 	// TODO make this based on duration of goal
@@ -177,6 +179,7 @@ func (app *Application) graphViewProgress(
 	progressLabels, progressValues, err := app.services.Goals.GetProgressByTypeIDAndDates(
 		r.Context(),
 		*goal.TypeID,
+		userID,
 		dateStart,
 		dateEnd,
 	)
@@ -202,8 +205,13 @@ func (app *Application) listViewProgress(
 	w http.ResponseWriter,
 	r *http.Request,
 	goal *models.Goal,
+	userID string,
 ) {
-	listItems, err := app.services.Goals.GetListItemsByGoalID(r.Context(), goal.ID)
+	listItems, err := app.services.Goals.GetListItemsByGoalID(
+		r.Context(),
+		goal.ID,
+		userID,
+	)
 	if err != nil {
 		panic(err)
 	}

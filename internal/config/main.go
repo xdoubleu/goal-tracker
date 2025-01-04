@@ -16,8 +16,9 @@ type Config struct {
 	RefreshExpiry    string
 	DBDsn            string
 	Release          string
-	GotrueProjRef    string
-	GotrueAPIKey     string
+	SupabaseUserID   string
+	SupabaseProjRef  string
+	SupabaseAPIKey   string
 	TodoistAPIKey    string
 	TodoistProjectID string
 	SteamAPIKey      string
@@ -39,8 +40,9 @@ func New() Config {
 	cfg.DBDsn = config.EnvStr("DB_DSN", "postgres://postgres@localhost/postgres")
 	cfg.Release = config.EnvStr("RELEASE", config.DevEnv)
 
-	cfg.GotrueProjRef = config.EnvStr("GOTRUE_PROJ_REF", "")
-	cfg.GotrueAPIKey = config.EnvStr("GOTRUE_API_KEY", "")
+	cfg.SupabaseUserID = config.EnvStr("SUPABASE_USER_ID", "")
+	cfg.SupabaseProjRef = config.EnvStr("SUPABASE_PROJ_REF", "")
+	cfg.SupabaseAPIKey = config.EnvStr("SUPABASE_API_KEY", "")
 
 	cfg.TodoistAPIKey = config.EnvStr("TODOIST_API_KEY", "")
 	cfg.TodoistProjectID = config.EnvStr("TODOIST_PROJECT_ID", "")

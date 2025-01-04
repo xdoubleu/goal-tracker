@@ -8,12 +8,12 @@ import (
 
 type SubscribeMessageDto struct {
 	Subject string `json:"subject"`
-} //	@name	SubscribeMessageDto
+}
 
 type StateMessageDto struct {
 	LastRefresh  *time.Time `json:"lastRefresh"`
 	IsRefreshing bool       `json:"isRefreshing"`
-} // @name StateMessageDto
+}
 
 func (dto SubscribeMessageDto) Topic() string {
 	return dto.Subject

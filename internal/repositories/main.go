@@ -9,6 +9,7 @@ type Repositories struct {
 	States    StateRepository
 	Progress  ProgressRepository
 	Goodreads GoodreadsRepository
+	Steam     SteamRepository
 	ListItems ListItemRepository
 }
 
@@ -17,6 +18,7 @@ func New(db postgres.DB) Repositories {
 	states := StateRepository{db: db}
 	progress := ProgressRepository{db: db}
 	goodreads := GoodreadsRepository{db: db}
+	steam := SteamRepository{db: db}
 	listItems := ListItemRepository{db: db}
 
 	return Repositories{
@@ -24,6 +26,7 @@ func New(db postgres.DB) Repositories {
 		States:    states,
 		Progress:  progress,
 		Goodreads: goodreads,
+		Steam:     steam,
 		ListItems: listItems,
 	}
 }

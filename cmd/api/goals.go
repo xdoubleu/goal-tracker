@@ -44,7 +44,7 @@ func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = app.services.Goals.LinkGoal(r.Context(), id, &linkGoalDto)
+	err = app.services.Goals.LinkGoal(r.Context(), id, user.ID, &linkGoalDto)
 	if err != nil {
 		temptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
 		return
@@ -64,7 +64,7 @@ func (app *Application) unlinkGoalHandler(w http.ResponseWriter, r *http.Request
 		panic(errors.New("not signed in"))
 	}
 
-	err = app.services.Goals.UnlinkGoal(r.Context(), id)
+	err = app.services.Goals.UnlinkGoal(r.Context(), id, user.ID)
 	if err != nil {
 		return
 	}

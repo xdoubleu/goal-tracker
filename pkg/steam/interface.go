@@ -9,4 +9,5 @@ type Client interface {
 		steamID string,
 		appID int,
 	) (*AchievementsResponse, error)
+	GetSchemaForGame(ctx context.Context, appID int) (*GetSchemaForGameResponse, error)
 }

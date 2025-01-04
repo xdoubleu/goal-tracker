@@ -32,7 +32,7 @@ func New(
 	steamClient steam.Client,
 	goodreadsClient goodreads.Client,
 ) Services {
-	auth := AuthService{client: supabaseClient}
+	auth := AuthService{supabaseUserID: config.SupabaseUserID, client: supabaseClient}
 	goodreads := GoodreadsService{
 		logger:     logger,
 		profileURL: config.GoodreadsURL,
@@ -44,6 +44,7 @@ func New(
 		logger: logger,
 		client: steamClient,
 		userID: config.SteamUserID,
+		steam:  repositories.Steam,
 	}
 	goals := GoalService{
 		webURL:    config.WebURL,

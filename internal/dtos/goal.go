@@ -9,7 +9,7 @@ type LinkGoalDto struct {
 	TargetValue      *int64            `json:"targetValue"`
 	Tag              *string           `json:"tag"`
 	ValidationErrors map[string]string `json:"-"`
-} //	@name	LinkGoalDto
+}
 
 func (dto *LinkGoalDto) Validate() *validate.Validator {
 	v := validate.New()

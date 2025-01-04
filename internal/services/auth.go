@@ -15,7 +15,17 @@ import (
 )
 
 type AuthService struct {
-	client gotrue.Client
+	supabaseUserID string
+	client         gotrue.Client
+}
+
+func (service AuthService) GetAllUsers() ([]models.User, error) {
+	//nolint:exhaustruct //skip
+	return []models.User{
+		{
+			ID: service.supabaseUserID,
+		},
+	}, nil
 }
 
 func (service AuthService) SignInWithEmail(

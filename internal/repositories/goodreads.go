@@ -14,13 +14,15 @@ type GoodreadsRepository struct {
 
 func (repo GoodreadsRepository) GetAllBooks(
 	ctx context.Context,
+	userID string,
 ) ([]goodreads.Book, error) {
 	query := `
 		SELECT id, shelf, tags, title, author, dates_read
-		FROM goodreads_books 
+		FROM goodreads_books
+		WHERE user_id = $1 
 	`
 
-	rows, err := repo.db.Query(ctx, query)
+	rows, err := repo.db.Query(ctx, query, userID)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -52,17 +54,20 @@ func (repo GoodreadsRepository) GetAllBooks(
 	return books, nil
 }
 
-func (repo GoodreadsRepository) GetAllTags(ctx context.Context) ([]string, error) {
+func (repo GoodreadsRepository) GetAllTags(
+	ctx context.Context,
+	userID string,
+) ([]string, error) {
 	query := `
 		SELECT ARRAY_AGG(DISTINCT tag) AS tags 
 		FROM 
 			goodreads_books,
 			UNNEST(tags) as tag
-		WHERE tags <> '{}';
+		WHERE tags <> '{}' AND user_id = $1;
 	`
 
 	tags := []string{}
-	err := repo.db.QueryRow(ctx, query).Scan(&tags)
+	err := repo.db.QueryRow(ctx, query, userID).Scan(&tags)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -73,14 +78,15 @@ func (repo GoodreadsRepository) GetAllTags(ctx context.Context) ([]string, error
 func (repo GoodreadsRepository) GetBooksByTag(
 	ctx context.Context,
 	tag string,
+	userID string,
 ) ([]goodreads.Book, error) {
 	query := `
 		SELECT id, shelf, tags, title, author, dates_read
 		FROM goodreads_books 
-		WHERE $1 = ANY(tags)
+		WHERE $1 = ANY(tags) AND user_id = $2
 	`
 
-	rows, err := repo.db.Query(ctx, query, tag)
+	rows, err := repo.db.Query(ctx, query, tag, userID)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -115,14 +121,15 @@ func (repo GoodreadsRepository) GetBooksByTag(
 func (repo GoodreadsRepository) GetBooksByIDs(
 	ctx context.Context,
 	ids []int64,
+	userID string,
 ) ([]goodreads.Book, error) {
 	query := `
 		SELECT id, shelf, tags, title, author, dates_read
 		FROM goodreads_books 
-		WHERE id = ANY($1)
+		WHERE id = ANY($1) AND user_id = $2
 	`
 
-	rows, err := repo.db.Query(ctx, query, ids)
+	rows, err := repo.db.Query(ctx, query, ids, userID)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -157,25 +164,26 @@ func (repo GoodreadsRepository) GetBooksByIDs(
 func (repo GoodreadsRepository) UpsertBook(
 	ctx context.Context,
 	book goodreads.Book,
+	userID string,
 ) error {
 	query := `
-		INSERT INTO goodreads_books (id, shelf, tags, title, author, dates_read)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (id)
-		DO UPDATE SET shelf = $2, tags = $3, title = $4, author = $5, dates_read = $6
-		RETURNING id
+		INSERT INTO goodreads_books (id, user_id, shelf, tags, title, author, dates_read)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		ON CONFLICT (id, user_id)
+		DO UPDATE SET shelf = $3, tags = $4, title = $5, author = $6, dates_read = $7
 	`
 
-	err := repo.db.QueryRow(
+	_, err := repo.db.Exec(
 		ctx,
 		query,
 		book.ID,
+		userID,
 		book.Shelf,
 		book.Tags,
 		book.Title,
 		book.Author,
 		book.DatesRead,
-	).Scan(&book.ID)
+	)
 
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)

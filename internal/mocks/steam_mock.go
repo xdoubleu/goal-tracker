@@ -58,3 +58,11 @@ func (client MockSteamClient) GetPlayerAchievements(
 	}
 	return &response, nil
 }
+
+func (client MockSteamClient) GetSchemaForGame(
+	_ context.Context,
+	_ int,
+) (*steam.GetSchemaForGameResponse, error) {
+	//nolint:exhaustruct //skip
+	return &steam.GetSchemaForGameResponse{}, nil
+}

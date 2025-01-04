@@ -16,4 +16,4 @@ type Goal struct {
 	DueTime     *time.Time         `json:"time"`
 	Order       int                `json:"order"`
 	Config      *map[string]string `json:"config"`
-} //	@name	Goal
+}

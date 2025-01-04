@@ -15,14 +15,16 @@ type StateRepository struct {
 
 func (repo StateRepository) GetAll(
 	ctx context.Context,
+	userID string,
 ) ([]models.State, error) {
 	query := `
 		SELECT id, name, "order"
 		FROM states
+		WHERE user_id = $1
 		ORDER BY "order"
 	`
 
-	rows, err := repo.db.Query(ctx, query)
+	rows, err := repo.db.Query(ctx, query, userID)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
@@ -54,14 +56,15 @@ func (repo StateRepository) GetAll(
 func (repo StateRepository) Upsert(
 	ctx context.Context,
 	id string,
+	userID string,
 	name string,
 	order int,
 ) (*models.State, error) {
 	query := `
-		INSERT INTO states (id, name, "order")
-		VALUES ($1, $2, $3)
-		ON CONFLICT (id)
-		DO UPDATE SET name = $2, "order" = $3
+		INSERT INTO states (id, user_id, name, "order")
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (id, user_id)
+		DO UPDATE SET name = $3, "order" = $4
 		RETURNING id
 	`
 
@@ -75,6 +78,7 @@ func (repo StateRepository) Upsert(
 		ctx,
 		query,
 		id,
+		userID,
 		name,
 		order,
 	).Scan(&state.ID)
@@ -89,13 +93,14 @@ func (repo StateRepository) Upsert(
 func (repo StateRepository) Delete(
 	ctx context.Context,
 	state *models.State,
+	userID string,
 ) error {
 	query := `
 		DELETE FROM states
-		WHERE id = $1
+		WHERE id = $1 AND user_id = $2
 	`
 
-	result, err := repo.db.Exec(ctx, query, state.ID)
+	result, err := repo.db.Exec(ctx, query, state.ID, userID)
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}

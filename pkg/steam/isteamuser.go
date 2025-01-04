@@ -40,32 +40,18 @@ type OwnedGamesResponseData struct {
 	Games     []Game `json:"games"`
 }
 
-type AchievementsResponse struct {
-	PlayerStats PlayerStats `json:"playerstats"`
-}
-
-type PlayerStats struct {
-	SteamID      string        `json:"steamID"`
-	GameName     string        `json:"gameName"`
-	Achievements []Achievement `json:"achievements"`
-	Success      bool          `json:"success"`
-}
-
 func (client client) GetOwnedGames(
 	ctx context.Context,
 	steamID string,
 ) (*OwnedGamesResponse, error) {
 	var ownedGamesResponse OwnedGamesResponse
 
+	//nolint:lll //it is what it is
 	err := client.sendRequestAPI(
 		ctx,
 		"IPlayerService/GetOwnedGames/v0001",
 		fmt.Sprintf(
-			`steamid=%s
-			&include_appinfo=true
-			&include_played_free_games=true
-			&skip_unvetted_apps=false
-			&include_free_sub=true`,
+			`steamid=%s&include_appinfo=true&include_played_free_games=true&skip_unvetted_apps=false&include_free_sub=true`,
 			steamID,
 		),
 		&ownedGamesResponse,
@@ -75,6 +61,17 @@ func (client client) GetOwnedGames(
 	}
 
 	return &ownedGamesResponse, nil
+}
+
+type AchievementsResponse struct {
+	PlayerStats PlayerStats `json:"playerstats"`
+}
+
+type PlayerStats struct {
+	SteamID      string        `json:"steamID"`
+	GameName     string        `json:"gameName"`
+	Achievements []Achievement `json:"achievements"`
+	Success      bool          `json:"success"`
 }
 
 func (client client) GetPlayerAchievements(
@@ -95,4 +92,46 @@ func (client client) GetPlayerAchievements(
 	}
 
 	return &achievementsResponse, nil
+}
+
+type GetSchemaForGameResponse struct {
+	Game GameSchema `json:"game"`
+}
+
+type GameSchema struct {
+	GameName           string             `json:"gameName"`
+	GameVersion        string             `json:"gameVersion"`
+	AvailableGameStats AvailableGameStats `json:"availableGameStats"`
+}
+
+type AvailableGameStats struct {
+	Achievements []AchievementSchema `json:"achievements"`
+}
+
+type AchievementSchema struct {
+	Name         string `json:"name"`
+	DefaultValue int    `json:"defaultValue"`
+	DisplayName  string `json:"displayName"`
+	Hidden       int    `json:"hidden"`
+	Icon         string `json:"icon"`
+	IconGray     string `json:"icongray"`
+}
+
+func (client client) GetSchemaForGame(
+	ctx context.Context,
+	appID int,
+) (*GetSchemaForGameResponse, error) {
+	var getSchemaForGameResponse GetSchemaForGameResponse
+
+	err := client.sendRequestAPI(
+		ctx,
+		"ISteamUserStats/GetSchemaForGame/v2",
+		fmt.Sprintf("appid=%d", appID),
+		&getSchemaForGameResponse,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getSchemaForGameResponse, nil
 }
