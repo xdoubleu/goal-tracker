@@ -9,13 +9,13 @@ import (
 )
 
 type TodoistJob struct {
-	authService services.AuthService
-	goalService services.GoalService
+	authService *services.AuthService
+	goalService *services.GoalService
 }
 
 func NewTodoistJob(
-	authService services.AuthService,
-	goalService services.GoalService,
+	authService *services.AuthService,
+	goalService *services.GoalService,
 ) TodoistJob {
 	return TodoistJob{
 		authService: authService,

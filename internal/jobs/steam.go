@@ -13,15 +13,15 @@ import (
 )
 
 type SteamJob struct {
-	authService  services.AuthService
-	steamService services.SteamService
-	goalService  services.GoalService
+	authService  *services.AuthService
+	steamService *services.SteamService
+	goalService  *services.GoalService
 }
 
 func NewSteamJob(
-	authService services.AuthService,
-	steamService services.SteamService,
-	goalService services.GoalService,
+	authService *services.AuthService,
+	steamService *services.SteamService,
+	goalService *services.GoalService,
 ) SteamJob {
 	return SteamJob{
 		authService:  authService,

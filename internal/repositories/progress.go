@@ -13,7 +13,7 @@ type ProgressRepository struct {
 	db postgres.DB
 }
 
-func (repo ProgressRepository) GetByTypeIDAndDates(
+func (repo *ProgressRepository) GetByTypeIDAndDates(
 	ctx context.Context,
 	typeID int64,
 	userID string,
@@ -33,7 +33,6 @@ func (repo ProgressRepository) GetByTypeIDAndDates(
 	}
 
 	progresses := []models.Progress{}
-
 	for rows.Next() {
 		//nolint:exhaustruct //other fields are assigned later
 		progress := models.Progress{
@@ -59,7 +58,7 @@ func (repo ProgressRepository) GetByTypeIDAndDates(
 	return progresses, nil
 }
 
-func (repo ProgressRepository) Upsert(
+func (repo *ProgressRepository) Upsert(
 	ctx context.Context,
 	typeID int64,
 	userID string,

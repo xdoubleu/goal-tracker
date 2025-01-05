@@ -47,7 +47,7 @@ type Application struct {
 	config    config.Config
 	images    embed.FS
 	clients   Clients
-	services  services.Services
+	services  *services.Services
 	tpl       *template.Template
 	jobQueue  *temptools.JobQueue
 }
@@ -129,21 +129,52 @@ func NewApp(
 		config:   cfg,
 		images:   images,
 		tpl:      tpl,
-		jobQueue: &jobQueue,
+		jobQueue: jobQueue,
 	}
 
 	app.setContext()
 	app.setDB(db)
 
-	err := app.jobQueue.Push(
+	return app
+}
+
+func (app *Application) setDB(
+	db postgres.DB,
+) {
+	// make sure previous app is cancelled internally
+	app.ctxCancel()
+	app.jobQueue.Clear()
+
+	app.setContext()
+
+	spandb := postgres.NewSpanDB(db)
+	app.db = spandb
+
+	app.services = services.New(
+		*app.logger,
+		app.config,
+		app.jobQueue,
+		repositories.New(app.db),
+		app.clients.Supabase,
+		app.clients.Todoist,
+		app.clients.Steam,
+		app.clients.Goodreads,
+	)
+
+	app.setJobs()
+}
+
+func (app *Application) setJobs() {
+	/*err := app.jobQueue.Push(
 		jobs.NewTodoistJob(app.services.Auth, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {
 		panic(err)
 	}
+	*/
 
-	err = app.jobQueue.Push(
+	err := app.jobQueue.Push(
 		jobs.NewGoodreadsJob(
 			app.services.Auth,
 			app.services.Goodreads,
@@ -155,40 +186,17 @@ func NewApp(
 		panic(err)
 	}
 
-	err = app.jobQueue.Push(
-		jobs.NewSteamJob(app.services.Auth, app.services.Steam, app.services.Goals),
-		app.services.WebSocket.UpdateState,
-	)
-	if err != nil {
-		panic(err)
-	}
+	/*
+		err = app.jobQueue.Push(
+			jobs.NewSteamJob(app.services.Auth, app.services.Steam, app.services.Goals),
+			app.services.WebSocket.UpdateState,
+		)
+		if err != nil {
+			panic(err)
+		}
+	*/
 
 	app.services.WebSocket.RegisterTopics(app.jobQueue.FetchRecurringJobIDs())
-
-	return app
-}
-
-func (app *Application) setDB(
-	db postgres.DB,
-) {
-	// make sure previous app is cancelled internally
-	app.ctxCancel()
-
-	app.setContext()
-
-	spandb := postgres.NewSpanDB(db)
-
-	app.db = spandb
-	app.services = services.New(
-		*app.logger,
-		app.config,
-		app.jobQueue,
-		repositories.New(app.db),
-		app.clients.Supabase,
-		app.clients.Todoist,
-		app.clients.Steam,
-		app.clients.Goodreads,
-	)
 }
 
 func (app *Application) setContext() {

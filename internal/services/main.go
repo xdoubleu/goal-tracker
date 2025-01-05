@@ -14,11 +14,11 @@ import (
 )
 
 type Services struct {
-	Auth      AuthService
-	Goals     GoalService
-	Todoist   TodoistService
-	Steam     SteamService
-	Goodreads GoodreadsService
+	Auth      *AuthService
+	Goals     *GoalService
+	Todoist   *TodoistService
+	Steam     *SteamService
+	Goodreads *GoodreadsService
 	WebSocket *WebSocketService
 }
 
@@ -26,27 +26,27 @@ func New(
 	logger slog.Logger,
 	config config.Config,
 	jobQueue *temptools.JobQueue,
-	repositories repositories.Repositories,
+	repositories *repositories.Repositories,
 	supabaseClient gotrue.Client,
 	todoistClient todoist.Client,
 	steamClient steam.Client,
 	goodreadsClient goodreads.Client,
-) Services {
-	auth := AuthService{supabaseUserID: config.SupabaseUserID, client: supabaseClient}
-	goodreads := GoodreadsService{
+) *Services {
+	auth := &AuthService{supabaseUserID: config.SupabaseUserID, client: supabaseClient}
+	goodreads := &GoodreadsService{
 		logger:     logger,
 		profileURL: config.GoodreadsURL,
 		goodreads:  repositories.Goodreads,
 		client:     goodreadsClient,
 	}
-	todoist := TodoistService{client: todoistClient, projectID: config.TodoistProjectID}
-	steam := SteamService{
+	todoist := &TodoistService{client: todoistClient, projectID: config.TodoistProjectID}
+	steam := &SteamService{
 		logger: logger,
 		client: steamClient,
 		userID: config.SteamUserID,
 		steam:  repositories.Steam,
 	}
-	goals := GoalService{
+	goals := &GoalService{
 		webURL:    config.WebURL,
 		states:    repositories.States,
 		goals:     repositories.Goals,
@@ -55,7 +55,7 @@ func New(
 		todoist:   todoist,
 	}
 
-	return Services{
+	return &Services{
 		Auth:      auth,
 		Goals:     goals,
 		Todoist:   todoist,

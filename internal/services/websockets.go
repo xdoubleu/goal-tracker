@@ -39,11 +39,11 @@ func NewWebSocketService(
 	return &service
 }
 
-func (service WebSocketService) Handler() http.HandlerFunc {
+func (service *WebSocketService) Handler() http.HandlerFunc {
 	return service.handler.Handler()
 }
 
-func (service WebSocketService) UpdateState(
+func (service *WebSocketService) UpdateState(
 	id string,
 	isRunning bool,
 	lastRunTime *time.Time,
@@ -59,7 +59,7 @@ func (service WebSocketService) UpdateState(
 	})
 }
 
-func (service WebSocketService) RegisterTopics(topics []string) {
+func (service *WebSocketService) RegisterTopics(topics []string) {
 	for _, topic := range topics {
 		registeredTopic, err := service.handler.AddTopic(
 			topic,
@@ -75,7 +75,7 @@ func (service WebSocketService) RegisterTopics(topics []string) {
 	}
 }
 
-func (service WebSocketService) fetchState(topic *wstools.Topic) dtos.StateMessageDto {
+func (service *WebSocketService) fetchState(topic *wstools.Topic) dtos.StateMessageDto {
 	isRefreshing, lastRefresh := service.jobQueue.FetchState(topic.Name)
 
 	return dtos.StateMessageDto{

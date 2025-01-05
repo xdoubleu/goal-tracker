@@ -16,11 +16,11 @@ import (
 
 type GoalService struct {
 	webURL    string
-	goals     repositories.GoalRepository
-	states    repositories.StateRepository
-	progress  repositories.ProgressRepository
-	listItems repositories.ListItemRepository
-	todoist   TodoistService
+	goals     *repositories.GoalRepository
+	states    *repositories.StateRepository
+	progress  *repositories.ProgressRepository
+	listItems *repositories.ListItemRepository
+	todoist   *TodoistService
 }
 
 type StateGoalsPair struct {
@@ -28,7 +28,7 @@ type StateGoalsPair struct {
 	Goals []helper.GoalWithSubGoals
 }
 
-func (service GoalService) GetAllGoalsGroupedByStateAndParentGoal(
+func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 	ctx context.Context,
 	userID string,
 ) ([]StateGoalsPair, error) {
@@ -66,7 +66,7 @@ func (service GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 	return result, nil
 }
 
-func (service GoalService) GetGoalByID(
+func (service *GoalService) GetGoalByID(
 	ctx context.Context,
 	id string,
 	userID string,
@@ -74,7 +74,7 @@ func (service GoalService) GetGoalByID(
 	return service.goals.GetByID(ctx, id, userID)
 }
 
-func (service GoalService) GetGoalsByTypeID(
+func (service *GoalService) GetGoalsByTypeID(
 	ctx context.Context,
 	id int64,
 	userID string,
@@ -82,7 +82,7 @@ func (service GoalService) GetGoalsByTypeID(
 	return service.goals.GetByTypeID(ctx, id, userID)
 }
 
-func (service GoalService) ImportStatesFromTodoist(
+func (service *GoalService) ImportStatesFromTodoist(
 	ctx context.Context,
 	userID string,
 ) error {
@@ -130,7 +130,7 @@ func (service GoalService) ImportStatesFromTodoist(
 	return nil
 }
 
-func (service GoalService) ImportGoalsFromTodoist(
+func (service *GoalService) ImportGoalsFromTodoist(
 	ctx context.Context,
 	userID string,
 ) error {
@@ -181,7 +181,7 @@ func (service GoalService) ImportGoalsFromTodoist(
 	return nil
 }
 
-func (service GoalService) LinkGoal(
+func (service *GoalService) LinkGoal(
 	ctx context.Context,
 	id string,
 	userID string,
@@ -213,7 +213,7 @@ func (service GoalService) LinkGoal(
 	)
 }
 
-func (service GoalService) UnlinkGoal(
+func (service *GoalService) UnlinkGoal(
 	ctx context.Context,
 	id string,
 	userID string,
@@ -239,7 +239,7 @@ func (service GoalService) UnlinkGoal(
 	)
 }
 
-func (service GoalService) GetProgressByTypeIDAndDates(
+func (service *GoalService) GetProgressByTypeIDAndDates(
 	ctx context.Context,
 	typeID int64,
 	userID string,
@@ -271,7 +271,7 @@ func (service GoalService) GetProgressByTypeIDAndDates(
 	return progressLabels, progressValues, nil
 }
 
-func (service GoalService) SaveProgress(
+func (service *GoalService) SaveProgress(
 	ctx context.Context,
 	typeID int64,
 	userID string,
@@ -293,7 +293,7 @@ func (service GoalService) SaveProgress(
 	return nil
 }
 
-func (service GoalService) GetListItemsByGoalID(
+func (service *GoalService) GetListItemsByGoalID(
 	ctx context.Context,
 	goalID string,
 	userID string,
@@ -301,7 +301,7 @@ func (service GoalService) GetListItemsByGoalID(
 	return service.listItems.GetByGoalID(ctx, goalID, userID)
 }
 
-func (service GoalService) SaveListItem(
+func (service *GoalService) SaveListItem(
 	ctx context.Context,
 	id int64,
 	userID string,

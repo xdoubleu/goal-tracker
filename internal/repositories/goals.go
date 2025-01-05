@@ -17,7 +17,7 @@ type GoalRepository struct {
 	db postgres.DB
 }
 
-func (repo GoalRepository) GetAll(
+func (repo *GoalRepository) GetAll(
 	ctx context.Context,
 	userID string,
 ) ([]models.Goal, error) {
@@ -66,7 +66,7 @@ func (repo GoalRepository) GetAll(
 	return goals, nil
 }
 
-func (repo GoalRepository) GetByID(
+func (repo *GoalRepository) GetByID(
 	ctx context.Context,
 	id string,
 	userID string,
@@ -105,7 +105,7 @@ func (repo GoalRepository) GetByID(
 	return &goal, nil
 }
 
-func (repo GoalRepository) GetByTypeID(
+func (repo *GoalRepository) GetByTypeID(
 	ctx context.Context,
 	id int64,
 	userID string,
@@ -123,7 +123,6 @@ func (repo GoalRepository) GetByTypeID(
 	}
 
 	goals := []models.Goal{}
-
 	for rows.Next() {
 		//nolint:exhaustruct //other fields are assigned later
 		goal := models.Goal{
@@ -157,7 +156,7 @@ func (repo GoalRepository) GetByTypeID(
 	return goals, nil
 }
 
-func (repo GoalRepository) Upsert(
+func (repo *GoalRepository) Upsert(
 	ctx context.Context,
 	id string,
 	userID string,
@@ -210,7 +209,7 @@ func (repo GoalRepository) Upsert(
 	return &goal, nil
 }
 
-func (repo GoalRepository) Link(
+func (repo *GoalRepository) Link(
 	ctx context.Context,
 	goal *models.Goal,
 	userID string,
@@ -255,7 +254,7 @@ func (repo GoalRepository) Link(
 	return nil
 }
 
-func (repo GoalRepository) Unlink(
+func (repo *GoalRepository) Unlink(
 	ctx context.Context,
 	goal models.Goal,
 	userID string,
@@ -285,7 +284,7 @@ func (repo GoalRepository) Unlink(
 	return nil
 }
 
-func (repo GoalRepository) Delete(
+func (repo *GoalRepository) Delete(
 	ctx context.Context,
 	goal *models.Goal,
 	userID string,

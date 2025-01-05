@@ -5,23 +5,23 @@ import (
 )
 
 type Repositories struct {
-	Goals     GoalRepository
-	States    StateRepository
-	Progress  ProgressRepository
-	Goodreads GoodreadsRepository
-	Steam     SteamRepository
-	ListItems ListItemRepository
+	Goals     *GoalRepository
+	States    *StateRepository
+	Progress  *ProgressRepository
+	Goodreads *GoodreadsRepository
+	Steam     *SteamRepository
+	ListItems *ListItemRepository
 }
 
-func New(db postgres.DB) Repositories {
-	goals := GoalRepository{db: db}
-	states := StateRepository{db: db}
-	progress := ProgressRepository{db: db}
-	goodreads := GoodreadsRepository{db: db}
-	steam := SteamRepository{db: db}
-	listItems := ListItemRepository{db: db}
+func New(db postgres.DB) *Repositories {
+	goals := &GoalRepository{db: db}
+	states := &StateRepository{db: db}
+	progress := &ProgressRepository{db: db}
+	goodreads := &GoodreadsRepository{db: db}
+	steam := &SteamRepository{db: db}
+	listItems := &ListItemRepository{db: db}
 
-	return Repositories{
+	return &Repositories{
 		Goals:     goals,
 		States:    states,
 		Progress:  progress,

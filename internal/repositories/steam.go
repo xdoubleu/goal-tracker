@@ -13,7 +13,7 @@ type SteamRepository struct {
 	db postgres.DB
 }
 
-func (repo SteamRepository) GetAllGames(
+func (repo *SteamRepository) GetAllGames(
 	ctx context.Context,
 	userID string,
 ) ([]models.Game, error) {
@@ -52,7 +52,7 @@ func (repo SteamRepository) GetAllGames(
 	return games, nil
 }
 
-func (repo SteamRepository) UpsertGame(
+func (repo *SteamRepository) UpsertGame(
 	ctx context.Context,
 	id int,
 	userID string,
@@ -80,7 +80,7 @@ func (repo SteamRepository) UpsertGame(
 	return nil
 }
 
-func (repo SteamRepository) MarkGameAsDelisted(
+func (repo *SteamRepository) MarkGameAsDelisted(
 	ctx context.Context,
 	game *models.Game,
 	userID string,
@@ -105,7 +105,7 @@ func (repo SteamRepository) MarkGameAsDelisted(
 	return nil
 }
 
-func (repo SteamRepository) GetAchievementsForGame(
+func (repo *SteamRepository) GetAchievementsForGame(
 	ctx context.Context,
 	gameID int,
 	userID string,
@@ -148,7 +148,7 @@ func (repo SteamRepository) GetAchievementsForGame(
 	return achievements, nil
 }
 
-func (repo SteamRepository) UpsertAchievement(
+func (repo *SteamRepository) UpsertAchievement(
 	ctx context.Context,
 	name string,
 	userID string,
@@ -180,7 +180,7 @@ func (repo SteamRepository) UpsertAchievement(
 	return nil
 }
 
-func (repo SteamRepository) UpsertAchievementSchema(
+func (repo *SteamRepository) UpsertAchievementSchema(
 	ctx context.Context,
 	name string,
 	userID string,

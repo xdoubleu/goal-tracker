@@ -11,12 +11,12 @@ import (
 
 type GoodreadsService struct {
 	logger     slog.Logger
-	goodreads  repositories.GoodreadsRepository
+	goodreads  *repositories.GoodreadsRepository
 	client     goodreads.Client
 	profileURL string
 }
 
-func (service GoodreadsService) ImportAllBooks(
+func (service *GoodreadsService) ImportAllBooks(
 	ctx context.Context,
 	userID string,
 ) ([]goodreads.Book, error) {
@@ -41,21 +41,21 @@ func (service GoodreadsService) ImportAllBooks(
 	return books, nil
 }
 
-func (service GoodreadsService) GetAllBooks(
+func (service *GoodreadsService) GetAllBooks(
 	ctx context.Context,
 	userID string,
 ) ([]goodreads.Book, error) {
 	return service.goodreads.GetAllBooks(ctx, userID)
 }
 
-func (service GoodreadsService) GetAllTags(
+func (service *GoodreadsService) GetAllTags(
 	ctx context.Context,
 	userID string,
 ) ([]string, error) {
 	return service.goodreads.GetAllTags(ctx, userID)
 }
 
-func (service GoodreadsService) GetBooksByTag(
+func (service *GoodreadsService) GetBooksByTag(
 	ctx context.Context,
 	tag string,
 	userID string,
@@ -63,7 +63,7 @@ func (service GoodreadsService) GetBooksByTag(
 	return service.goodreads.GetBooksByTag(ctx, tag, userID)
 }
 
-func (service GoodreadsService) GetBooksByIDs(
+func (service *GoodreadsService) GetBooksByIDs(
 	ctx context.Context,
 	ids []int64,
 	userID string,

@@ -31,6 +31,7 @@ func TestMain(m *testing.M) {
 	cfg = config.New()
 	cfg.Env = configtools.TestEnv
 	cfg.Throttle = false
+	cfg.SupabaseUserID = "4001e9cf-3fbe-4b09-863f-bd1654cfbf76"
 
 	postgresDB, err := postgres.Connect(
 		logging.NewNopLogger(),

@@ -11,7 +11,7 @@ type TodoistService struct {
 	projectID string
 }
 
-func (service TodoistService) GetSections(
+func (service *TodoistService) GetSections(
 	ctx context.Context,
 ) ([]todoist.Section, error) {
 	sections, err := service.client.GetAllSections(ctx, service.projectID)
@@ -22,18 +22,18 @@ func (service TodoistService) GetSections(
 	return sections, nil
 }
 
-func (service TodoistService) GetTasks(ctx context.Context) ([]todoist.Task, error) {
+func (service *TodoistService) GetTasks(ctx context.Context) ([]todoist.Task, error) {
 	return service.client.GetActiveTasks(ctx, service.projectID)
 }
 
-func (service TodoistService) GetTaskByID(
+func (service *TodoistService) GetTaskByID(
 	ctx context.Context,
 	id string,
 ) (*todoist.Task, error) {
 	return service.client.GetActiveTask(ctx, id)
 }
 
-func (service TodoistService) UpdateTask(
+func (service *TodoistService) UpdateTask(
 	ctx context.Context,
 	id string,
 	description string,

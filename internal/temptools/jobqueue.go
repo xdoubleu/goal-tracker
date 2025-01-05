@@ -13,9 +13,12 @@ import (
 type CallbackFunc = func(id string, isRunning bool, lastRunTime *time.Time)
 
 type JobQueue struct {
-	logger        slog.Logger
-	recurringJobs map[string]*jobContainer
-	c             chan *jobContainer
+	logger              slog.Logger
+	recurringJobs       map[string]*jobContainer
+	c                   chan *jobContainer
+	workerStopRequested chan bool
+	workerActive        bool
+	schedulerActive     bool
 }
 
 type Job interface {
@@ -32,17 +35,30 @@ type jobContainer struct {
 	isPushed    bool
 }
 
-func NewJobQueue(logger slog.Logger, size int) JobQueue {
-	jobQueue := JobQueue{
-		logger:        logger,
-		recurringJobs: make(map[string]*jobContainer),
-		c:             make(chan *jobContainer, size),
+func NewJobQueue(logger slog.Logger, size int) *JobQueue {
+	jobQueue := &JobQueue{
+		logger:              logger,
+		recurringJobs:       make(map[string]*jobContainer),
+		c:                   make(chan *jobContainer, size),
+		workerStopRequested: make(chan bool),
+		workerActive:        true,
+		schedulerActive:     true,
 	}
 
 	jobQueue.startWorker()
 	jobQueue.startScheduler()
 
 	return jobQueue
+}
+
+func (q *JobQueue) Clear() {
+	q.schedulerActive = false
+	q.workerStopRequested <- true
+	q.recurringJobs = make(map[string]*jobContainer)
+
+	for q.workerActive {
+		time.Sleep(100 * time.Millisecond)
+	}
 }
 
 func (q *JobQueue) Push(job Job, callback CallbackFunc) error {
@@ -93,41 +109,61 @@ func (q *JobQueue) FetchState(id string) (bool, *time.Time) {
 }
 
 func (q *JobQueue) push(jobContainer *jobContainer) {
+	if !q.schedulerActive {
+		q.startScheduler()
+	}
+
+	if !q.workerActive {
+		q.startWorker()
+	}
+
 	jobContainer.isPushed = true
 	q.c <- jobContainer
 }
 
 func (q *JobQueue) startWorker() {
+	q.workerActive = true
+
 	go sentry.GoRoutineErrorHandler(
 		context.Background(),
 		"JobQueueWorker",
 		func(_ context.Context) error {
+		out:
 			for {
-				jobContainer := <-q.c
-				err := jobContainer.run(q.logger)
-				if err != nil {
-					q.logger.Error(err.Error())
+				select {
+				case jobContainer := <-q.c:
+					err := jobContainer.run(q.logger)
+					if err != nil {
+						q.logger.Error(err.Error())
+					}
+				case <-q.workerStopRequested:
+					break out
 				}
 			}
+
+			q.workerActive = false
+			return nil
 		},
 	)
 }
 
 func (q *JobQueue) startScheduler() {
+	q.schedulerActive = true
+
 	go sentry.GoRoutineErrorHandler(
 		context.Background(),
 		"JobQueueScheduler",
 		func(_ context.Context) error {
-			for {
+			for q.schedulerActive {
 				for k := range q.recurringJobs {
 					job := q.recurringJobs[k]
 					if job.shouldRun() {
 						q.push(job)
 					}
 				}
-
 				time.Sleep(getSmallestPeriod(q.recurringJobs))
 			}
+			return nil
 		},
 	)
 }

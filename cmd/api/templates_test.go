@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -39,13 +40,16 @@ func TestRoot(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rs.StatusCode)
 }
 
-//nolint:godox //I know
-// TODO
-/*func TestLink(t *testing.T) {
+func TestLink(t *testing.T) {
 	testEnv, testApp := setup(t)
 	defer testEnv.teardown()
 
-	testApp.setDB(testEnv.tx, supabaseClient, todoistClient, steamClient)
+	testApp.setDB(testEnv.tx)
+
+	err := testApp.services.Goals.ImportGoalsFromTodoist(context.Background(), testApp.config.SupabaseUserID)
+	if err != nil {
+		panic(err)
+	}
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
@@ -56,4 +60,4 @@ func TestRoot(t *testing.T) {
 
 	rs := tReq.Do(t)
 	assert.Equal(t, http.StatusOK, rs.StatusCode)
-}*/
+}

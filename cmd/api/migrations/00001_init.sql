@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS goals (
     source_id integer,
     type_id integer,
     target_value integer,
+    period integer,
     due_time timestamp,
     config json,
     PRIMARY KEY (id, user_id)

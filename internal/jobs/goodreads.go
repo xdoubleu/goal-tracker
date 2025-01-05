@@ -14,15 +14,15 @@ import (
 )
 
 type GoodreadsJob struct {
-	authService      services.AuthService
-	goodreadsService services.GoodreadsService
-	goalService      services.GoalService
+	authService      *services.AuthService
+	goodreadsService *services.GoodreadsService
+	goalService      *services.GoalService
 }
 
 func NewGoodreadsJob(
-	authService services.AuthService,
-	goodreadsService services.GoodreadsService,
-	goalService services.GoalService,
+	authService *services.AuthService,
+	goodreadsService *services.GoodreadsService,
+	goalService *services.GoalService,
 ) GoodreadsJob {
 	return GoodreadsJob{
 		authService:      authService,

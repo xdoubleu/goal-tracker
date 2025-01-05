@@ -12,7 +12,7 @@ type GoodreadsRepository struct {
 	db postgres.DB
 }
 
-func (repo GoodreadsRepository) GetAllBooks(
+func (repo *GoodreadsRepository) GetAllBooks(
 	ctx context.Context,
 	userID string,
 ) ([]goodreads.Book, error) {
@@ -54,7 +54,7 @@ func (repo GoodreadsRepository) GetAllBooks(
 	return books, nil
 }
 
-func (repo GoodreadsRepository) GetAllTags(
+func (repo *GoodreadsRepository) GetAllTags(
 	ctx context.Context,
 	userID string,
 ) ([]string, error) {
@@ -75,7 +75,7 @@ func (repo GoodreadsRepository) GetAllTags(
 	return tags, nil
 }
 
-func (repo GoodreadsRepository) GetBooksByTag(
+func (repo *GoodreadsRepository) GetBooksByTag(
 	ctx context.Context,
 	tag string,
 	userID string,
@@ -118,7 +118,7 @@ func (repo GoodreadsRepository) GetBooksByTag(
 	return books, nil
 }
 
-func (repo GoodreadsRepository) GetBooksByIDs(
+func (repo *GoodreadsRepository) GetBooksByIDs(
 	ctx context.Context,
 	ids []int64,
 	userID string,
@@ -161,7 +161,7 @@ func (repo GoodreadsRepository) GetBooksByIDs(
 	return books, nil
 }
 
-func (repo GoodreadsRepository) UpsertBook(
+func (repo *GoodreadsRepository) UpsertBook(
 	ctx context.Context,
 	book goodreads.Book,
 	userID string,

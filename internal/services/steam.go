@@ -14,10 +14,10 @@ type SteamService struct {
 	logger slog.Logger
 	client steam.Client
 	userID string
-	steam  repositories.SteamRepository
+	steam  *repositories.SteamRepository
 }
 
-func (service SteamService) ImportOwnedGames(
+func (service *SteamService) ImportOwnedGames(
 	ctx context.Context,
 	userID string,
 ) ([]models.Game, error) {
@@ -64,7 +64,7 @@ func (service SteamService) ImportOwnedGames(
 	return service.steam.GetAllGames(ctx, userID)
 }
 
-func (service SteamService) ImportAchievementsForGame(
+func (service *SteamService) ImportAchievementsForGame(
 	ctx context.Context,
 	game models.Game,
 	userID string,

@@ -13,7 +13,7 @@ type StateRepository struct {
 	db postgres.DB
 }
 
-func (repo StateRepository) GetAll(
+func (repo *StateRepository) GetAll(
 	ctx context.Context,
 	userID string,
 ) ([]models.State, error) {
@@ -53,7 +53,7 @@ func (repo StateRepository) GetAll(
 	return states, nil
 }
 
-func (repo StateRepository) Upsert(
+func (repo *StateRepository) Upsert(
 	ctx context.Context,
 	id string,
 	userID string,
@@ -90,7 +90,7 @@ func (repo StateRepository) Upsert(
 	return &state, nil
 }
 
-func (repo StateRepository) Delete(
+func (repo *StateRepository) Delete(
 	ctx context.Context,
 	state *models.State,
 	userID string,

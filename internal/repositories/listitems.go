@@ -12,7 +12,7 @@ type ListItemRepository struct {
 	db postgres.DB
 }
 
-func (repo ListItemRepository) GetByGoalID(
+func (repo *ListItemRepository) GetByGoalID(
 	ctx context.Context,
 	goalID string,
 	userID string,
@@ -29,7 +29,6 @@ func (repo ListItemRepository) GetByGoalID(
 	}
 
 	listItems := []models.ListItem{}
-
 	for rows.Next() {
 		//nolint:exhaustruct //other fields are assigned later
 		listItem := models.ListItem{
@@ -56,7 +55,7 @@ func (repo ListItemRepository) GetByGoalID(
 	return listItems, nil
 }
 
-func (repo ListItemRepository) Upsert(
+func (repo *ListItemRepository) Upsert(
 	ctx context.Context,
 	id int64,
 	userID string,

@@ -25,7 +25,11 @@ func (client MockTodoistClient) GetActiveTasks(
 	ctx context.Context,
 	projectID string,
 ) ([]todoist.Task, error) {
-	return []todoist.Task{}, nil
+	return []todoist.Task{
+		{
+			ID: "123",
+		},
+	}, nil
 }
 
 func (client MockTodoistClient) GetAllProjects(
