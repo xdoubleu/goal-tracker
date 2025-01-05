@@ -9,11 +9,9 @@ import (
 	configtools "github.com/XDoubleU/essentia/pkg/config"
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
 	"github.com/XDoubleU/essentia/pkg/logging"
-	"github.com/supabase-community/gotrue-go"
 
 	"goal-tracker/api/internal/config"
 	"goal-tracker/api/internal/mocks"
-	"goal-tracker/api/pkg/todoist"
 )
 
 type TestEnv struct {
@@ -22,12 +20,10 @@ type TestEnv struct {
 	app *Application
 }
 
-var mainTx *postgres.PgxSyncTx   //nolint:gochecknoglobals //needed for tests
-var cfg config.Config            //nolint:gochecknoglobals //needed for tests
-var mainTestApp *Application     //nolint:gochecknoglobals //needed for tests
-var testCtx context.Context      //nolint:gochecknoglobals //needed for tests
-var supabaseClient gotrue.Client //nolint:gochecknoglobals //needed for tests
-var todoistClient todoist.Client //nolint:gochecknoglobals //needed for tests
+var mainTx *postgres.PgxSyncTx //nolint:gochecknoglobals //needed for tests
+var cfg config.Config          //nolint:gochecknoglobals //needed for tests
+var mainTestApp *Application   //nolint:gochecknoglobals //needed for tests
+var testCtx context.Context    //nolint:gochecknoglobals //needed for tests
 
 func TestMain(m *testing.M) {
 	var err error
@@ -35,6 +31,7 @@ func TestMain(m *testing.M) {
 	cfg = config.New()
 	cfg.Env = configtools.TestEnv
 	cfg.Throttle = false
+	cfg.SupabaseUserID = "4001e9cf-3fbe-4b09-863f-bd1654cfbf76"
 
 	postgresDB, err := postgres.Connect(
 		logging.NewNopLogger(),
@@ -52,14 +49,19 @@ func TestMain(m *testing.M) {
 	ApplyMigrations(logging.NewNopLogger(), postgresDB)
 
 	mainTx = postgres.CreatePgxSyncTx(context.Background(), postgresDB)
-	supabaseClient = mocks.NewMockedGoTrueClient()
-	todoistClient = mocks.NewMockTodoistClient()
+
+	clients := Clients{
+		Supabase:  mocks.NewMockedGoTrueClient(),
+		Todoist:   mocks.NewMockTodoistClient(),
+		Steam:     mocks.NewMockSteamClient(),
+		Goodreads: mocks.NewMockGoodreadsClient(),
+	}
+
 	mainTestApp = NewApp(
 		logging.NewNopLogger(),
 		cfg,
 		mainTx,
-		supabaseClient,
-		todoistClient,
+		clients,
 	)
 	testCtx = context.Background()
 
@@ -77,7 +79,7 @@ func setup(_ *testing.T) (*TestEnv, *Application) {
 	tx := postgres.CreatePgxSyncTx(context.Background(), mainTx)
 
 	testApp := *mainTestApp
-	testApp.setDB(tx, supabaseClient, todoistClient)
+	testApp.setDB(tx)
 
 	testEnv := &TestEnv{
 		ctx: testCtx,

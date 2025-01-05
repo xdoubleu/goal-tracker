@@ -1,39 +1,51 @@
+//nolint:mnd //no magic numbers
 package models
 
+type ViewType int
+
+const (
+	List  ViewType = iota
+	Graph ViewType = iota
+)
+
 type Type struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
-} //	@name	Type
-
-//nolint:gochecknoglobals //ok
-var AmountType = Type{
-	ID:   0,
-	Name: "Amount",
+	ID       int64    `json:"id"`
+	ViewType ViewType `json:"viewType"`
+	Name     string   `json:"name"`
 }
 
 //nolint:gochecknoglobals //ok
-var SteamCompletionPercentage = Type{
-	ID:   1,
-	Name: "Steam completion percentage",
+var SteamCompletionRate = Type{
+	ID:       0,
+	ViewType: Graph,
+	Name:     "Steam completion rate",
 }
 
 //nolint:gochecknoglobals //ok
-var ActualCompletionPercentage = Type{
-	//nolint:mnd //ok
-	ID:   2,
-	Name: "Actual completion percentage",
+var FinishedBooksThisYear = Type{
+	ID:       1,
+	ViewType: Graph,
+	Name:     "Finished books this year",
 }
 
 //nolint:gochecknoglobals //ok
-var CompletedGames = Type{
-	//nolint:mnd //ok
-	ID:   3,
-	Name: "Completed games",
+var SpecificBooks = Type{
+	ID:       2,
+	ViewType: List,
+	Name:     "Specific books",
 }
 
 //nolint:gochecknoglobals //ok
-var FinishedBooks = Type{
-	//nolint:mnd //ok
-	ID:   4,
-	Name: "Finished books",
+var BooksFromSpecificTag = Type{
+	ID:       3,
+	ViewType: List,
+	Name:     "Books from specific tag",
+}
+
+//nolint:gochecknoglobals //ok
+var Types = map[int64]Type{
+	SteamCompletionRate.ID:   SteamCompletionRate,
+	FinishedBooksThisYear.ID: FinishedBooksThisYear,
+	SpecificBooks.ID:         SpecificBooks,
+	BooksFromSpecificTag.ID:  BooksFromSpecificTag,
 }

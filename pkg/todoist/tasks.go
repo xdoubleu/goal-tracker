@@ -30,6 +30,17 @@ type Task struct {
 	Duration     Duration `json:"duration"`
 }
 
+//nolint:godox //I know
+// TODO due, duration
+
+type UpdateTaskDto struct {
+	Content     *string   `json:"content,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	Labels      *[]string `json:"labels,omitempty"`
+	Priority    *int      `json:"priority,omitempty"`
+	AssigneeID  *string   `json:"assignee_id,omitempty"`
+}
+
 type Due struct {
 	String      string   `json:"string"`
 	Date        Date     `json:"date"`
@@ -76,7 +87,7 @@ func (client client) GetActiveTasks(
 	query := fmt.Sprintf("project_id=%s", projectID)
 
 	var tasks []Task
-	err := client.sendRequest(ctx, http.MethodGet, TasksEndpoint, query, &tasks)
+	err := client.sendRequest(ctx, http.MethodGet, TasksEndpoint, query, nil, &tasks)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +99,23 @@ func (client client) GetActiveTask(ctx context.Context, taskID string) (*Task, e
 	endpoint := fmt.Sprintf("%s/%s", TasksEndpoint, taskID)
 
 	var task *Task
-	err := client.sendRequest(ctx, http.MethodGet, endpoint, "", &task)
+	err := client.sendRequest(ctx, http.MethodGet, endpoint, "", nil, &task)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
+}
+
+func (client client) UpdateTask(
+	ctx context.Context,
+	taskID string,
+	updateTaskDto UpdateTaskDto,
+) (*Task, error) {
+	endpoint := fmt.Sprintf("%s/%s", TasksEndpoint, taskID)
+
+	var task *Task
+	err := client.sendRequest(ctx, http.MethodPost, endpoint, "", updateTaskDto, &task)
 	if err != nil {
 		return nil, err
 	}

@@ -1,9 +1,13 @@
 package helper
 
 import (
+	"slices"
+
 	"goal-tracker/api/internal/models"
 )
 
+// note: todoist will only use 4 indent levels
+// (0: parent, 1: sub, 2: 2*sub, 3: 3*sub, 4: 4*sub).
 type GoalTree struct {
 	rootGoal *models.Goal
 	// contains IDs of all (grand*)children
@@ -100,8 +104,13 @@ func (tree GoalTree) ToSlice() []GoalWithSubGoals {
 			HasSubgoals: len(subtree.subtrees) > 0,
 			Subgoals:    subtree.ToSlice(),
 		}
+
 		result = append(result, goalWithSubGoals)
 	}
+
+	slices.SortFunc(result, func(a GoalWithSubGoals, b GoalWithSubGoals) int {
+		return a.Goal.Order - b.Goal.Order
+	})
 
 	return result
 }

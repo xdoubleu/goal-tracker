@@ -3,12 +3,8 @@
     <h1>{{.Goal.Name}}</h1>
     <form method="POST" action="/api/goals/{{.Goal.ID}}/link" class="col-lg-6">
         <div class="row mb-3">
-            <label for="targetValue" class="form-label">Target value</label>
-            <input type="number" class="form-control" name="targetValue">
-        </div>
-        <div class="row mb-3">
             <label for="typeId" class="form-label">Type</label>
-            <select name="typeId">
+            <select id="type" name="typeId">
                 <option selected>Select a type</option>
                 {{range $source := .Sources}}
                     <optgroup label="{{$source.Name}}">
@@ -19,6 +15,44 @@
                 {{end}}
             </select>
         </div>
+        <div id="targetValue" class="row mb-3" style="display: none;">
+            <label for="targetValue" class="form-label">Target value</label>
+            <input type="number" class="form-control" name="targetValue">
+        </div>
+        <div id="tag" class="row mb-3" style="display: none;">
+            <label for="tag" class="form-label">Tag</label>
+            <select name="tag">
+                <option selected>Select a Tag</option>
+                {{range $tag := .Tags}}
+                    <option value="{{$tag}}">{{$tag}}</option>
+                {{end}}
+            </select>
+        </div>
         <button type="submit" class="btn btn-primary">Link</button>
     </form>
+    <script>
+        let type = document.getElementById("type");
+        type.onchange = (e) => {
+            let targetValue = document.getElementById("targetValue");
+            let tag = document.getElementById("tag");
+
+            targetValue.style.display = "none";
+            tag.style.display = "none";
+
+            targetValue.getElementsByTagName("input")[0].value = "";
+            tag.getElementsByTagName("select")[0].selectedIndex = 0;
+
+            switch (e.target.value) {
+                case "0":
+                case "1":
+                    targetValue.style.display = "block";
+                    break;
+                case "2":
+                    break;
+                case "3":
+                    tag.style.display = "block";
+                    break;
+            }
+        }
+    </script>
 {{template "footer"}}

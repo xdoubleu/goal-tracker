@@ -1,10 +1,13 @@
 package models
 
-import "time"
+import (
+	"time"
+)
+
+const ProgressDateFormat = "2006-01-02"
 
 type Progress struct {
-	ID        int64     `json:"id"`
-	GoalID    string    `json:"goalId"`
-	Value     int64     `json:"value"`
-	CreatedAt time.Time `json:"createdAt"`
-} //	@name	Progress
+	TypeID int64     `json:"typeId"`
+	Date   time.Time `json:"date"`
+	Value  string    `json:"value"`
+}

@@ -15,10 +15,20 @@ import (
 )
 
 type AuthService struct {
-	client gotrue.Client
+	supabaseUserID string
+	client         gotrue.Client
 }
 
-func (service AuthService) SignInWithEmail(
+func (service *AuthService) GetAllUsers() ([]models.User, error) {
+	//nolint:exhaustruct //skip
+	return []models.User{
+		{
+			ID: service.supabaseUserID,
+		},
+	}, nil
+}
+
+func (service *AuthService) SignInWithEmail(
 	signInDto *dtos.SignInDto,
 ) (*string, *string, error) {
 	if v := signInDto.Validate(); !v.Valid() {
@@ -40,7 +50,7 @@ func (service AuthService) SignInWithEmail(
 	return &response.AccessToken, &response.RefreshToken, nil
 }
 
-func (service AuthService) GetUser(accessToken string) (*models.User, error) {
+func (service *AuthService) GetUser(accessToken string) (*models.User, error) {
 	response, err := service.client.WithToken(accessToken).GetUser()
 	if err != nil {
 		return nil, err
@@ -51,7 +61,7 @@ func (service AuthService) GetUser(accessToken string) (*models.User, error) {
 	return &user, nil
 }
 
-func (service AuthService) SignInWithRefreshToken(
+func (service *AuthService) SignInWithRefreshToken(
 	refreshToken string,
 ) (*string, *string, error) {
 	//nolint:exhaustruct //don't need other fields
@@ -66,7 +76,7 @@ func (service AuthService) SignInWithRefreshToken(
 	return &response.AccessToken, &response.RefreshToken, nil
 }
 
-func (service AuthService) SignOut(
+func (service *AuthService) SignOut(
 	accessToken string,
 ) (*http.Cookie, *http.Cookie, error) {
 	err := service.client.WithToken(accessToken).Logout()
@@ -95,7 +105,7 @@ func (service AuthService) SignOut(
 	return deleteAccessTokenCookie, deleteRefreshTokenCookie, nil
 }
 
-func (service AuthService) GetCookieName(scope models.Scope) string {
+func (service *AuthService) GetCookieName(scope models.Scope) string {
 	switch {
 	case scope == models.AccessScope:
 		return "accessToken"
@@ -106,7 +116,7 @@ func (service AuthService) GetCookieName(scope models.Scope) string {
 	}
 }
 
-func (service AuthService) CreateCookie(
+func (service *AuthService) CreateCookie(
 	scope models.Scope,
 	token string,
 	expiry string,

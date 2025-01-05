@@ -1,39 +1,41 @@
 package models
 
 type Source struct {
+	ID    int64  `json:"id"`
 	Name  string `json:"name"`
-	Types []Type
-} //	@name	Source
+	Types []Type `json:"types"`
+}
 
 //nolint:gochecknoglobals //ok
 var Sources = []Source{
-	ManualSource,
 	SteamSource,
 	GoodreadsSource,
 }
 
 //nolint:gochecknoglobals //ok
-var ManualSource = Source{
-	Name: "Manual",
-	Types: []Type{
-		AmountType,
-	},
+var SourcesTypeIDMap = map[int64]Source{
+	SteamCompletionRate.ID:   SteamSource,
+	FinishedBooksThisYear.ID: GoodreadsSource,
+	SpecificBooks.ID:         GoodreadsSource,
+	BooksFromSpecificTag.ID:  GoodreadsSource,
 }
 
 //nolint:gochecknoglobals //ok
 var SteamSource = Source{
+	ID:   0,
 	Name: "Steam",
 	Types: []Type{
-		SteamCompletionPercentage,
-		ActualCompletionPercentage,
-		CompletedGames,
+		SteamCompletionRate,
 	},
 }
 
 //nolint:gochecknoglobals //ok
 var GoodreadsSource = Source{
+	ID:   1,
 	Name: "Goodreads",
 	Types: []Type{
-		FinishedBooks,
+		FinishedBooksThisYear,
+		SpecificBooks,
+		BooksFromSpecificTag,
 	},
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -26,7 +27,7 @@ func TestRoot(t *testing.T) {
 	testEnv, testApp := setup(t)
 	defer testEnv.teardown()
 
-	testApp.setDB(testEnv.tx, supabaseClient, todoistClient)
+	testApp.setDB(testEnv.tx)
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
@@ -43,7 +44,15 @@ func TestLink(t *testing.T) {
 	testEnv, testApp := setup(t)
 	defer testEnv.teardown()
 
-	testApp.setDB(testEnv.tx, supabaseClient, todoistClient)
+	testApp.setDB(testEnv.tx)
+
+	err := testApp.services.Goals.ImportGoalsFromTodoist(
+		context.Background(),
+		testApp.config.SupabaseUserID,
+	)
+	if err != nil {
+		panic(err)
+	}
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),

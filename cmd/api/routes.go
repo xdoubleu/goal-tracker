@@ -12,6 +12,7 @@ func (app *Application) apiRoutes(mux *http.ServeMux) {
 	apiPrefix := "/api"
 	app.authRoutes(apiPrefix, mux)
 	app.goalsRoutes(apiPrefix, mux)
+	app.progressRoutes(apiPrefix, mux)
 }
 
 func (app *Application) routes() http.Handler {

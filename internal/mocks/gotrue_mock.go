@@ -212,9 +212,10 @@ func (client MockedGoTrueClient) Token(
 
 func (client MockedGoTrueClient) GetUser() (*types.UserResponse, error) {
 	if client.token == "thisisavaliduser" {
+		uuid, _ := uuid.Parse("4001e9cf-3fbe-4b09-863f-bd1654cfbf76")
 		return &types.UserResponse{
 			User: types.User{
-				ID:    uuid.New(),
+				ID:    uuid,
 				Email: "user@example.com",
 			},
 		}, nil

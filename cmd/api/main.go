@@ -21,8 +21,12 @@ import (
 	"github.com/supabase-community/gotrue-go"
 
 	"goal-tracker/api/internal/config"
+	"goal-tracker/api/internal/jobs"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/internal/services"
+	"goal-tracker/api/internal/temptools"
+	"goal-tracker/api/pkg/goodreads"
+	"goal-tracker/api/pkg/steam"
 	"goal-tracker/api/pkg/todoist"
 )
 
@@ -42,8 +46,17 @@ type Application struct {
 	db        postgres.DB
 	config    config.Config
 	images    embed.FS
-	services  services.Services
+	clients   Clients
+	services  *services.Services
 	tpl       *template.Template
+	jobQueue  *temptools.JobQueue
+}
+
+type Clients struct {
+	Supabase  gotrue.Client
+	Steam     steam.Client
+	Todoist   todoist.Client
+	Goodreads goodreads.Client
 }
 
 //	@title			goal-tracker API
@@ -62,8 +75,8 @@ func main() {
 		cfg.DBDsn,
 		25, //nolint:mnd //no magic number
 		"15m",
-		30,             //nolint:mnd //no magic number
-		30*time.Second, //nolint:mnd //no magic number
+		60,             //nolint:mnd //no magic number
+		10*time.Second, //nolint:mnd //no magic number
 		5*time.Minute,  //nolint:mnd //no magic number
 	)
 	if err != nil {
@@ -73,14 +86,17 @@ func main() {
 
 	ApplyMigrations(logger, db)
 
-	supabaseClient := gotrue.New(
-		cfg.GotrueProjRef,
-		cfg.GotrueAPIKey,
-	)
+	clients := Clients{
+		Supabase: gotrue.New(
+			cfg.SupabaseProjRef,
+			cfg.SupabaseAPIKey,
+		),
+		Todoist:   todoist.New(cfg.TodoistAPIKey),
+		Steam:     steam.New(logger, cfg.SteamAPIKey),
+		Goodreads: goodreads.New(logger),
+	}
 
-	todoistClient := todoist.New(cfg.TodoistAPIKey)
-
-	app := NewApp(logger, cfg, db, supabaseClient, todoistClient)
+	app := NewApp(logger, cfg, db, clients)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Port),
@@ -99,46 +115,85 @@ func NewApp(
 	logger *slog.Logger,
 	cfg config.Config,
 	db postgres.DB,
-	supabaseClient gotrue.Client,
-	todoistClient todoist.Client,
+	clients Clients,
 ) *Application {
-	logger.Info(cfg.String())
-
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
+
+	//nolint:mnd //no magic number
+	jobQueue := temptools.NewJobQueue(*logger, 100)
 
 	//nolint:exhaustruct //other fields are optional
 	app := &Application{
-		logger: logger,
-		config: cfg,
-		images: images,
-		tpl:    tpl,
+		logger:   logger,
+		clients:  clients,
+		config:   cfg,
+		images:   images,
+		tpl:      tpl,
+		jobQueue: jobQueue,
 	}
 
 	app.setContext()
-	app.setDB(db, supabaseClient, todoistClient)
+	app.setDB(db)
 
 	return app
 }
 
 func (app *Application) setDB(
 	db postgres.DB,
-	supabaseClient gotrue.Client,
-	todoistClient todoist.Client,
 ) {
 	// make sure previous app is cancelled internally
 	app.ctxCancel()
+	app.jobQueue.Clear()
 
 	app.setContext()
 
 	spandb := postgres.NewSpanDB(db)
-
 	app.db = spandb
+
 	app.services = services.New(
+		*app.logger,
 		app.config,
+		app.jobQueue,
 		repositories.New(app.db),
-		supabaseClient,
-		todoistClient,
+		app.clients.Supabase,
+		app.clients.Todoist,
+		app.clients.Steam,
+		app.clients.Goodreads,
 	)
+
+	app.setJobs()
+}
+
+func (app *Application) setJobs() {
+	err := app.jobQueue.Push(
+		jobs.NewTodoistJob(app.services.Auth, app.services.Goals),
+		app.services.WebSocket.UpdateState,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	err = app.jobQueue.Push(
+		jobs.NewGoodreadsJob(
+			app.services.Auth,
+			app.services.Goodreads,
+			app.services.Goals,
+		),
+		app.services.WebSocket.UpdateState,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	err = app.jobQueue.Push(
+		jobs.NewSteamJob(app.services.Auth, app.services.Steam, app.services.Goals),
+		app.services.WebSocket.UpdateState,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	app.services.WebSocket.RegisterTopics(app.jobQueue.FetchRecurringJobIDs())
 }
 
 func (app *Application) setContext() {

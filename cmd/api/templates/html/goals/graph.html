@@ -1,7 +1,11 @@
 {{template "header"}}
 {{template "navbar"}}
     <h1>{{.Goal.Name}}</h1>
-    <div>
+    {{template "ws" .Goal.SourceID}}
+    <br/>
+    <br/>
+
+    <div style="width:80vw">
         <canvas id="chart"></canvas>
     </div>
     
@@ -27,6 +31,9 @@
                 data: targetValues,
                 borderDash: [5, 10]
             }]
+          },
+          options: {
+            maintainAspectRatio: true
           }
         });
       </script>

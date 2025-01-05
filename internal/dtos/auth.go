@@ -7,7 +7,7 @@ type SignInDto struct {
 	Password         string            `schema:"password"`
 	RememberMe       bool              `schema:"rememberMe"`
 	ValidationErrors map[string]string `schema:"-"`
-} //	@name	SignInDto
+}
 
 func (dto *SignInDto) Validate() *validate.Validator {
 	v := validate.New()

@@ -2,21 +2,34 @@ db ?= postgres://postgres@localhost/postgres
 
 tools: tools/lint
 
-tools/lint: tools/lint/go
+tools/lint: tools/lint/go tools/lint/sql
 
 tools/lint/go:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
 	go install github.com/segmentio/golines@v0.12.2
-	go install github.com/daixiang0/gci@v0.13.4
-	go install github.com/securego/gosec/v2/cmd/gosec@v2.20.0
+	go install github.com/daixiang0/gci@v0.13.5
+	go install github.com/securego/gosec/v2/cmd/gosec@v2.21.4
+
+tools/lint/sql:
+ifeq ($(UNAME_S),Darwin)
+	brew install sqlfluff
+endif
+ifeq ($(UNAME_S),Linux)
+	pip install sqlfluff
+endif
+
+lint/sql: tools/lint/sql
+	sqlfluff lint --dialect postgres ./cmd/api/migrations
 
 lint: tools/lint
 	golangci-lint run
+	make lint/sql
 
-lint/fix: tools/lint
+lint/fix:
 	golines . -m 88 -w
 	golangci-lint run --fix
 	gci write --skip-generated -s standard -s default -s "prefix(goal-tracker/api)" .
+	sqlfluff fix --dialect postgres ./cmd/api/migrations
 
 build: 
 	go build -o=./bin/api ./cmd/api

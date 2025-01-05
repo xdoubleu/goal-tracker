@@ -1,7 +1,7 @@
 {{define "goalWithSubGoals"}}
     <li>
     {{if .Goal.IsLinked}}
-        <a href="/{{.Goal.ID}}">{{.Goal.Name}}</a>
+        <a href="/goals/{{.Goal.ID}}">{{.Goal.Name}}</a>
     {{else}}
         {{.Goal.Name}}
     {{end}}
@@ -11,7 +11,7 @@
     {{end}}
 
     {{if .Goal.IsLinked}}
-        (<a href="/edit/{{.Goal.ID}}">edit</a>) (<a href="/unlink/{{.Goal.ID}}">unlink</a>)
+        (<a href="/edit/{{.Goal.ID}}">edit</a>) (<a href="/api/goals/{{.Goal.ID}}/unlink">unlink</a>)
     {{else}}
         (<a href="/link/{{.Goal.ID}}">link</a>)
     {{end}}

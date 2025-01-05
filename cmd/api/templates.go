@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/XDoubleU/essentia/pkg/context"
 	"github.com/XDoubleU/essentia/pkg/parse"
@@ -27,8 +26,8 @@ func (app *Application) templateRoutes(mux *http.ServeMux) {
 		app.authTemplateAccess(app.linkHandler),
 	)
 	mux.HandleFunc(
-		"GET /{id}",
-		app.authTemplateAccess(app.graphHandler),
+		"GET /goals/{id}",
+		app.authTemplateAccess(app.goalProgressHandler),
 	)
 }
 
@@ -38,9 +37,7 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	// note: todoist will only use 4 indent levels
-	// (0: parent, 1: sub, 2: 2*sub, 3: 3*sub, 4: 4*sub)
-	goals, err := app.services.Goals.GetAllGroupedByStateAndParentGoal(
+	goals, err := app.services.Goals.GetAllGoalsGroupedByStateAndParentGoal(
 		r.Context(),
 		user.ID,
 	)
@@ -51,9 +48,10 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 	tplhelper.RenderWithPanic(app.tpl, w, "root.html", goals)
 }
 
-type GoalAndSources struct {
+type LinkTemplateData struct {
 	Goal    models.Goal
 	Sources []models.Source
+	Tags    []string
 }
 
 func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,25 +65,25 @@ func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	task, err := app.services.Todoist.GetTaskByID(r.Context(), id)
+	goal, err := app.services.Goals.GetGoalByID(r.Context(), id, user.ID)
 	if err != nil {
 		panic(err)
 	}
 
-	goalAndSources := GoalAndSources{
-		Goal:    models.NewGoalFromTask(*task, user.ID, ""),
+	tags, err := app.services.Goodreads.GetAllTags(r.Context(), user.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	goalAndSources := LinkTemplateData{
+		Goal:    *goal,
 		Sources: models.Sources,
+		Tags:    tags,
 	}
 	tplhelper.RenderWithPanic(app.tpl, w, "link.html", goalAndSources)
 }
 
-type GoalAndProgress struct {
-	Goal           models.Goal
-	ProgressLabels []string
-	ProgressValues []int64
-}
-
-func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := parse.URLParam[string](r, "id", nil)
 	if err != nil {
 		panic(err)
@@ -96,35 +94,75 @@ func (app *Application) graphHandler(w http.ResponseWriter, r *http.Request) {
 		panic(errors.New("not signed in"))
 	}
 
-	goal, err := app.services.Goals.GetByID(r.Context(), id, *user)
+	goal, err := app.services.Goals.GetGoalByID(r.Context(), id, user.ID)
 	if err != nil {
 		panic(err)
 	}
 
-	//nolint:godox //i'm aware
-	//TODO: fetch progress
-	now := time.Now()
-	yesterday := now.Add(-24 * time.Hour)
-	yesterdaySquared := yesterday.Add(-24 * time.Hour)
-	format := "2006-01-02"
+	viewType := models.Types[*goal.TypeID].ViewType
+	switch viewType {
+	case models.Graph:
+		app.graphViewProgress(w, r, goal, user.ID)
+	case models.List:
+		app.listViewProgress(w, r, goal, user.ID)
+	}
+}
 
-	progressLabels := []string{
-		yesterdaySquared.Format(format),
-		yesterday.Format(format),
-		now.Format(format),
+type GraphData struct {
+	Goal           models.Goal
+	ProgressLabels []string
+	ProgressValues []string
+}
+
+func (app *Application) graphViewProgress(
+	w http.ResponseWriter,
+	r *http.Request,
+	goal *models.Goal,
+	userID string,
+) {
+	progressLabels, progressValues, err := app.services.Goals.GetProgressByTypeIDAndDates(
+		r.Context(),
+		*goal.TypeID,
+		userID,
+		goal.PeriodStart(true),
+		goal.PeriodEnd(),
+	)
+	if err != nil {
+		panic(err)
 	}
 
-	progressValues := []int64{
-		10,
-		5,
-		10,
-	}
-
-	goalAndProgress := GoalAndProgress{
+	graphData := GraphData{
 		Goal:           *goal,
 		ProgressLabels: progressLabels,
 		ProgressValues: progressValues,
 	}
 
-	tplhelper.RenderWithPanic(app.tpl, w, "graph.html", goalAndProgress)
+	tplhelper.RenderWithPanic(app.tpl, w, "graph.html", graphData)
+}
+
+type ListData struct {
+	Goal      models.Goal
+	ListItems []models.ListItem
+}
+
+func (app *Application) listViewProgress(
+	w http.ResponseWriter,
+	r *http.Request,
+	goal *models.Goal,
+	userID string,
+) {
+	listItems, err := app.services.Goals.GetListItemsByGoalID(
+		r.Context(),
+		goal.ID,
+		userID,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	listData := ListData{
+		Goal:      *goal,
+		ListItems: listItems,
+	}
+	tplhelper.RenderWithPanic(app.tpl, w, "list.html", listData)
 }

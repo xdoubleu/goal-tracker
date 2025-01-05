@@ -24,7 +24,7 @@ type Project struct {
 
 func (client client) GetAllProjects(ctx context.Context) ([]Project, error) {
 	var projects []Project
-	err := client.sendRequest(ctx, http.MethodGet, ProjectsEndpoint, "", &projects)
+	err := client.sendRequest(ctx, http.MethodGet, ProjectsEndpoint, "", nil, &projects)
 	if err != nil {
 		return nil, err
 	}
