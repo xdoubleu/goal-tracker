@@ -2,8 +2,6 @@ module goal-tracker/api
 
 go 1.22
 
-toolchain go1.22
-
 require github.com/justinas/alice v1.2.0
 
 require (
@@ -29,7 +27,7 @@ require (
 )
 
 require (
-	github.com/PuerkitoBio/goquery v1.10.1 // indirect
+	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/antchfx/htmlquery v1.3.4 // indirect
 	github.com/antchfx/xmlquery v1.4.3 // indirect
