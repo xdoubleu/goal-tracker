@@ -209,7 +209,7 @@ func (service *GoalService) LinkGoal(
 	return service.todoist.UpdateTask(
 		ctx,
 		goal.ID,
-		fmt.Sprintf("%s/%s", service.webURL, goal.ID),
+		fmt.Sprintf("%s/goals/%s", service.webURL, goal.ID),
 	)
 }
 
