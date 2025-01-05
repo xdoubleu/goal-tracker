@@ -165,16 +165,15 @@ func (app *Application) setDB(
 }
 
 func (app *Application) setJobs() {
-	/*err := app.jobQueue.Push(
+	err := app.jobQueue.Push(
 		jobs.NewTodoistJob(app.services.Auth, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
 	if err != nil {
 		panic(err)
 	}
-	*/
 
-	err := app.jobQueue.Push(
+	err = app.jobQueue.Push(
 		jobs.NewGoodreadsJob(
 			app.services.Auth,
 			app.services.Goodreads,
@@ -186,15 +185,13 @@ func (app *Application) setJobs() {
 		panic(err)
 	}
 
-	/*
-		err = app.jobQueue.Push(
-			jobs.NewSteamJob(app.services.Auth, app.services.Steam, app.services.Goals),
-			app.services.WebSocket.UpdateState,
-		)
-		if err != nil {
-			panic(err)
-		}
-	*/
+	err = app.jobQueue.Push(
+		jobs.NewSteamJob(app.services.Auth, app.services.Steam, app.services.Goals),
+		app.services.WebSocket.UpdateState,
+	)
+	if err != nil {
+		panic(err)
+	}
 
 	app.services.WebSocket.RegisterTopics(app.jobQueue.FetchRecurringJobIDs())
 }

@@ -1,13 +1,10 @@
 package temptools
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"time"
-
-	"github.com/XDoubleU/essentia/pkg/sentry"
 )
 
 type CallbackFunc = func(id string, isRunning bool, lastRunTime *time.Time)
@@ -57,6 +54,7 @@ func (q *JobQueue) Clear() {
 	q.recurringJobs = make(map[string]*jobContainer)
 
 	for q.workerActive {
+		//nolint:mnd //no magic number
 		time.Sleep(100 * time.Millisecond)
 	}
 }
@@ -124,48 +122,38 @@ func (q *JobQueue) push(jobContainer *jobContainer) {
 func (q *JobQueue) startWorker() {
 	q.workerActive = true
 
-	go sentry.GoRoutineErrorHandler(
-		context.Background(),
-		"JobQueueWorker",
-		func(_ context.Context) error {
-		out:
-			for {
-				select {
-				case jobContainer := <-q.c:
-					err := jobContainer.run(q.logger)
-					if err != nil {
-						q.logger.Error(err.Error())
-					}
-				case <-q.workerStopRequested:
-					break out
+	go func() {
+	out:
+		for {
+			select {
+			case jobContainer := <-q.c:
+				err := jobContainer.run(q.logger)
+				if err != nil {
+					q.logger.Error(err.Error())
 				}
+			case <-q.workerStopRequested:
+				break out
 			}
+		}
 
-			q.workerActive = false
-			return nil
-		},
-	)
+		q.workerActive = false
+	}()
 }
 
 func (q *JobQueue) startScheduler() {
 	q.schedulerActive = true
 
-	go sentry.GoRoutineErrorHandler(
-		context.Background(),
-		"JobQueueScheduler",
-		func(_ context.Context) error {
-			for q.schedulerActive {
-				for k := range q.recurringJobs {
-					job := q.recurringJobs[k]
-					if job.shouldRun() {
-						q.push(job)
-					}
+	go func() {
+		for q.schedulerActive {
+			for k := range q.recurringJobs {
+				job := q.recurringJobs[k]
+				if job.shouldRun() {
+					q.push(job)
 				}
-				time.Sleep(getSmallestPeriod(q.recurringJobs))
 			}
-			return nil
-		},
-	)
+			time.Sleep(getSmallestPeriod(q.recurringJobs))
+		}
+	}()
 }
 
 func getSmallestPeriod(jobContainers map[string]*jobContainer) time.Duration {

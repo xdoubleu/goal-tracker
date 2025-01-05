@@ -39,7 +39,10 @@ func New(
 		goodreads:  repositories.Goodreads,
 		client:     goodreadsClient,
 	}
-	todoist := &TodoistService{client: todoistClient, projectID: config.TodoistProjectID}
+	todoist := &TodoistService{
+		client:    todoistClient,
+		projectID: config.TodoistProjectID,
+	}
 	steam := &SteamService{
 		logger: logger,
 		client: steamClient,

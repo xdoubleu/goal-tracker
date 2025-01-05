@@ -46,7 +46,10 @@ func TestLink(t *testing.T) {
 
 	testApp.setDB(testEnv.tx)
 
-	err := testApp.services.Goals.ImportGoalsFromTodoist(context.Background(), testApp.config.SupabaseUserID)
+	err := testApp.services.Goals.ImportGoalsFromTodoist(
+		context.Background(),
+		testApp.config.SupabaseUserID,
+	)
 	if err != nil {
 		panic(err)
 	}

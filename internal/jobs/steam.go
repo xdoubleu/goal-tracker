@@ -63,7 +63,11 @@ func (j SteamJob) Run(logger slog.Logger) error {
 		achievementsPerGame := map[int][]models.Achievement{}
 		for _, game := range ownedGames {
 			logger.Debug(
-				fmt.Sprintf("fetching achievements for game %d (%s)", game.ID, game.Name),
+				fmt.Sprintf(
+					"fetching achievements for game %d (%s)",
+					game.ID,
+					game.Name,
+				),
 			)
 
 			var achievementsForGame []models.Achievement

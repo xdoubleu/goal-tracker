@@ -23,7 +23,8 @@ func (repo *GoalRepository) GetAll(
 ) ([]models.Goal, error) {
 	query := `
 		SELECT id, name, type_id, source_id, target_value, 
-		state_id, is_linked, parent_id, due_time, "order", config
+		state_id, is_linked, parent_id, period, due_time, "order", 
+		config
 		FROM goals
 		WHERE user_id = $1
 		ORDER BY parent_id DESC
@@ -48,6 +49,7 @@ func (repo *GoalRepository) GetAll(
 			&goal.StateID,
 			&goal.IsLinked,
 			&goal.ParentID,
+			&goal.Period,
 			&goal.DueTime,
 			&goal.Order,
 			&goal.Config,
@@ -73,7 +75,7 @@ func (repo *GoalRepository) GetByID(
 ) (*models.Goal, error) {
 	query := `
 		SELECT name, type_id, source_id, target_value, 
-		state_id, is_linked, parent_id, due_time, "order", config
+		state_id, is_linked, parent_id, period, due_time, "order", config
 		FROM goals
 		WHERE id = $1 AND user_id = $2
 	`
@@ -94,6 +96,7 @@ func (repo *GoalRepository) GetByID(
 		&goal.StateID,
 		&goal.IsLinked,
 		&goal.ParentID,
+		&goal.Period,
 		&goal.DueTime,
 		&goal.Order,
 		&goal.Config,
@@ -112,7 +115,7 @@ func (repo *GoalRepository) GetByTypeID(
 ) ([]models.Goal, error) {
 	query := `
 		SELECT id, name, source_id, target_value, state_id,
-		is_linked, parent_id, due_time, "order", config
+		is_linked, parent_id, period, due_time, "order", config
 		FROM goals
 		WHERE type_id = $1 AND user_id = $2
 	`
@@ -137,6 +140,7 @@ func (repo *GoalRepository) GetByTypeID(
 			&goal.StateID,
 			&goal.IsLinked,
 			&goal.ParentID,
+			&goal.Period,
 			&goal.DueTime,
 			&goal.Order,
 			&goal.Config,
@@ -167,16 +171,22 @@ func (repo *GoalRepository) Upsert(
 	order int,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (id, user_id, parent_id, name, state_id, due_time, "order")
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO goals (id, user_id, parent_id, name, state_id, period, due_time, "order")
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT (id, user_id)
-		DO UPDATE SET parent_id = $3, name = $4, state_id = $5, due_time = $6, "order" = $7
+		DO UPDATE SET parent_id = $3, name = $4, state_id = $5, 
+		period = $6, due_time = $7, "order" = $8
 		RETURNING id
 	`
 
 	var dueTime *time.Time
+	var period *models.Period
 	if due != nil {
 		dueTime = &due.Date.Time
+
+		if due.IsRecurring {
+			period = models.TodoistDueStringToPeriod(due.String)
+		}
 	}
 
 	//nolint:exhaustruct //other fields are optional
@@ -185,6 +195,7 @@ func (repo *GoalRepository) Upsert(
 		ParentID: parentID,
 		Name:     name,
 		StateID:  stateID,
+		Period:   period,
 		DueTime:  dueTime,
 		Order:    order,
 		Config:   nil,
@@ -198,6 +209,7 @@ func (repo *GoalRepository) Upsert(
 		parentID,
 		name,
 		stateID,
+		period,
 		dueTime,
 		order,
 	).Scan(&goal.ID)

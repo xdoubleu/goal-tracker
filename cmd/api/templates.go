@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/XDoubleU/essentia/pkg/context"
 	"github.com/XDoubleU/essentia/pkg/parse"
@@ -121,67 +120,12 @@ func (app *Application) graphViewProgress(
 	goal *models.Goal,
 	userID string,
 ) {
-	//nolint:godox //I know
-	// TODO make this based on duration of goal
-
-	var dateStart time.Time
-	var dateEnd time.Time
-
-	switch *goal.TypeID {
-	case models.SteamCompletionRate.ID:
-		// only get the past year
-		dateStart = time.Date(
-			time.Now().Year()-1,
-			time.Now().Month(),
-			time.Now().Day(),
-			0,
-			0,
-			0,
-			0,
-			time.UTC,
-		)
-		dateEnd = time.Date(
-			time.Now().Year(),
-			time.Now().Month(),
-			time.Now().Day(),
-			0,
-			0,
-			0,
-			0,
-			time.UTC,
-		)
-	case models.FinishedBooksThisYear.ID:
-		// only get this year
-		dateStart = time.Date(
-			time.Now().Year(),
-			1,
-			1,
-			0,
-			0,
-			0,
-			0,
-			time.UTC,
-		)
-		dateEnd = time.Date(
-			time.Now().Year(),
-			12,
-			31,
-			0,
-			0,
-			0,
-			0,
-			time.UTC,
-		)
-	default:
-		panic("not implemented")
-	}
-
 	progressLabels, progressValues, err := app.services.Goals.GetProgressByTypeIDAndDates(
 		r.Context(),
 		*goal.TypeID,
 		userID,
-		dateStart,
-		dateEnd,
+		goal.PeriodStart(true),
+		goal.PeriodEnd(),
 	)
 	if err != nil {
 		panic(err)

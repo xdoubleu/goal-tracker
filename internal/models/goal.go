@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 )
 
@@ -13,7 +14,7 @@ type Goal struct {
 	SourceID    *int64             `json:"sourceId"`
 	TypeID      *int64             `json:"typeId"`
 	StateID     string             `json:"stateId"`
-	Period      Period             `json:"period"`
+	Period      *Period            `json:"period"`
 	DueTime     *time.Time         `json:"time"`
 	Order       int                `json:"order"`
 	Config      *map[string]string `json:"config"`
@@ -27,12 +28,42 @@ const (
 	Month   Period = iota
 )
 
-func TodoistDueStringToPeriod(dueString *string) *Period {
-	if dueString == nil {
+func (goal Goal) PeriodStart(includePreviousPeriod bool) time.Time {
+	multiplier := 1
+	if includePreviousPeriod {
+		multiplier = 2
+	}
+
+	switch *goal.Period {
+	case Year:
+		return goal.DueTime.AddDate(-1*multiplier, 0, 1)
+	case Quarter:
+		return goal.DueTime.AddDate(0, -3*multiplier, 1)
+	default:
+		panic("not implemented")
+	}
+}
+
+func (goal Goal) PeriodEnd() time.Time {
+	return *goal.DueTime
+}
+
+func TodoistDueStringToPeriod(dueString string) *Period {
+	if dueString == "" {
 		return nil
 	}
 
-	period := Year
+	dueStringClean := strings.Split(dueString, "every ")[1]
+
+	var period Period
+	switch dueStringClean {
+	case "year":
+		period = Year
+	case "3 months":
+		period = Quarter
+	default:
+		return nil
+	}
 
 	return &period
 }

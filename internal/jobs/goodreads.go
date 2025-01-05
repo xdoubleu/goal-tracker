@@ -158,16 +158,19 @@ func (j GoodreadsJob) specificTags(ctx context.Context, userID string) error {
 		}
 
 		for _, book := range books {
-			//nolint:godox //I know
-			//TODO: a book can also be reread,
-			// have to check if a book was read in the past period
+			readInPeriod := bookIsReadInGoalPeriod(goal, book)
+
+			if !readInPeriod {
+				continue
+			}
+
 			_, err = j.goalService.SaveListItem(
 				ctx,
 				book.ID,
 				userID,
 				goal.ID,
 				fmt.Sprintf("%s - %s", book.Title, book.Author),
-				len(book.DatesRead) > 0,
+				true,
 			)
 			if err != nil {
 				return err
@@ -203,16 +206,15 @@ func (j GoodreadsJob) specificBooks(ctx context.Context, userID string) error {
 		}
 
 		for _, book := range books {
-			//nolint:godox //I know
-			//TODO: a book can also be reread,
-			// have to check if a book was read in the past period
+			readInPeriod := bookIsReadInGoalPeriod(goal, book)
+
 			_, err = j.goalService.SaveListItem(
 				ctx,
 				book.ID,
 				userID,
 				goal.ID,
 				fmt.Sprintf("%s - %s", book.Title, book.Author),
-				len(book.DatesRead) > 0,
+				readInPeriod,
 			)
 			if err != nil {
 				return err
@@ -221,4 +223,14 @@ func (j GoodreadsJob) specificBooks(ctx context.Context, userID string) error {
 	}
 
 	return nil
+}
+
+func bookIsReadInGoalPeriod(goal models.Goal, book goodreads.Book) bool {
+	for _, dateRead := range book.DatesRead {
+		if dateRead.After(goal.PeriodStart(false)) &&
+			dateRead.Before(goal.PeriodEnd()) {
+			return true
+		}
+	}
+	return false
 }
