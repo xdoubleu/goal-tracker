@@ -6,7 +6,7 @@ require github.com/justinas/alice v1.2.0
 
 require (
 	github.com/XDoubleU/essentia v0.1.8
-	github.com/getsentry/sentry-go v0.30.0
+	github.com/getsentry/sentry-go v0.31.1
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/schema v1.4.1
