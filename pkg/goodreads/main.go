@@ -202,6 +202,7 @@ func isDivider(child *html.Node) bool {
 
 func getShelfOrTagName(child *html.Node) *string {
 	var innerChild *html.Node
+	//nolint:lll //it is what it is
 	for innerChild = child.FirstChild; innerChild != nil; innerChild = innerChild.NextSibling {
 		if innerChild.Type == html.ElementNode {
 			break
