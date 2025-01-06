@@ -18,11 +18,17 @@ type AchievementsGrapher struct {
 }
 
 func NewAchievementsGrapher(totalAchievementsPerGame map[int]int) AchievementsGrapher {
-	return AchievementsGrapher{
+	grapher := AchievementsGrapher{
 		dateStrings:               []string{},
 		achievementsPerGamePerDay: []map[int]int{},
 		totalAchievementsPerGame:  totalAchievementsPerGame,
 	}
+
+	// Need this so that the value at the current date is always shown, even if nothing changed
+	grapher.dateStrings = append(grapher.dateStrings, time.Now().Format(models.ProgressDateFormat))
+	grapher.achievementsPerGamePerDay = append(grapher.achievementsPerGamePerDay, make(map[int]int))
+
+	return grapher
 }
 
 func (grapher *AchievementsGrapher) AddPoint(date time.Time, gameID int) {
