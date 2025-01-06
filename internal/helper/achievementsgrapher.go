@@ -24,9 +24,16 @@ func NewAchievementsGrapher(totalAchievementsPerGame map[int]int) AchievementsGr
 		totalAchievementsPerGame:  totalAchievementsPerGame,
 	}
 
-	// Need this so that the value at the current date is always shown, even if nothing changed
-	grapher.dateStrings = append(grapher.dateStrings, time.Now().Format(models.ProgressDateFormat))
-	grapher.achievementsPerGamePerDay = append(grapher.achievementsPerGamePerDay, make(map[int]int))
+	// need this so that the value at
+	// the current date is always shown, even if nothing changed
+	grapher.dateStrings = append(
+		grapher.dateStrings,
+		time.Now().Format(models.ProgressDateFormat),
+	)
+	grapher.achievementsPerGamePerDay = append(
+		grapher.achievementsPerGamePerDay,
+		make(map[int]int),
+	)
 
 	return grapher
 }
