@@ -2,6 +2,7 @@ package helper
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"time"
 
@@ -28,7 +29,7 @@ func NewAchievementsGrapher(totalAchievementsPerGame map[int]int) AchievementsGr
 	// the current date is always shown, even if nothing changed
 	grapher.dateStrings = append(
 		grapher.dateStrings,
-		time.Now().Format(models.ProgressDateFormat),
+		time.Now().UTC().Format(models.ProgressDateFormat),
 	)
 	grapher.achievementsPerGamePerDay = append(
 		grapher.achievementsPerGamePerDay,
@@ -44,22 +45,13 @@ func (grapher *AchievementsGrapher) AddPoint(date time.Time, gameID int) {
 
 	if dateIndex == -1 {
 		grapher.addDays(dateStr)
-		dateIndex = len(grapher.dateStrings) - 1
+		dateIndex = slices.Index(grapher.dateStrings, dateStr)
 	}
 
 	grapher.updateDays(dateIndex, gameID)
 }
 
 func (grapher *AchievementsGrapher) addDays(dateStr string) {
-	if len(grapher.dateStrings) == 0 {
-		grapher.dateStrings = append(grapher.dateStrings, dateStr)
-		grapher.achievementsPerGamePerDay = append(
-			grapher.achievementsPerGamePerDay,
-			make(map[int]int),
-		)
-		return
-	}
-
 	dateDay, _ := time.Parse(models.ProgressDateFormat, dateStr)
 	smallestDate, _ := time.Parse(models.ProgressDateFormat, grapher.dateStrings[0])
 	largestDate, _ := time.Parse(
@@ -67,36 +59,35 @@ func (grapher *AchievementsGrapher) addDays(dateStr string) {
 		grapher.dateStrings[len(grapher.dateStrings)-1],
 	)
 
-	if dateDay.Before(smallestDate) {
-		i := smallestDate
-		for i.After(dateDay) {
-			i = i.AddDate(0, 0, -1)
+	i := smallestDate
+	for i.After(dateDay) {
+		i = i.AddDate(0, 0, -1)
 
-			grapher.dateStrings = append(
-				[]string{i.Format(models.ProgressDateFormat)},
-				grapher.dateStrings...)
-			grapher.achievementsPerGamePerDay = append(
-				[]map[int]int{{}},
-				grapher.achievementsPerGamePerDay...)
-		}
+		grapher.dateStrings = append(
+			[]string{i.Format(models.ProgressDateFormat)},
+			grapher.dateStrings...)
+		grapher.achievementsPerGamePerDay = append(
+			[]map[int]int{{}},
+			grapher.achievementsPerGamePerDay...)
 	}
 
-	if dateDay.After(largestDate) {
-		i := largestDate
-		for i.Before(dateDay) {
-			i = i.AddDate(0, 0, 1)
+	i = largestDate
+	for i.Before(dateDay) {
+		i = i.AddDate(0, 0, 1)
 
-			grapher.dateStrings = append(
-				grapher.dateStrings,
-				i.Format(models.ProgressDateFormat),
-			)
-			grapher.achievementsPerGamePerDay = append(
-				grapher.achievementsPerGamePerDay,
-				copyMap(
-					grapher.achievementsPerGamePerDay[len(grapher.achievementsPerGamePerDay)-1],
-				),
-			)
-		}
+		grapher.dateStrings = append(
+			grapher.dateStrings,
+			i.Format(models.ProgressDateFormat),
+		)
+
+		indexOfI := slices.Index(grapher.dateStrings, i.Format(models.ProgressDateFormat))
+
+		grapher.achievementsPerGamePerDay = append(
+			grapher.achievementsPerGamePerDay,
+			copyMap(
+				grapher.achievementsPerGamePerDay[indexOfI-1],
+			),
+		)
 	}
 }
 
@@ -132,10 +123,15 @@ func (grapher AchievementsGrapher) ToSlices() ([]string, []string) {
 			games++
 
 			totalAchievements := grapher.totalAchievementsPerGame[gameID]
-			totalPercentageDay += calculateCompletionRate(
+
+			completionRate := calculateCompletionRate(
 				achievements,
 				totalAchievements,
 			)
+
+			if !math.IsNaN(completionRate) {
+				totalPercentageDay += completionRate
+			}
 		}
 
 		rawAvgCompletionRate, avgCompletionRate := calculateAvgCompletionRate(
