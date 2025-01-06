@@ -55,7 +55,7 @@ func (grapher *AchievementsGrapher) addDays(dateStr string) {
 		grapher.dateStrings = append(grapher.dateStrings, dateStr)
 		grapher.achievementsPerGamePerDay = append(
 			grapher.achievementsPerGamePerDay,
-			map[int]int{},
+			make(map[int]int),
 		)
 		return
 	}
@@ -112,6 +112,10 @@ func copyMap(original map[int]int) map[int]int {
 
 func (grapher *AchievementsGrapher) updateDays(dateIndex int, gameID int) {
 	for i := dateIndex; i < len(grapher.dateStrings); i++ {
+		if _, ok := grapher.achievementsPerGamePerDay[i][gameID]; !ok {
+			grapher.achievementsPerGamePerDay[i][gameID] = 0
+		}
+
 		grapher.achievementsPerGamePerDay[i][gameID]++
 	}
 }
