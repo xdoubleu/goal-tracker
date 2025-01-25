@@ -80,7 +80,10 @@ func (grapher *AchievementsGrapher) addDays(dateStr string) {
 			i.Format(models.ProgressDateFormat),
 		)
 
-		indexOfI := slices.Index(grapher.dateStrings, i.Format(models.ProgressDateFormat))
+		indexOfI := slices.Index(
+			grapher.dateStrings,
+			i.Format(models.ProgressDateFormat),
+		)
 
 		grapher.achievementsPerGamePerDay = append(
 			grapher.achievementsPerGamePerDay,
