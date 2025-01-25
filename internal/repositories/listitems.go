@@ -27,6 +27,7 @@ func (repo *ListItemRepository) GetByGoalID(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	listItems := []models.ListItem{}
 	for rows.Next() {

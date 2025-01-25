@@ -187,7 +187,7 @@ func (service *GoalService) LinkGoal(
 	userID string,
 	linkGoalDto *dtos.LinkGoalDto,
 ) error {
-	if v := linkGoalDto.Validate(); !v.Valid() {
+	if ok, _ := linkGoalDto.Validate(); !ok {
 		return errors.ErrFailedValidation
 	}
 

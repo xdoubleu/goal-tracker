@@ -34,6 +34,7 @@ func (repo *GoalRepository) GetAll(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	goals := []models.Goal{}
 	for rows.Next() {
@@ -124,6 +125,7 @@ func (repo *GoalRepository) GetByTypeID(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	goals := []models.Goal{}
 	for rows.Next() {

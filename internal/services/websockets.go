@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -19,6 +20,7 @@ type WebSocketService struct {
 }
 
 func NewWebSocketService(
+	logger *slog.Logger,
 	allowedOrigins []string,
 	jobQueue *temptools.JobQueue,
 ) *WebSocketService {
@@ -30,6 +32,7 @@ func NewWebSocketService(
 	}
 
 	handler := wstools.CreateWebSocketHandler[dtos.SubscribeMessageDto](
+		logger,
 		1,
 		100, //nolint:mnd //no magic number
 	)

@@ -66,7 +66,7 @@ type Clients struct {
 //	@Produce		json
 
 func main() {
-	cfg := config.New()
+	cfg := config.New(slog.New(slog.NewTextHandler(os.Stdout, nil)))
 
 	logger := slog.New(sentrytools.NewLogHandler(cfg.Env,
 		slog.NewTextHandler(os.Stdout, nil)))
@@ -151,7 +151,7 @@ func (app *Application) setDB(
 	app.db = spandb
 
 	app.services = services.New(
-		*app.logger,
+		app.logger,
 		app.config,
 		app.jobQueue,
 		repositories.New(app.db),

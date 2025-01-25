@@ -2,8 +2,6 @@ package dtos
 
 import (
 	"time"
-
-	"github.com/XDoubleU/essentia/pkg/validate"
 )
 
 type SubscribeMessageDto struct {
@@ -19,8 +17,6 @@ func (dto SubscribeMessageDto) Topic() string {
 	return dto.Subject
 }
 
-func (dto SubscribeMessageDto) Validate() *validate.Validator {
-	v := validate.New()
-
-	return v
+func (dto SubscribeMessageDto) Validate() (bool, map[string]string) {
+	return true, make(map[string]string)
 }

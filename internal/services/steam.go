@@ -11,7 +11,7 @@ import (
 )
 
 type SteamService struct {
-	logger slog.Logger
+	logger *slog.Logger
 	client steam.Client
 	userID string
 	steam  *repositories.SteamRepository

@@ -26,6 +26,7 @@ func (repo *GoodreadsRepository) GetAllBooks(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	books := []goodreads.Book{}
 	for rows.Next() {
@@ -90,6 +91,7 @@ func (repo *GoodreadsRepository) GetBooksByTag(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	books := []goodreads.Book{}
 	for rows.Next() {
@@ -133,6 +135,7 @@ func (repo *GoodreadsRepository) GetBooksByIDs(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	books := []goodreads.Book{}
 	for rows.Next() {
