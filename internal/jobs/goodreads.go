@@ -118,16 +118,7 @@ func (j GoodreadsJob) updateProgress(
 					0,
 				)
 				graphers[dateRead.Year()].AddPoint(
-					time.Date(
-						time.Now().Year(),
-						time.Now().Month(),
-						time.Now().Day(),
-						0,
-						0,
-						0,
-						0,
-						time.UTC,
-					),
+					time.Date(dateRead.Year(), 12, 31, 0, 0, 0, 0, time.UTC),
 					0,
 				)
 				grapher = graphers[dateRead.Year()]
