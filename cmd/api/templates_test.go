@@ -10,9 +10,6 @@ import (
 )
 
 func TestSignIn(t *testing.T) {
-	testEnv, testApp := setup(t)
-	defer testEnv.teardown()
-
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
 		http.MethodGet,
@@ -24,11 +21,6 @@ func TestSignIn(t *testing.T) {
 }
 
 func TestRoot(t *testing.T) {
-	testEnv, testApp := setup(t)
-	defer testEnv.teardown()
-
-	testApp.setDB(testEnv.tx)
-
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
 		http.MethodGet,
@@ -41,11 +33,6 @@ func TestRoot(t *testing.T) {
 }
 
 func TestLink(t *testing.T) {
-	testEnv, testApp := setup(t)
-	defer testEnv.teardown()
-
-	testApp.setDB(testEnv.tx)
-
 	err := testApp.services.Goals.ImportGoalsFromTodoist(
 		context.Background(),
 		testApp.config.SupabaseUserID,
