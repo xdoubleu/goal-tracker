@@ -27,6 +27,7 @@ func (repo *SteamRepository) GetAllGames(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	games := []models.Game{}
 	for rows.Next() {
@@ -120,6 +121,7 @@ func (repo *SteamRepository) GetAchievementsForGame(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	achievements := []models.Achievement{}
 	for rows.Next() {

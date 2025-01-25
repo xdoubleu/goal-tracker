@@ -31,6 +31,7 @@ func (repo *ProgressRepository) GetByTypeIDAndDates(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	progresses := []models.Progress{}
 	for rows.Next() {

@@ -28,7 +28,7 @@ var testCtx context.Context    //nolint:gochecknoglobals //needed for tests
 func TestMain(m *testing.M) {
 	var err error
 
-	cfg = config.New()
+	cfg = config.New(logging.NewNopLogger())
 	cfg.Env = configtools.TestEnv
 	cfg.Throttle = false
 	cfg.SupabaseUserID = "4001e9cf-3fbe-4b09-863f-bd1654cfbf76"

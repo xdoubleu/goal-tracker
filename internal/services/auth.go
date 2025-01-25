@@ -31,7 +31,7 @@ func (service *AuthService) GetAllUsers() ([]models.User, error) {
 func (service *AuthService) SignInWithEmail(
 	signInDto *dtos.SignInDto,
 ) (*string, *string, error) {
-	if v := signInDto.Validate(); !v.Valid() {
+	if ok, _ := signInDto.Validate(); !ok {
 		return nil, nil, errortools.ErrFailedValidation
 	}
 

@@ -10,7 +10,7 @@ import (
 )
 
 type GoodreadsService struct {
-	logger     slog.Logger
+	logger     *slog.Logger
 	goodreads  *repositories.GoodreadsRepository
 	client     goodreads.Client
 	profileURL string

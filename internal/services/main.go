@@ -23,7 +23,7 @@ type Services struct {
 }
 
 func New(
-	logger slog.Logger,
+	logger *slog.Logger,
 	config config.Config,
 	jobQueue *temptools.JobQueue,
 	repositories *repositories.Repositories,
@@ -64,6 +64,6 @@ func New(
 		Todoist:   todoist,
 		Steam:     steam,
 		Goodreads: goodreads,
-		WebSocket: NewWebSocketService([]string{config.WebURL}, jobQueue),
+		WebSocket: NewWebSocketService(logger, []string{config.WebURL}, jobQueue),
 	}
 }

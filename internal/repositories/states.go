@@ -28,6 +28,7 @@ func (repo *StateRepository) GetAll(
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
+	defer rows.Close()
 
 	states := []models.State{}
 	for rows.Next() {
