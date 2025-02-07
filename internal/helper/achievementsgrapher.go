@@ -9,9 +9,6 @@ import (
 	"goal-tracker/api/internal/models"
 )
 
-//nolint:godox //I know
-// TODO use Grapher?
-
 type AchievementsGrapher struct {
 	dateStrings               []string
 	achievementsPerGamePerDay []map[int]int
@@ -117,8 +114,7 @@ func (grapher *AchievementsGrapher) updateDays(dateIndex int, gameID int) {
 func (grapher AchievementsGrapher) ToSlices() ([]string, []string) {
 	percentages := []string{}
 
-	droppedCount := 0
-	for i, achievementsPerGame := range grapher.achievementsPerGamePerDay {
+	for _, achievementsPerGame := range grapher.achievementsPerGamePerDay {
 		games := 0
 		totalPercentageDay := 0.0
 
@@ -137,18 +133,10 @@ func (grapher AchievementsGrapher) ToSlices() ([]string, []string) {
 			}
 		}
 
-		rawAvgCompletionRate, avgCompletionRate := calculateAvgCompletionRate(
+		avgCompletionRate := calculateAvgCompletionRate(
 			totalPercentageDay,
 			games,
 		)
-		if rawAvgCompletionRate == 0 {
-			dateStringsIndex := i - droppedCount
-			grapher.dateStrings = append(
-				grapher.dateStrings[:dateStringsIndex],
-				grapher.dateStrings[dateStringsIndex+1:]...)
-			droppedCount++
-			continue
-		}
 
 		percentages = append(percentages, avgCompletionRate)
 	}
@@ -160,8 +148,7 @@ func calculateCompletionRate(achieved int, total int) float64 {
 	return float64(achieved) / float64(total)
 }
 
-func calculateAvgCompletionRate(percentageSum float64, totalGames int) (int, string) {
+func calculateAvgCompletionRate(percentageSum float64, totalGames int) string {
 	//nolint:mnd //no magic number
-	raw := percentageSum / float64(totalGames) * 100.0
-	return int(raw), fmt.Sprintf("%.2f", raw)
+	return fmt.Sprintf("%.2f", percentageSum/float64(totalGames)*100.0)
 }

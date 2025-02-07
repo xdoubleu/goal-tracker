@@ -3,6 +3,7 @@ package mocks
 
 import (
 	"context"
+	"time"
 
 	"goal-tracker/api/pkg/todoist"
 )
@@ -28,6 +29,13 @@ func (client MockTodoistClient) GetActiveTasks(
 	return []todoist.Task{
 		{
 			ID: "123",
+			Due: &todoist.Due{
+				String: "every year",
+				Date: todoist.Date{
+					Time: time.Now(),
+				},
+				IsRecurring: true,
+			},
 		},
 	}, nil
 }

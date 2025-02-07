@@ -207,11 +207,16 @@ func (client MockedGoTrueClient) RefreshToken(
 func (client MockedGoTrueClient) Token(
 	req types.TokenRequest,
 ) (*types.TokenResponse, error) {
-	return nil, nil
+	return &types.TokenResponse{
+		Session: types.Session{
+			AccessToken:  "access",
+			RefreshToken: "refresh",
+		},
+	}, nil
 }
 
 func (client MockedGoTrueClient) GetUser() (*types.UserResponse, error) {
-	if client.token == "thisisavaliduser" {
+	if client.token == "access" {
 		uuid, _ := uuid.Parse("4001e9cf-3fbe-4b09-863f-bd1654cfbf76")
 		return &types.UserResponse{
 			User: types.User{

@@ -17,9 +17,9 @@
     {{end}}
     </li>
 
-    {{if .HasSubgoals}}
+    {{if not .SubGoals}}
         <ul>
-            {{range $goalWithSubGoals := .Subgoals}}
+            {{range $goalWithSubGoals := .SubGoals}}
                 {{template "goalWithSubGoals" $goalWithSubGoals}}
             {{end}}
         </ul>

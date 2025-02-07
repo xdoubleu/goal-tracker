@@ -25,12 +25,6 @@ type Grapher[T Numeric] struct {
 	values      []T
 }
 
-//nolint:godox //I know
-// TODO: allow to specify if you should graph per day, month, year
-// TODO: allow to specify a period that should be graphed (day, month, year)
-//   - the first point determines the correct period
-//   - invalid points will throw an error
-
 func NewGrapher[T Numeric](graphType GraphType) *Grapher[T] {
 	return &Grapher[T]{
 		graphType:   graphType,
@@ -68,34 +62,36 @@ func (grapher *Grapher[T]) addDays(dateStr string) {
 		grapher.dateStrings[len(grapher.dateStrings)-1],
 	)
 
-	if dateDay.Before(smallestDate) {
-		i := smallestDate
-		for i.After(dateDay) {
-			i = i.AddDate(0, 0, -1)
+	i := smallestDate
+	for i.After(dateDay) {
+		i = i.AddDate(0, 0, -1)
 
-			grapher.dateStrings = append(
-				[]string{i.Format(models.ProgressDateFormat)},
-				grapher.dateStrings...)
-			grapher.values = append(
-				[]T{*new(T)},
-				grapher.values...)
-		}
+		grapher.dateStrings = append(
+			[]string{i.Format(models.ProgressDateFormat)},
+			grapher.dateStrings...)
+		grapher.values = append(
+			[]T{*new(T)},
+			grapher.values...)
 	}
 
-	if dateDay.After(largestDate) {
-		i := largestDate
-		for i.Before(dateDay) {
-			i = i.AddDate(0, 0, 1)
+	i = largestDate
+	for i.Before(dateDay) {
+		i = i.AddDate(0, 0, 1)
 
-			grapher.dateStrings = append(
-				grapher.dateStrings,
-				i.Format(models.ProgressDateFormat),
-			)
-			grapher.values = append(
-				grapher.values,
-				grapher.values[len(grapher.values)-1],
-			)
-		}
+		grapher.dateStrings = append(
+			grapher.dateStrings,
+			i.Format(models.ProgressDateFormat),
+		)
+
+		indexOfI := slices.Index(
+			grapher.dateStrings,
+			i.Format(models.ProgressDateFormat),
+		)
+
+		grapher.values = append(
+			grapher.values,
+			grapher.values[indexOfI-1],
+		)
 	}
 }
 

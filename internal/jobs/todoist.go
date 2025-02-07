@@ -33,7 +33,7 @@ func (j TodoistJob) RunEvery() *time.Duration {
 	return &period
 }
 
-func (j TodoistJob) Run(logger slog.Logger) error {
+func (j TodoistJob) Run(logger *slog.Logger) error {
 	ctx := context.Background()
 
 	users, err := j.authService.GetAllUsers()

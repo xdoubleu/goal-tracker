@@ -1,5 +1,3 @@
-db ?= postgres://postgres@localhost/postgres
-
 tools: tools/lint
 
 tools/lint: tools/lint/go tools/lint/sql
@@ -35,22 +33,22 @@ build:
 	go build -o=./bin/api ./cmd/api
 
 run/api:
-	go run ./cmd/api
+	go run ./...
 
 test:
-	go test ./cmd/api
+	go test ./...
 
 test/v:
-	go test ./cmd/api -v
+	go test ./... -v
 	
 test/race:
-	go test ./cmd/api -race -v
+	go test ./... -race -v
 
 test/pprof:
-	go test ./cmd/api -cpuprofile cpu.prof -memprofile mem.prof -bench ./cmd/api
+	go test ./... -cpuprofile cpu.prof -memprofile mem.prof -bench ./cmd/api
 
 test/cov/report:
-	go test ./cmd/api -coverpkg=./cmd/api,./internal/... -covermode=set -coverprofile=coverage.out.tmp
+	go test ./... -coverpkg=./cmd/api,./internal/... -covermode=set -coverprofile=coverage.out.tmp
 	cat coverage.out.tmp | grep -v "_mock.go" > coverage.out
 
 test/cov: test/cov/report

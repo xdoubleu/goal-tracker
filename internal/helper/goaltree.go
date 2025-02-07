@@ -13,14 +13,14 @@ type GoalTree struct {
 	// contains IDs of all (grand*)children
 	childrenIDs []string
 	// each key is a subgoal of rootgoal
-	subtrees map[string]GoalTree
+	subtrees map[string]*GoalTree
 }
 
 func NewGoalTree() GoalTree {
 	return GoalTree{
 		rootGoal:    nil,
 		childrenIDs: []string{},
-		subtrees:    map[string]GoalTree{},
+		subtrees:    map[string]*GoalTree{},
 	}
 }
 
@@ -34,10 +34,10 @@ func (tree *GoalTree) TryAdd(goal models.Goal) bool {
 }
 
 func (tree *GoalTree) addNewDirectChild(goal models.Goal) {
-	tree.subtrees[goal.ID] = GoalTree{
+	tree.subtrees[goal.ID] = &GoalTree{
 		rootGoal:    &goal,
 		childrenIDs: []string{},
-		subtrees:    map[string]GoalTree{},
+		subtrees:    map[string]*GoalTree{},
 	}
 	tree.addNewIndirectChild(goal)
 }
@@ -54,6 +54,9 @@ func (tree *GoalTree) walkOverTreesAndTryAdd(goal models.Goal) bool {
 	for _, subtree := range tree.subtrees {
 		// subtree either is parent...
 		if subtree.rootGoal.ID == *goal.ParentID {
+			// this tree was on the path to the parent
+			tree.addNewIndirectChild(goal)
+
 			// found parent
 			subtree.addNewDirectChild(goal)
 			return true
@@ -65,15 +68,7 @@ func (tree *GoalTree) walkOverTreesAndTryAdd(goal models.Goal) bool {
 		}
 
 		// check subtrees of current tree
-		if !subtree.walkOverTreesAndTryAdd(goal) {
-			// we shouldn't end up here, the parent should be in one of the trees
-			return false
-		}
-
-		// this subtree was on the path to the parent
-		subtree.addNewIndirectChild(goal)
-
-		return true
+		return subtree.walkOverTreesAndTryAdd(goal)
 	}
 
 	// we shouldn't end up here
@@ -89,28 +84,24 @@ func (tree GoalTree) hasParent(goal models.Goal) bool {
 	return false
 }
 
-type GoalWithSubGoals struct {
-	Goal        models.Goal
-	HasSubgoals bool
-	Subgoals    []GoalWithSubGoals
-}
-
-func (tree GoalTree) ToSlice() []GoalWithSubGoals {
-	result := []GoalWithSubGoals{}
+func (tree GoalTree) ToSlice() []models.GoalWithSubGoals {
+	result := []models.GoalWithSubGoals{}
 
 	for _, subtree := range tree.subtrees {
-		goalWithSubGoals := GoalWithSubGoals{
-			Goal:        *subtree.rootGoal,
-			HasSubgoals: len(subtree.subtrees) > 0,
-			Subgoals:    subtree.ToSlice(),
+		goalWithSubGoals := models.GoalWithSubGoals{
+			Goal:     *subtree.rootGoal,
+			SubGoals: subtree.ToSlice(),
 		}
 
 		result = append(result, goalWithSubGoals)
 	}
 
-	slices.SortFunc(result, func(a GoalWithSubGoals, b GoalWithSubGoals) int {
-		return a.Goal.Order - b.Goal.Order
-	})
+	slices.SortFunc(
+		result,
+		func(a models.GoalWithSubGoals, b models.GoalWithSubGoals) int {
+			return a.Goal.Order - b.Goal.Order
+		},
+	)
 
 	return result
 }

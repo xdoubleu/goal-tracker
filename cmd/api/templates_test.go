@@ -12,6 +12,7 @@ import (
 func TestSignIn(t *testing.T) {
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
+		test.FormContentType,
 		http.MethodGet,
 		"/",
 	)
@@ -20,13 +21,27 @@ func TestSignIn(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rs.StatusCode)
 }
 
-func TestRoot(t *testing.T) {
+func TestRefreshTokens(t *testing.T) {
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
+		test.FormContentType,
 		http.MethodGet,
 		"/",
 	)
-	tReq.AddCookie(&http.Cookie{Name: "accessToken", Value: "thisisavaliduser"})
+	tReq.AddCookie(&refreshToken)
+
+	rs := tReq.Do(t)
+	assert.Equal(t, http.StatusOK, rs.StatusCode)
+}
+
+func TestRoot(t *testing.T) {
+	tReq := test.CreateRequestTester(
+		testApp.routes(),
+		test.FormContentType,
+		http.MethodGet,
+		"/",
+	)
+	tReq.AddCookie(&accessToken)
 
 	rs := tReq.Do(t)
 	assert.Equal(t, http.StatusOK, rs.StatusCode)
@@ -43,10 +58,11 @@ func TestLink(t *testing.T) {
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
+		test.FormContentType,
 		http.MethodGet,
 		"/link/123",
 	)
-	tReq.AddCookie(&http.Cookie{Name: "accessToken", Value: "thisisavaliduser"})
+	tReq.AddCookie(&accessToken)
 
 	rs := tReq.Do(t)
 	assert.Equal(t, http.StatusOK, rs.StatusCode)

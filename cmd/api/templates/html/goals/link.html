@@ -22,7 +22,7 @@
         <div id="tag" class="row mb-3" style="display: none;">
             <label for="tag" class="form-label">Tag</label>
             <select name="tag">
-                <option selected>Select a Tag</option>
+                <option selected value="">Select a Tag</option>
                 {{range $tag := .Tags}}
                     <option value="{{$tag}}">{{$tag}}</option>
                 {{end}}

@@ -236,11 +236,19 @@ func (repo *GoalRepository) Link(
 	`
 
 	config := map[string]string{}
-	config["tag"] = *linkGoalDto.Tag
 
-	bytesConfig, err := json.Marshal(config)
-	if err != nil {
-		return err
+	if linkGoalDto.Tag != nil {
+		config["tag"] = *linkGoalDto.Tag
+	}
+
+	var serializedConfig *string
+	if len(config) > 0 {
+		bytesConfig, err := json.Marshal(config)
+		if err != nil {
+			return err
+		}
+		t := string(bytesConfig)
+		serializedConfig = &t
 	}
 
 	result, err := repo.db.Exec(
@@ -251,7 +259,7 @@ func (repo *GoalRepository) Link(
 		linkGoalDto.TargetValue,
 		linkGoalDto.TypeID,
 		models.SourcesTypeIDMap[linkGoalDto.TypeID].ID,
-		string(bytesConfig),
+		serializedConfig,
 	)
 
 	if err != nil {

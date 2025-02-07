@@ -30,9 +30,6 @@ type Task struct {
 	Duration     Duration `json:"duration"`
 }
 
-//nolint:godox //I know
-// TODO due, duration
-
 type UpdateTaskDto struct {
 	Content     *string   `json:"content,omitempty"`
 	Description *string   `json:"description,omitempty"`

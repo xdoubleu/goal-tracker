@@ -40,7 +40,7 @@ func (j SteamJob) RunEvery() *time.Duration {
 	return &period
 }
 
-func (j SteamJob) Run(logger slog.Logger) error {
+func (j SteamJob) Run(logger *slog.Logger) error {
 	ctx := context.Background()
 
 	users, err := j.authService.GetAllUsers()
