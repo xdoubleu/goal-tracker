@@ -10,7 +10,7 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
-	github.com/pressly/goose/v3 v3.21.1
+	github.com/pressly/goose/v3 v3.24.1
 	github.com/stretchr/testify v1.10.0
 	github.com/supabase-community/gotrue-go v1.2.1
 	github.com/xhit/go-str2duration/v2 v2.1.0
@@ -45,7 +45,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
-	github.com/sethvargo/go-retry v0.2.4 // indirect
+	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/temoto/robotstxt v1.1.2 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
