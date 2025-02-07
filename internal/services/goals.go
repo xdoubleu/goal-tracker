@@ -25,7 +25,7 @@ type GoalService struct {
 
 type StateGoalsPair struct {
 	State string
-	Goals []helper.GoalWithSubGoals
+	Goals []models.GoalWithSubGoals
 }
 
 func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
@@ -44,7 +44,7 @@ func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 		}
 	}
 
-	goalsMap := map[string][]helper.GoalWithSubGoals{}
+	goalsMap := map[string][]models.GoalWithSubGoals{}
 	for _, goal := range goalTree.ToSlice() {
 		goalsMap[goal.Goal.StateID] = append(goalsMap[goal.Goal.StateID], goal)
 	}
@@ -189,6 +189,10 @@ func (service *GoalService) LinkGoal(
 ) error {
 	if ok, _ := linkGoalDto.Validate(); !ok {
 		return errors.ErrFailedValidation
+	}
+
+	if *linkGoalDto.Tag == "" {
+		linkGoalDto.Tag = nil
 	}
 
 	goal, err := service.goals.GetByID(ctx, id, userID)

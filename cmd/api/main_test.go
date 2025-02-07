@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -14,6 +15,23 @@ import (
 )
 
 var testApp *Application //nolint:gochecknoglobals //needed for tests
+
+var goalID = "123" //nolint:gochecknoglobals //needed for tests
+
+//nolint:gochecknoglobals //needed for tests
+var userID = "4001e9cf-3fbe-4b09-863f-bd1654cfbf76"
+
+//nolint:gochecknoglobals //needed for tests
+var accessToken = http.Cookie{
+	Name:  "accessToken",
+	Value: "access",
+}
+
+//nolint:gochecknoglobals //needed for tests
+var refreshToken = http.Cookie{
+	Name:  "refreshToken",
+	Value: "refresh",
+}
 
 func TestMain(m *testing.M) {
 	var err error

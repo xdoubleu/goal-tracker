@@ -18,7 +18,7 @@ func (app *Application) templateRoutes(mux *http.ServeMux) {
 		http.FileServerFS(app.images),
 	)
 	mux.HandleFunc(
-		"GET /",
+		"GET /{$}",
 		app.authTemplateAccess(app.rootHandler),
 	)
 	mux.HandleFunc(

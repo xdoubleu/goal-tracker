@@ -20,6 +20,11 @@ type Goal struct {
 	Config      *map[string]string `json:"config"`
 }
 
+type GoalWithSubGoals struct {
+	Goal
+	SubGoals []GoalWithSubGoals `json:"subGoals"`
+}
+
 type Period = int
 
 const (

@@ -41,7 +41,7 @@ func (j GoodreadsJob) RunEvery() *time.Duration {
 	return &period
 }
 
-func (j GoodreadsJob) Run(logger slog.Logger) error {
+func (j GoodreadsJob) Run(logger *slog.Logger) error {
 	ctx := context.Background()
 
 	users, err := j.authService.GetAllUsers()
@@ -73,7 +73,7 @@ func (j GoodreadsJob) Run(logger slog.Logger) error {
 
 func (j GoodreadsJob) updateProgress(
 	ctx context.Context,
-	logger slog.Logger,
+	logger *slog.Logger,
 	userID string,
 ) error {
 	logger.Debug("fetching books")

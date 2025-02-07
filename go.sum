@@ -2,12 +2,8 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/PuerkitoBio/goquery v1.5.1 h1:PSPBGne8NIUWw+/7vFBV+kG2J/5MOjbzc7154OaKCSE=
 github.com/PuerkitoBio/goquery v1.5.1/go.mod h1:GsLWisAFVj4WgDibEWF4pvYnkVQBpKBKeU+7zCJoLcc=
-github.com/XDoubleU/essentia v0.1.8 h1:eIEF5vfkgoKAw5V5PhLemYP7GcQ2tY2agApYY1bVwa0=
-github.com/XDoubleU/essentia v0.1.8/go.mod h1:pWYqkSnVq1hER6PQh09CUTTl1K98I51zWLNZKWi+SfI=
-github.com/XDoubleU/essentia v0.1.9 h1:h65rQ0rRfkPn7aGk4VHrcVunYfcf4y6AYL+9g8sUEjg=
-github.com/XDoubleU/essentia v0.1.9/go.mod h1:pWYqkSnVq1hER6PQh09CUTTl1K98I51zWLNZKWi+SfI=
-github.com/XDoubleU/essentia v0.1.10 h1:AZ1EW31ES+55/Bzw2l2EJw9/Y/G6KCHHPXVU2lIT7y4=
-github.com/XDoubleU/essentia v0.1.10/go.mod h1:pWYqkSnVq1hER6PQh09CUTTl1K98I51zWLNZKWi+SfI=
+github.com/XDoubleU/essentia v0.1.11 h1:rKOkhHO1d+1iRvB6LipODOTmzxpMggEBD9MoNRURWHQ=
+github.com/XDoubleU/essentia v0.1.11/go.mod h1:qm94fnWLYKSCiLGlR6U5fdtkWoD7SHvs7Ut4PsrXfOk=
 github.com/andybalholm/cascadia v1.1.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
 github.com/andybalholm/cascadia v1.2.0/go.mod h1:YCyR8vOZT9aZ1CHEd8ap0gMVm2aFgxBp0T0eFw1RUQY=
 github.com/andybalholm/cascadia v1.3.3 h1:AG2YHrzJIm4BZ19iwJ/DAua6Btl3IwJX+VI4kktS1LM=

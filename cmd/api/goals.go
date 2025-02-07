@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	httptools "github.com/XDoubleU/essentia/pkg/communication/http"
 	"github.com/XDoubleU/essentia/pkg/context"
 	"github.com/XDoubleU/essentia/pkg/parse"
 
@@ -38,7 +39,7 @@ func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) 
 
 	var linkGoalDto dtos.LinkGoalDto
 
-	err = temptools.ReadForm(r, &linkGoalDto)
+	err = httptools.ReadForm(r, &linkGoalDto)
 	if err != nil {
 		temptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
 		return

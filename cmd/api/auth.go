@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	httptools "github.com/XDoubleU/essentia/pkg/communication/http"
 	"github.com/XDoubleU/essentia/pkg/config"
 
 	"goal-tracker/api/internal/dtos"
@@ -22,7 +23,7 @@ func (app *Application) authRoutes(prefix string, mux *http.ServeMux) {
 func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 	var signInDto dtos.SignInDto
 
-	err := temptools.ReadForm(r, &signInDto)
+	err := httptools.ReadForm(r, &signInDto)
 	if err != nil {
 		temptools.RedirectWithError(w, r, "/", err)
 		return

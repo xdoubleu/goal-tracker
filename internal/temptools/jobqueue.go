@@ -10,7 +10,7 @@ import (
 type CallbackFunc = func(id string, isRunning bool, lastRunTime *time.Time)
 
 type JobQueue struct {
-	logger              slog.Logger
+	logger              *slog.Logger
 	recurringJobs       map[string]*jobContainer
 	c                   chan *jobContainer
 	workerStopRequested chan bool
@@ -20,7 +20,7 @@ type JobQueue struct {
 
 type Job interface {
 	ID() string
-	Run(slog.Logger) error
+	Run(*slog.Logger) error
 	RunEvery() *time.Duration
 }
 
@@ -32,31 +32,29 @@ type jobContainer struct {
 	isPushed    bool
 }
 
-func NewJobQueue(logger slog.Logger, size int) *JobQueue {
+func NewJobQueue(logger *slog.Logger, size int) *JobQueue {
 	jobQueue := &JobQueue{
 		logger:              logger,
 		recurringJobs:       make(map[string]*jobContainer),
 		c:                   make(chan *jobContainer, size),
 		workerStopRequested: make(chan bool),
-		workerActive:        true,
-		schedulerActive:     true,
+		workerActive:        false,
+		schedulerActive:     false,
 	}
-
-	jobQueue.startWorker()
-	jobQueue.startScheduler()
 
 	return jobQueue
 }
 
 func (q *JobQueue) Clear() {
-	q.schedulerActive = false
-	q.workerStopRequested <- true
-	q.recurringJobs = make(map[string]*jobContainer)
-
-	for q.workerActive {
-		//nolint:mnd //no magic number
-		time.Sleep(100 * time.Millisecond)
+	if q.schedulerActive {
+		q.schedulerActive = false
 	}
+
+	if q.workerActive {
+		q.workerStopRequested <- true
+	}
+
+	q.recurringJobs = make(map[string]*jobContainer)
 }
 
 func (q *JobQueue) Push(job Job, callback CallbackFunc) error {
@@ -174,7 +172,7 @@ func getSmallestPeriod(jobContainers map[string]*jobContainer) time.Duration {
 	return *smallestPeriod
 }
 
-func (c *jobContainer) run(logger slog.Logger) error {
+func (c *jobContainer) run(logger *slog.Logger) error {
 	defer func() {
 		c.isPushed = false
 	}()
@@ -197,5 +195,5 @@ func (c *jobContainer) run(logger slog.Logger) error {
 
 func (c jobContainer) shouldRun() bool {
 	return !c.isPushed &&
-		(c.lastRunTime == nil || c.lastRunTime.Add(*c.period).After(time.Now().UTC()))
+		(c.lastRunTime == nil || time.Now().UTC().After(c.lastRunTime.Add(*c.period)))
 }

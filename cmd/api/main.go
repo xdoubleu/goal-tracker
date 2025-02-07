@@ -40,16 +40,17 @@ var htmlTemplates embed.FS
 var images embed.FS
 
 type Application struct {
-	logger    *slog.Logger
-	ctx       context.Context
-	ctxCancel context.CancelFunc
-	db        postgres.DB
-	config    config.Config
-	images    embed.FS
-	clients   Clients
-	services  *services.Services
-	tpl       *template.Template
-	jobQueue  *temptools.JobQueue
+	logger       *slog.Logger
+	ctx          context.Context
+	ctxCancel    context.CancelFunc
+	db           postgres.DB
+	config       config.Config
+	images       embed.FS
+	clients      Clients
+	services     *services.Services
+	repositories *repositories.Repositories
+	tpl          *template.Template
+	jobQueue     *temptools.JobQueue
 }
 
 type Clients struct {
@@ -120,7 +121,7 @@ func NewApp(
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
 
 	//nolint:mnd //no magic number
-	jobQueue := temptools.NewJobQueue(*logger, 100)
+	jobQueue := temptools.NewJobQueue(logger, 100)
 
 	//nolint:exhaustruct //other fields are optional
 	app := &Application{
@@ -150,11 +151,12 @@ func (app *Application) setDB(
 	spandb := postgres.NewSpanDB(db)
 	app.db = spandb
 
+	app.repositories = repositories.New(app.db)
 	app.services = services.New(
 		app.logger,
 		app.config,
 		app.jobQueue,
-		repositories.New(app.db),
+		app.repositories,
 		app.clients.Supabase,
 		app.clients.Todoist,
 		app.clients.Steam,
