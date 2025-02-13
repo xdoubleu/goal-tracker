@@ -11,7 +11,6 @@ import (
 func TestRefreshProgressHandler(t *testing.T) {
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
-		test.FormContentType,
 		http.MethodGet,
 		"/api/progress/0/refresh",
 	)

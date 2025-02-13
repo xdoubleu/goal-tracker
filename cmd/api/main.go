@@ -15,6 +15,7 @@ import (
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
 	"github.com/XDoubleU/essentia/pkg/logging"
 	sentrytools "github.com/XDoubleU/essentia/pkg/sentry"
+	"github.com/XDoubleU/essentia/pkg/threading"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -24,7 +25,6 @@ import (
 	"goal-tracker/api/internal/jobs"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/internal/services"
-	"goal-tracker/api/internal/temptools"
 	"goal-tracker/api/pkg/goodreads"
 	"goal-tracker/api/pkg/steam"
 	"goal-tracker/api/pkg/todoist"
@@ -50,7 +50,7 @@ type Application struct {
 	services     *services.Services
 	repositories *repositories.Repositories
 	tpl          *template.Template
-	jobQueue     *temptools.JobQueue
+	jobQueue     *threading.JobQueue
 }
 
 type Clients struct {
@@ -121,7 +121,7 @@ func NewApp(
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
 
 	//nolint:mnd //no magic number
-	jobQueue := temptools.NewJobQueue(logger, 100)
+	jobQueue := threading.NewJobQueue(logger, 2, 100)
 
 	//nolint:exhaustruct //other fields are optional
 	app := &Application{
@@ -167,7 +167,7 @@ func (app *Application) setDB(
 }
 
 func (app *Application) setJobs() {
-	err := app.jobQueue.Push(
+	err := app.jobQueue.AddJob(
 		jobs.NewTodoistJob(app.services.Auth, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
@@ -175,7 +175,7 @@ func (app *Application) setJobs() {
 		panic(err)
 	}
 
-	err = app.jobQueue.Push(
+	err = app.jobQueue.AddJob(
 		jobs.NewGoodreadsJob(
 			app.services.Auth,
 			app.services.Goodreads,
@@ -187,7 +187,7 @@ func (app *Application) setJobs() {
 		panic(err)
 	}
 
-	err = app.jobQueue.Push(
+	err = app.jobQueue.AddJob(
 		jobs.NewSteamJob(app.services.Auth, app.services.Steam, app.services.Goals),
 		app.services.WebSocket.UpdateState,
 	)
@@ -195,7 +195,7 @@ func (app *Application) setJobs() {
 		panic(err)
 	}
 
-	app.services.WebSocket.RegisterTopics(app.jobQueue.FetchRecurringJobIDs())
+	app.services.WebSocket.RegisterTopics(app.jobQueue.FetchJobIDs())
 }
 
 func (app *Application) setContext() {

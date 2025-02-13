@@ -3,11 +3,11 @@ package services
 import (
 	"log/slog"
 
+	"github.com/XDoubleU/essentia/pkg/threading"
 	"github.com/supabase-community/gotrue-go"
 
 	"goal-tracker/api/internal/config"
 	"goal-tracker/api/internal/repositories"
-	"goal-tracker/api/internal/temptools"
 	"goal-tracker/api/pkg/goodreads"
 	"goal-tracker/api/pkg/steam"
 	"goal-tracker/api/pkg/todoist"
@@ -25,7 +25,7 @@ type Services struct {
 func New(
 	logger *slog.Logger,
 	config config.Config,
-	jobQueue *temptools.JobQueue,
+	jobQueue *threading.JobQueue,
 	repositories *repositories.Repositories,
 	supabaseClient gotrue.Client,
 	todoistClient todoist.Client,

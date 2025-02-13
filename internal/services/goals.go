@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/XDoubleU/essentia/pkg/errors"
-
 	"goal-tracker/api/internal/dtos"
 	"goal-tracker/api/internal/helper"
 	"goal-tracker/api/internal/models"
@@ -187,11 +185,7 @@ func (service *GoalService) LinkGoal(
 	userID string,
 	linkGoalDto *dtos.LinkGoalDto,
 ) error {
-	if ok, _ := linkGoalDto.Validate(); !ok {
-		return errors.ErrFailedValidation
-	}
-
-	if *linkGoalDto.Tag == "" {
+	if linkGoalDto.Tag != nil && *linkGoalDto.Tag == "" {
 		linkGoalDto.Tag = nil
 	}
 

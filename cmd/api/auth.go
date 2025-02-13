@@ -9,7 +9,6 @@ import (
 
 	"goal-tracker/api/internal/dtos"
 	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/temptools"
 )
 
 func (app *Application) authRoutes(prefix string, mux *http.ServeMux) {
@@ -25,13 +24,18 @@ func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := httptools.ReadForm(r, &signInDto)
 	if err != nil {
-		temptools.RedirectWithError(w, r, "/", err)
+		httptools.RedirectWithError(w, r, "/", err)
+		return
+	}
+
+	if ok, errs := signInDto.Validate(); !ok {
+		httptools.FailedValidationResponse(w, r, errs)
 		return
 	}
 
 	accessToken, refreshToken, err := app.services.Auth.SignInWithEmail(&signInDto)
 	if err != nil {
-		temptools.RedirectWithError(w, r, "/", err)
+		httptools.RedirectWithError(w, r, "/", err)
 		return
 	}
 
@@ -43,7 +47,7 @@ func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 		secure,
 	)
 	if err != nil {
-		temptools.RedirectWithError(w, r, "/", err)
+		httptools.RedirectWithError(w, r, "/", err)
 		return
 	}
 
@@ -58,7 +62,7 @@ func (app *Application) signInHandler(w http.ResponseWriter, r *http.Request) {
 			secure,
 		)
 		if err != nil {
-			temptools.RedirectWithError(w, r, "/", err)
+			httptools.RedirectWithError(w, r, "/", err)
 			return
 		}
 

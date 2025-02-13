@@ -7,7 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"goal-tracker/api/internal/helper"
+	"github.com/XDoubleU/essentia/pkg/grapher"
+
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/services"
 	"goal-tracker/api/pkg/goodreads"
@@ -35,15 +36,12 @@ func (j GoodreadsJob) ID() string {
 	return strconv.Itoa(int(models.GoodreadsSource.ID))
 }
 
-func (j GoodreadsJob) RunEvery() *time.Duration {
+func (j GoodreadsJob) RunEvery() time.Duration {
 	//nolint:mnd //no magic number
-	period := 24 * time.Hour
-	return &period
+	return 24 * time.Hour
 }
 
-func (j GoodreadsJob) Run(logger *slog.Logger) error {
-	ctx := context.Background()
-
+func (j GoodreadsJob) Run(ctx context.Context, logger *slog.Logger) error {
 	users, err := j.authService.GetAllUsers()
 	if err != nil {
 		return err
@@ -83,12 +81,16 @@ func (j GoodreadsJob) updateProgress(
 	}
 	logger.Debug(fmt.Sprintf("fetched %d books", len(books)))
 
-	graphers := map[int]*helper.Grapher[int]{}
+	graphers := map[int]*grapher.Grapher[int]{}
 
-	graphers[time.Now().Year()] = helper.NewGrapher[int](helper.Cumulative)
+	graphers[time.Now().Year()] = grapher.New[int](
+		grapher.Cumulative,
+		models.ProgressDateFormat,
+	)
 	graphers[time.Now().Year()].AddPoint(
 		time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC),
 		0,
+		"",
 	)
 	graphers[time.Now().Year()].AddPoint(
 		time.Date(
@@ -102,6 +104,7 @@ func (j GoodreadsJob) updateProgress(
 			time.UTC,
 		),
 		0,
+		"",
 	)
 
 	for _, book := range books {
@@ -110,21 +113,26 @@ func (j GoodreadsJob) updateProgress(
 		}
 
 		for _, dateRead := range book.DatesRead {
-			grapher, ok := graphers[dateRead.Year()]
+			g, ok := graphers[dateRead.Year()]
 			if !ok {
-				graphers[dateRead.Year()] = helper.NewGrapher[int](helper.Cumulative)
+				graphers[dateRead.Year()] = grapher.New[int](
+					grapher.Cumulative,
+					models.ProgressDateFormat,
+				)
 				graphers[dateRead.Year()].AddPoint(
 					time.Date(dateRead.Year(), 1, 1, 0, 0, 0, 0, time.UTC),
 					0,
+					"",
 				)
 				graphers[dateRead.Year()].AddPoint(
 					time.Date(dateRead.Year(), 12, 31, 0, 0, 0, 0, time.UTC),
 					0,
+					"",
 				)
-				grapher = graphers[dateRead.Year()]
+				g = graphers[dateRead.Year()]
 			}
 
-			grapher.AddPoint(dateRead, 1)
+			g.AddPoint(dateRead, 1, "")
 		}
 	}
 
@@ -132,7 +140,7 @@ func (j GoodreadsJob) updateProgress(
 	for _, grapher := range graphers {
 		pL, pV := grapher.ToStringSlices()
 		progressLabels = append(progressLabels, pL...)
-		progressValues = append(progressValues, pV...)
+		progressValues = append(progressValues, pV[""]...)
 	}
 
 	logger.Debug("saving progress")

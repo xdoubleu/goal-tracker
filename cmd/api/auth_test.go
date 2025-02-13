@@ -13,7 +13,6 @@ import (
 func TestSignInHandler(t *testing.T) {
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
-		test.FormContentType,
 		http.MethodPost,
 		"/api/auth/signin",
 	)
@@ -24,16 +23,18 @@ func TestSignInHandler(t *testing.T) {
 		RememberMe: true,
 	}
 
+	tReq.SetFollowRedirect(false)
+
+	tReq.SetContentType(test.FormContentType)
 	tReq.SetData(signInDto)
 
 	rs := tReq.Do(t)
-	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, http.StatusSeeOther, rs.StatusCode)
 }
 
 func TestSignOutHandler(t *testing.T) {
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
-		test.FormContentType,
 		http.MethodGet,
 		"/api/auth/signout",
 	)

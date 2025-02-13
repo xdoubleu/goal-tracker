@@ -6,10 +6,10 @@ import (
 
 	"github.com/XDoubleU/essentia/pkg/context"
 	"github.com/XDoubleU/essentia/pkg/parse"
+	tpltools "github.com/XDoubleU/essentia/pkg/tpl"
 
 	"goal-tracker/api/internal/constants"
 	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/tplhelper"
 )
 
 func (app *Application) templateRoutes(mux *http.ServeMux) {
@@ -45,7 +45,7 @@ func (app *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	tplhelper.RenderWithPanic(app.tpl, w, "root.html", goals)
+	tpltools.RenderWithPanic(app.tpl, w, "root.html", goals)
 }
 
 type LinkTemplateData struct {
@@ -80,7 +80,8 @@ func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
 		Sources: models.Sources,
 		Tags:    tags,
 	}
-	tplhelper.RenderWithPanic(app.tpl, w, "link.html", goalAndSources)
+
+	tpltools.RenderWithPanic(app.tpl, w, "link.html", goalAndSources)
 }
 
 func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +138,7 @@ func (app *Application) graphViewProgress(
 		ProgressValues: progressValues,
 	}
 
-	tplhelper.RenderWithPanic(app.tpl, w, "graph.html", graphData)
+	tpltools.RenderWithPanic(app.tpl, w, "graph.html", graphData)
 }
 
 type ListData struct {
@@ -164,5 +165,6 @@ func (app *Application) listViewProgress(
 		Goal:      *goal,
 		ListItems: listItems,
 	}
-	tplhelper.RenderWithPanic(app.tpl, w, "list.html", listData)
+
+	tpltools.RenderWithPanic(app.tpl, w, "list.html", listData)
 }
