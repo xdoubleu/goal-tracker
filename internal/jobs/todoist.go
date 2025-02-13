@@ -28,6 +28,7 @@ func (j TodoistJob) ID() string {
 }
 
 func (j TodoistJob) RunEvery() time.Duration {
+	//nolint:mnd //no magic number
 	return 24 * time.Hour
 }
 

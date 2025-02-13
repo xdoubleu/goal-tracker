@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/XDoubleU/essentia/pkg/grapher"
+
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/services"
 	"goal-tracker/api/pkg/goodreads"
-
-	"github.com/XDoubleU/essentia/pkg/grapher"
 )
 
 type GoodreadsJob struct {
@@ -83,7 +83,10 @@ func (j GoodreadsJob) updateProgress(
 
 	graphers := map[int]*grapher.Grapher[int]{}
 
-	graphers[time.Now().Year()] = grapher.New[int](grapher.Cumulative, models.ProgressDateFormat)
+	graphers[time.Now().Year()] = grapher.New[int](
+		grapher.Cumulative,
+		models.ProgressDateFormat,
+	)
 	graphers[time.Now().Year()].AddPoint(
 		time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC),
 		0,
@@ -112,7 +115,10 @@ func (j GoodreadsJob) updateProgress(
 		for _, dateRead := range book.DatesRead {
 			g, ok := graphers[dateRead.Year()]
 			if !ok {
-				graphers[dateRead.Year()] = grapher.New[int](grapher.Cumulative, models.ProgressDateFormat)
+				graphers[dateRead.Year()] = grapher.New[int](
+					grapher.Cumulative,
+					models.ProgressDateFormat,
+				)
 				graphers[dateRead.Year()].AddPoint(
 					time.Date(dateRead.Year(), 1, 1, 0, 0, 0, 0, time.UTC),
 					0,

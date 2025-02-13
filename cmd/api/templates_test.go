@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"goal-tracker/api/internal/dtos"
-	"goal-tracker/api/internal/models"
 	"net/http"
 	"testing"
 
 	"github.com/XDoubleU/essentia/pkg/test"
 	"github.com/stretchr/testify/assert"
+
+	"goal-tracker/api/internal/dtos"
+	"goal-tracker/api/internal/models"
 )
 
 func TestSignIn(t *testing.T) {
@@ -76,10 +77,16 @@ func TestGoalProgressGraph(t *testing.T) {
 	}
 
 	val := int64(50)
-	err = testApp.services.Goals.LinkGoal(context.Background(), goalID, userID, &dtos.LinkGoalDto{
-		TypeID:      models.SteamCompletionRate.ID,
-		TargetValue: &val,
-	})
+	err = testApp.services.Goals.LinkGoal(
+		context.Background(),
+		goalID,
+		userID,
+		&dtos.LinkGoalDto{
+			TypeID:      models.SteamCompletionRate.ID,
+			TargetValue: &val,
+			Tag:         nil,
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -106,11 +113,16 @@ func TestGoalProgressList(t *testing.T) {
 
 	val := int64(50)
 	valStr := "fiction"
-	err = testApp.services.Goals.LinkGoal(context.Background(), goalID, userID, &dtos.LinkGoalDto{
-		TypeID:      models.BooksFromSpecificTag.ID,
-		TargetValue: &val,
-		Tag:         &valStr,
-	})
+	err = testApp.services.Goals.LinkGoal(
+		context.Background(),
+		goalID,
+		userID,
+		&dtos.LinkGoalDto{
+			TypeID:      models.BooksFromSpecificTag.ID,
+			TargetValue: &val,
+			Tag:         &valStr,
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
