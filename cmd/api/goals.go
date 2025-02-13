@@ -12,7 +12,6 @@ import (
 	"goal-tracker/api/internal/constants"
 	"goal-tracker/api/internal/dtos"
 	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/temptools"
 )
 
 func (app *Application) goalsRoutes(prefix string, mux *http.ServeMux) {
@@ -41,13 +40,18 @@ func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) 
 
 	err = httptools.ReadForm(r, &linkGoalDto)
 	if err != nil {
-		temptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
+		httptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
+		return
+	}
+
+	if ok, errs := linkGoalDto.Validate(); !ok {
+		httptools.FailedValidationResponse(w, r, errs)
 		return
 	}
 
 	err = app.services.Goals.LinkGoal(r.Context(), id, user.ID, &linkGoalDto)
 	if err != nil {
-		temptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
+		httptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
 		return
 	}
 

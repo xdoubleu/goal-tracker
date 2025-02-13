@@ -27,15 +27,11 @@ func (j TodoistJob) ID() string {
 	return "todoist"
 }
 
-func (j TodoistJob) RunEvery() *time.Duration {
-	//nolint:mnd //no magic number
-	period := 24 * time.Hour
-	return &period
+func (j TodoistJob) RunEvery() time.Duration {
+	return 24 * time.Hour
 }
 
-func (j TodoistJob) Run(logger *slog.Logger) error {
-	ctx := context.Background()
-
+func (j TodoistJob) Run(ctx context.Context, logger *slog.Logger) error {
 	users, err := j.authService.GetAllUsers()
 	if err != nil {
 		return err

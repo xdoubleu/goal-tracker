@@ -23,10 +23,11 @@ func TestLinkGoalHandler(t *testing.T) {
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
-		test.FormContentType,
 		http.MethodPost,
 		fmt.Sprintf("/api/goals/%s/link", goalID),
 	)
+
+	tReq.SetFollowRedirect(false)
 
 	tReq.AddCookie(&accessToken)
 	tReq.AddCookie(&refreshToken)
@@ -34,6 +35,7 @@ func TestLinkGoalHandler(t *testing.T) {
 	targetValue := int64(50)
 	tag := ""
 
+	tReq.SetContentType(test.FormContentType)
 	tReq.SetData(dtos.LinkGoalDto{
 		TypeID:      models.SteamCompletionRate.ID,
 		TargetValue: &targetValue,
@@ -41,7 +43,7 @@ func TestLinkGoalHandler(t *testing.T) {
 	})
 
 	rs := tReq.Do(t)
-	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, http.StatusSeeOther, rs.StatusCode)
 }
 
 func TestUnlinkGoalHandler(t *testing.T) {
@@ -54,7 +56,6 @@ func TestUnlinkGoalHandler(t *testing.T) {
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
-		test.FormContentType,
 		http.MethodGet,
 		fmt.Sprintf("/api/goals/%s/unlink", goalID),
 	)

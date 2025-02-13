@@ -22,7 +22,7 @@ func (app *Application) authAccess(next http.HandlerFunc) http.HandlerFunc {
 			tokenCookie.Value,
 		)
 		if err != nil {
-			httptools.HandleError(w, r, err, nil)
+			httptools.HandleError(w, r, err)
 			return
 		}
 

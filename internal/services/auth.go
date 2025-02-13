@@ -31,10 +31,6 @@ func (service *AuthService) GetAllUsers() ([]models.User, error) {
 func (service *AuthService) SignInWithEmail(
 	signInDto *dtos.SignInDto,
 ) (*string, *string, error) {
-	if ok, _ := signInDto.Validate(); !ok {
-		return nil, nil, errortools.ErrFailedValidation
-	}
-
 	//nolint:exhaustruct //don't need other fields
 	response, err := service.client.Token(types.TokenRequest{
 		GrantType: "password",

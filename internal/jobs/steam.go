@@ -34,15 +34,12 @@ func (j SteamJob) ID() string {
 	return strconv.Itoa(int(models.SteamSource.ID))
 }
 
-func (j SteamJob) RunEvery() *time.Duration {
+func (j SteamJob) RunEvery() time.Duration {
 	//nolint:mnd //no magic number
-	period := 24 * time.Hour
-	return &period
+	return 24 * time.Hour
 }
 
-func (j SteamJob) Run(logger *slog.Logger) error {
-	ctx := context.Background()
-
+func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 	users, err := j.authService.GetAllUsers()
 	if err != nil {
 		return err

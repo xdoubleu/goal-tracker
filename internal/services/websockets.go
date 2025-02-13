@@ -7,22 +7,22 @@ import (
 	"time"
 
 	wstools "github.com/XDoubleU/essentia/pkg/communication/ws"
+	"github.com/XDoubleU/essentia/pkg/threading"
 
 	"goal-tracker/api/internal/dtos"
-	"goal-tracker/api/internal/temptools"
 )
 
 type WebSocketService struct {
 	allowedOrigins []string
 	handler        *wstools.WebSocketHandler[dtos.SubscribeMessageDto]
-	jobQueue       *temptools.JobQueue
+	jobQueue       *threading.JobQueue
 	topics         map[string]*wstools.Topic
 }
 
 func NewWebSocketService(
 	logger *slog.Logger,
 	allowedOrigins []string,
-	jobQueue *temptools.JobQueue,
+	jobQueue *threading.JobQueue,
 ) *WebSocketService {
 	service := WebSocketService{
 		allowedOrigins: allowedOrigins,
