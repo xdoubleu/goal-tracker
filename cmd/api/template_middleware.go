@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/XDoubleU/essentia/pkg/config"
+	tpltools "github.com/XDoubleU/essentia/pkg/tpl"
 
 	"goal-tracker/api/internal/models"
-	"goal-tracker/api/internal/tplhelper"
 )
 
 func (app *Application) authTemplateAccess(next http.HandlerFunc) http.HandlerFunc {
@@ -18,7 +18,7 @@ func (app *Application) authTemplateAccess(next http.HandlerFunc) http.HandlerFu
 		}
 
 		if user == nil {
-			tplhelper.RenderWithPanic(app.tpl, w, "sign-in.html", nil)
+			tpltools.RenderWithPanic(app.tpl, w, "sign-in.html", nil)
 			return
 		}
 
