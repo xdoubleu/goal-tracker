@@ -194,20 +194,11 @@ func (service *GoalService) LinkGoal(
 		return err
 	}
 
-	err = service.goals.Link(
+	return service.goals.Link(
 		ctx,
 		goal,
 		userID,
 		*linkGoalDto,
-	)
-	if err != nil {
-		return err
-	}
-
-	return service.todoist.UpdateTask(
-		ctx,
-		goal.ID,
-		fmt.Sprintf("%s/goals/%s", service.webURL, goal.ID),
 	)
 }
 
@@ -221,19 +212,10 @@ func (service *GoalService) UnlinkGoal(
 		return err
 	}
 
-	err = service.goals.Unlink(
+	return service.goals.Unlink(
 		ctx,
 		*goal,
 		userID,
-	)
-	if err != nil {
-		return err
-	}
-
-	return service.todoist.UpdateTask(
-		ctx,
-		goal.ID,
-		"",
 	)
 }
 
