@@ -32,16 +32,3 @@ func (service *TodoistService) GetTaskByID(
 ) (*todoist.Task, error) {
 	return service.client.GetActiveTask(ctx, id)
 }
-
-func (service *TodoistService) UpdateTask(
-	ctx context.Context,
-	id string,
-	description string,
-) error {
-	//nolint:exhaustruct //other fields aren't necessary for now
-	_, err := service.client.UpdateTask(ctx, id, todoist.UpdateTaskDto{
-		Description: &description,
-	})
-
-	return err
-}
