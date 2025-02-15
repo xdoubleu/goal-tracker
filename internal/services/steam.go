@@ -70,8 +70,8 @@ func (service *SteamService) ImportAchievementsForGames(
 ) (map[int][]models.Achievement, error) {
 	var err error
 
-	//nolint:mnd //no magic number
-	amountWorkers := (len(games) / 10) + 1
+	// amountWorkers := (len(games) / 10) + 1
+	amountWorkers := 1
 	workerPool := threading.NewWorkerPool(service.logger, amountWorkers, len(games))
 
 	mu := sync.Mutex{}
