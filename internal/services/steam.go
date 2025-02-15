@@ -68,42 +68,38 @@ func (service *SteamService) ImportAchievementsForGames(
 	games []models.Game,
 	userID string,
 ) (map[int][]models.Achievement, error) {
-	var err error
-
-	// amountWorkers := (len(games) / 10) + 1
-	amountWorkers := 1
+	//nolint:mnd //no magic number
+	amountWorkers := (len(games) / 10) + 1
 	workerPool := threading.NewWorkerPool(service.logger, amountWorkers, len(games))
 
 	mu := sync.Mutex{}
 	achievementsPerGame := map[int][]steam.Achievement{}
 	for _, game := range games {
-		workerPool.EnqueueWork(func(ctx context.Context, _ *slog.Logger) {
+		workerPool.EnqueueWork(func(ctx context.Context, _ *slog.Logger) error {
 			achievementsForGame, errIn := service.client.GetPlayerAchievements(
 				ctx,
 				service.userID,
 				game.ID,
 			)
 			if errIn != nil {
-				err = errIn
+				return errIn
 			}
 
 			mu.Lock()
 			achievementsPerGame[game.ID] = achievementsForGame.PlayerStats.Achievements
 			mu.Unlock()
+
+			return nil
 		})
 	}
 
 	workerPool.WaitUntilDone()
-	workerPool.Stop()
-	if err != nil {
-		return nil, err
-	}
 
 	gameIDs := []int{}
 	for gameID, achievements := range achievementsPerGame {
 		gameIDs = append(gameIDs, gameID)
 
-		err = service.steam.UpsertAchievements(
+		err := service.steam.UpsertAchievements(
 			ctx,
 			achievements,
 			userID,
