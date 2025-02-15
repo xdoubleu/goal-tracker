@@ -175,7 +175,7 @@ func (repo *SteamRepository) UpsertAchievements(
 		}
 		b.Queue(
 			query,
-			achievement.Name,
+			achievement.APIName,
 			userID,
 			gameID,
 			achievement.Achieved == 1,
