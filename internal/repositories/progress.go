@@ -74,6 +74,7 @@ func (repo *ProgressRepository) Upsert(
 		DO UPDATE SET value = $4
 	`
 
+	//nolint:exhaustruct //fields are optional
 	b := &pgx.Batch{}
 	for i := range dates {
 		date, _ := time.Parse(models.ProgressDateFormat, dates[i])

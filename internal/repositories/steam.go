@@ -67,6 +67,7 @@ func (repo *SteamRepository) UpsertGames(
 		DO UPDATE SET name = $3
 	`
 
+	//nolint:exhaustruct //fields are optional
 	b := &pgx.Batch{}
 	for _, game := range games {
 		b.Queue(query, game.AppID, userID, game.Name)
@@ -162,6 +163,7 @@ func (repo *SteamRepository) UpsertAchievements(
 		DO UPDATE SET achieved = $4, unlock_time = $5
 	`
 
+	//nolint:exhaustruct //fields are optional
 	b := &pgx.Batch{}
 	for _, achievement := range achievements {
 		var unlockTime *time.Time
@@ -169,7 +171,14 @@ func (repo *SteamRepository) UpsertAchievements(
 			value := time.Unix(achievement.UnlockTime, 0)
 			unlockTime = &value
 		}
-		b.Queue(query, achievement.Name, userID, gameID, achievement.Achieved == 1, unlockTime)
+		b.Queue(
+			query,
+			achievement.Name,
+			userID,
+			gameID,
+			achievement.Achieved == 1,
+			unlockTime,
+		)
 	}
 
 	err := repo.db.SendBatch(ctx, b).Close()
@@ -193,6 +202,7 @@ func (repo *SteamRepository) UpsertAchievementSchemas(
 		DO NOTHING
 	`
 
+	//nolint:exhaustruct //fields are optional
 	b := &pgx.Batch{}
 	for _, achievementSchema := range achievementSchemas {
 		b.Queue(query, achievementSchema.Name, userID, gameID)

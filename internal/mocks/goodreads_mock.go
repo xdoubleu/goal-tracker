@@ -1,8 +1,10 @@
+//nolint:mnd //magic numbers
 package mocks
 
 import (
-	"goal-tracker/api/pkg/goodreads"
 	"time"
+
+	"goal-tracker/api/pkg/goodreads"
 )
 
 type MockGoodreadsClient struct {

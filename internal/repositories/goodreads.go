@@ -177,9 +177,19 @@ func (repo *GoodreadsRepository) UpsertBooks(
 		DO UPDATE SET shelf = $3, tags = $4, title = $5, author = $6, dates_read = $7
 	`
 
+	//nolint:exhaustruct //fields are optional
 	b := &pgx.Batch{}
 	for _, book := range books {
-		b.Queue(query, book.ID, userID, book.Shelf, book.Tags, book.Title, book.Author, book.DatesRead)
+		b.Queue(
+			query,
+			book.ID,
+			userID,
+			book.Shelf,
+			book.Tags,
+			book.Title,
+			book.Author,
+			book.DatesRead,
+		)
 	}
 
 	err := repo.db.SendBatch(ctx, b).Close()
