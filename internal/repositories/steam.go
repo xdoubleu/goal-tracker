@@ -106,31 +106,30 @@ func (repo *SteamRepository) MarkGameAsDelisted(
 	return nil
 }
 
-func (repo *SteamRepository) GetAchievementsForGame(
+func (repo *SteamRepository) GetAchievementsForGames(
 	ctx context.Context,
-	gameID int,
+	gameIDs []int,
 	userID string,
-) ([]models.Achievement, error) {
+) (map[int][]models.Achievement, error) {
 	query := `
-		SELECT name, achieved, unlock_time
+		SELECT game_id, name, achieved, unlock_time
 		FROM steam_achievements
-		WHERE game_id = $1 AND user_id = $2
+		WHERE game_id = ANY($1) AND user_id = $2
 	`
 
-	rows, err := repo.db.Query(ctx, query, gameID, userID)
+	rows, err := repo.db.Query(ctx, query, gameIDs, userID)
 	if err != nil {
 		return nil, postgres.PgxErrorToHTTPError(err)
 	}
 	defer rows.Close()
 
-	achievements := []models.Achievement{}
+	achievements := map[int][]models.Achievement{}
 	for rows.Next() {
 		//nolint:exhaustruct //other fields are defined later
-		achievement := models.Achievement{
-			GameID: gameID,
-		}
+		achievement := models.Achievement{}
 
 		err = rows.Scan(
+			&achievement.GameID,
 			&achievement.Name,
 			&achievement.Achieved,
 			&achievement.UnlockTime,
@@ -140,7 +139,7 @@ func (repo *SteamRepository) GetAchievementsForGame(
 			return nil, postgres.PgxErrorToHTTPError(err)
 		}
 
-		achievements = append(achievements, achievement)
+		achievements[achievement.GameID] = append(achievements[achievement.GameID], achievement)
 	}
 
 	if err = rows.Err(); err != nil {
