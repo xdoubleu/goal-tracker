@@ -5,11 +5,11 @@ import (
 	"log/slog"
 	"sync"
 
+	"github.com/XDoubleU/essentia/pkg/threading"
+
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/pkg/steam"
-
-	"github.com/XDoubleU/essentia/pkg/threading"
 )
 
 type SteamService struct {
@@ -70,13 +70,14 @@ func (service *SteamService) ImportAchievementsForGames(
 ) (map[int][]models.Achievement, error) {
 	var err error
 
+	//nolint:mnd //no magic number
 	amountWorkers := (len(games) / 10) + 1
 	workerPool := threading.NewWorkerPool(service.logger, amountWorkers, len(games))
 
 	mu := sync.Mutex{}
 	achievementsPerGame := map[int][]steam.Achievement{}
 	for _, game := range games {
-		workerPool.EnqueueWork(func(ctx context.Context, logger *slog.Logger) {
+		workerPool.EnqueueWork(func(ctx context.Context, _ *slog.Logger) {
 			achievementsForGame, errIn := service.client.GetPlayerAchievements(
 				ctx,
 				service.userID,

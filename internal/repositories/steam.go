@@ -139,7 +139,10 @@ func (repo *SteamRepository) GetAchievementsForGames(
 			return nil, postgres.PgxErrorToHTTPError(err)
 		}
 
-		achievements[achievement.GameID] = append(achievements[achievement.GameID], achievement)
+		achievements[achievement.GameID] = append(
+			achievements[achievement.GameID],
+			achievement,
+		)
 	}
 
 	if err = rows.Err(); err != nil {
