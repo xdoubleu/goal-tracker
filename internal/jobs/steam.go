@@ -141,6 +141,7 @@ func (j SteamJob) fetchAchievements(
 	}
 
 	workerPool.WaitUntilDone()
+	workerPool.Stop()
 
 	totalAchievementsPerGame := map[int]int{}
 	for gameID, achievements := range achievementsPerGame {
