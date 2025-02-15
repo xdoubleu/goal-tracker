@@ -1,6 +1,9 @@
+//nolint:mnd //magic numbers
 package mocks
 
 import (
+	"time"
+
 	"goal-tracker/api/pkg/goodreads"
 )
 
@@ -12,7 +15,24 @@ func NewMockGoodreadsClient() goodreads.Client {
 }
 
 func (m MockGoodreadsClient) GetBooks(_ string) ([]goodreads.Book, error) {
-	return []goodreads.Book{}, nil
+	return []goodreads.Book{
+		{
+			ID:        1,
+			Shelf:     "shelf",
+			Tags:      []string{"tag1"},
+			Title:     "Title",
+			Author:    "Author",
+			DatesRead: []time.Time{time.Now().AddDate(-1, 0, 0)},
+		},
+		{
+			ID:        2,
+			Shelf:     "shelf",
+			Tags:      []string{"tag1"},
+			Title:     "Title2",
+			Author:    "Author",
+			DatesRead: []time.Time{time.Now()},
+		},
+	}, nil
 }
 
 func (m MockGoodreadsClient) GetUserID(_ string) (*string, error) {

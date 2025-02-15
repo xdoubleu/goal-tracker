@@ -97,7 +97,7 @@ func main() {
 		Goodreads: goodreads.New(logger),
 	}
 
-	app := NewApp(logger, cfg, db, clients)
+	app := NewApp(logger, cfg, db, clients, true)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Port),
@@ -117,6 +117,7 @@ func NewApp(
 	cfg config.Config,
 	db postgres.DB,
 	clients Clients,
+	setJobs bool,
 ) *Application {
 	tpl := template.Must(template.ParseFS(htmlTemplates, "templates/html/**/*.html"))
 
@@ -135,6 +136,10 @@ func NewApp(
 
 	app.setContext()
 	app.setDB(db)
+
+	if setJobs {
+		app.setJobs()
+	}
 
 	return app
 }
@@ -162,8 +167,6 @@ func (app *Application) setDB(
 		app.clients.Steam,
 		app.clients.Goodreads,
 	)
-
-	app.setJobs()
 }
 
 func (app *Application) setJobs() {

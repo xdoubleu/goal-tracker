@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
+	"github.com/jackc/pgx/v5"
 
 	"goal-tracker/api/internal/models"
+	"goal-tracker/api/pkg/steam"
 )
 
 type SteamRepository struct {
@@ -53,11 +55,10 @@ func (repo *SteamRepository) GetAllGames(
 	return games, nil
 }
 
-func (repo *SteamRepository) UpsertGame(
+func (repo *SteamRepository) UpsertGames(
 	ctx context.Context,
-	id int,
+	games map[int]steam.Game,
 	userID string,
-	name string,
 ) error {
 	query := `
 		INSERT INTO steam_games (id, user_id, name)
@@ -66,14 +67,13 @@ func (repo *SteamRepository) UpsertGame(
 		DO UPDATE SET name = $3
 	`
 
-	_, err := repo.db.Exec(
-		ctx,
-		query,
-		id,
-		userID,
-		name,
-	)
+	//nolint:exhaustruct //fields are optional
+	b := &pgx.Batch{}
+	for _, game := range games {
+		b.Queue(query, game.AppID, userID, game.Name)
+	}
 
+	err := repo.db.SendBatch(ctx, b).Close()
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}
@@ -150,13 +150,11 @@ func (repo *SteamRepository) GetAchievementsForGame(
 	return achievements, nil
 }
 
-func (repo *SteamRepository) UpsertAchievement(
+func (repo *SteamRepository) UpsertAchievements(
 	ctx context.Context,
-	name string,
+	achievements []steam.Achievement,
 	userID string,
 	gameID int,
-	achieved bool,
-	unlockTime *time.Time,
 ) error {
 	query := `
 		INSERT INTO steam_achievements (name, user_id, game_id, achieved, unlock_time)
@@ -165,16 +163,25 @@ func (repo *SteamRepository) UpsertAchievement(
 		DO UPDATE SET achieved = $4, unlock_time = $5
 	`
 
-	_, err := repo.db.Exec(
-		ctx,
-		query,
-		name,
-		userID,
-		gameID,
-		achieved,
-		unlockTime,
-	)
+	//nolint:exhaustruct //fields are optional
+	b := &pgx.Batch{}
+	for _, achievement := range achievements {
+		var unlockTime *time.Time
+		if achievement.Achieved == 1 {
+			value := time.Unix(achievement.UnlockTime, 0)
+			unlockTime = &value
+		}
+		b.Queue(
+			query,
+			achievement.Name,
+			userID,
+			gameID,
+			achievement.Achieved == 1,
+			unlockTime,
+		)
+	}
 
+	err := repo.db.SendBatch(ctx, b).Close()
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}
@@ -182,9 +189,9 @@ func (repo *SteamRepository) UpsertAchievement(
 	return nil
 }
 
-func (repo *SteamRepository) UpsertAchievementSchema(
+func (repo *SteamRepository) UpsertAchievementSchemas(
 	ctx context.Context,
-	name string,
+	achievementSchemas []steam.AchievementSchema,
 	userID string,
 	gameID int,
 ) error {
@@ -195,14 +202,13 @@ func (repo *SteamRepository) UpsertAchievementSchema(
 		DO NOTHING
 	`
 
-	_, err := repo.db.Exec(
-		ctx,
-		query,
-		name,
-		userID,
-		gameID,
-	)
+	//nolint:exhaustruct //fields are optional
+	b := &pgx.Batch{}
+	for _, achievementSchema := range achievementSchemas {
+		b.Queue(query, achievementSchema.Name, userID, gameID)
+	}
 
+	err := repo.db.SendBatch(ctx, b).Close()
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}

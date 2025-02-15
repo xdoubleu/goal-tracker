@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
+	"github.com/jackc/pgx/v5"
 
 	"goal-tracker/api/pkg/goodreads"
 )
@@ -164,9 +165,9 @@ func (repo *GoodreadsRepository) GetBooksByIDs(
 	return books, nil
 }
 
-func (repo *GoodreadsRepository) UpsertBook(
+func (repo *GoodreadsRepository) UpsertBooks(
 	ctx context.Context,
-	book goodreads.Book,
+	books []goodreads.Book,
 	userID string,
 ) error {
 	query := `
@@ -176,18 +177,22 @@ func (repo *GoodreadsRepository) UpsertBook(
 		DO UPDATE SET shelf = $3, tags = $4, title = $5, author = $6, dates_read = $7
 	`
 
-	_, err := repo.db.Exec(
-		ctx,
-		query,
-		book.ID,
-		userID,
-		book.Shelf,
-		book.Tags,
-		book.Title,
-		book.Author,
-		book.DatesRead,
-	)
+	//nolint:exhaustruct //fields are optional
+	b := &pgx.Batch{}
+	for _, book := range books {
+		b.Queue(
+			query,
+			book.ID,
+			userID,
+			book.Shelf,
+			book.Tags,
+			book.Title,
+			book.Author,
+			book.DatesRead,
+		)
+	}
 
+	err := repo.db.SendBatch(ctx, b).Close()
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}
