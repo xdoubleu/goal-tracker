@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
-	"sync"
 	"time"
-
-	"github.com/XDoubleU/essentia/pkg/threading"
 
 	"goal-tracker/api/internal/helper"
 	"goal-tracker/api/internal/models"
@@ -59,11 +56,23 @@ func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 			fmt.Sprintf("fetched %d games", len(ownedGames)),
 		)
 
-		totalAchievementsPerGame, achievementsPerGame := j.fetchAchievements(
-			logger,
-			user,
+		achievementsPerGame := map[int][]models.Achievement{}
+		totalAchievementsPerGame := map[int]int{}
+
+		var achievementsForGame map[int][]models.Achievement
+		achievementsForGame, err = j.steamService.ImportAchievementsForGames(
+			ctx,
 			ownedGames,
+			user.ID,
 		)
+		if err != nil {
+			return err
+		}
+
+		for _, game := range ownedGames {
+			achievementsPerGame[game.ID] = achievementsForGame[game.ID]
+			totalAchievementsPerGame[game.ID] = len(achievementsForGame[game.ID])
+		}
 
 		grapher := helper.NewAchievementsGrapher(totalAchievementsPerGame)
 
@@ -100,53 +109,4 @@ func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 	}
 
 	return nil
-}
-
-func (j SteamJob) fetchAchievements(
-	logger *slog.Logger,
-	user models.User,
-	ownedGames []models.Game,
-) (map[int]int, map[int][]models.Achievement) {
-	mu := sync.Mutex{}
-	achievementsPerGame := map[int][]models.Achievement{}
-
-	amountWorkers := 10
-	workerPool := threading.NewWorkerPool(logger, amountWorkers, len(ownedGames))
-
-	for _, game := range ownedGames {
-		workerPool.EnqueueWork(func(ctx context.Context, logger *slog.Logger) {
-			logger.Debug(
-				fmt.Sprintf(
-					"fetching achievements for game %d (%s)",
-					game.ID,
-					game.Name,
-				),
-			)
-
-			var achievementsForGame []models.Achievement
-			achievementsForGame, err := j.steamService.ImportAchievementsForGame(
-				ctx,
-				game,
-				user.ID,
-			)
-			if err != nil {
-				logger.Error(err.Error())
-				return
-			}
-
-			mu.Lock()
-			achievementsPerGame[game.ID] = achievementsForGame
-			mu.Unlock()
-		})
-	}
-
-	workerPool.WaitUntilDone()
-	workerPool.Stop()
-
-	totalAchievementsPerGame := map[int]int{}
-	for gameID, achievements := range achievementsPerGame {
-		totalAchievementsPerGame[gameID] = len(achievements)
-	}
-
-	return totalAchievementsPerGame, achievementsPerGame
 }

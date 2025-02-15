@@ -3,6 +3,9 @@ package services
 import (
 	"context"
 	"log/slog"
+	"sync"
+
+	"github.com/XDoubleU/essentia/pkg/threading"
 
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/repositories"
@@ -60,33 +63,62 @@ func (service *SteamService) ImportOwnedGames(
 	return service.steam.GetAllGames(ctx, userID)
 }
 
-func (service *SteamService) ImportAchievementsForGame(
+func (service *SteamService) ImportAchievementsForGames(
 	ctx context.Context,
-	game models.Game,
+	games []models.Game,
 	userID string,
-) ([]models.Achievement, error) {
-	achievementsForGame, err := service.client.GetPlayerAchievements(
-		ctx,
-		service.userID,
-		game.ID,
-	)
+) (map[int][]models.Achievement, error) {
+	var err error
+
+	//nolint:mnd //no magic number
+	amountWorkers := (len(games) / 10) + 1
+	workerPool := threading.NewWorkerPool(service.logger, amountWorkers, len(games))
+
+	mu := sync.Mutex{}
+	achievementsPerGame := map[int][]steam.Achievement{}
+	for _, game := range games {
+		workerPool.EnqueueWork(func(ctx context.Context, _ *slog.Logger) {
+			achievementsForGame, errIn := service.client.GetPlayerAchievements(
+				ctx,
+				service.userID,
+				game.ID,
+			)
+			if errIn != nil {
+				err = errIn
+			}
+
+			mu.Lock()
+			achievementsPerGame[game.ID] = achievementsForGame.PlayerStats.Achievements
+			mu.Unlock()
+		})
+	}
+
+	workerPool.WaitUntilDone()
+	workerPool.Stop()
 	if err != nil {
 		return nil, err
 	}
 
-	err = service.steam.UpsertAchievements(
-		ctx,
-		achievementsForGame.PlayerStats.Achievements,
-		userID,
-		game.ID,
-	)
-	if err != nil {
-		return nil, err
-	}
+	gameIDs := []int{}
+	for gameID, achievements := range achievementsPerGame {
+		gameIDs = append(gameIDs, gameID)
 
-	if len(achievementsForGame.PlayerStats.Achievements) == 0 {
+		err = service.steam.UpsertAchievements(
+			ctx,
+			achievements,
+			userID,
+			gameID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(achievements) != 0 {
+			continue
+		}
+
 		var achievementSchemasForGame *steam.GetSchemaForGameResponse
-		achievementSchemasForGame, err = service.client.GetSchemaForGame(ctx, game.ID)
+		achievementSchemasForGame, err = service.client.GetSchemaForGame(ctx, gameID)
 		if err != nil {
 			return nil, err
 		}
@@ -95,12 +127,12 @@ func (service *SteamService) ImportAchievementsForGame(
 			ctx,
 			achievementSchemasForGame.Game.AvailableGameStats.Achievements,
 			userID,
-			game.ID,
+			gameID,
 		)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return service.steam.GetAchievementsForGame(ctx, game.ID, userID)
+	return service.steam.GetAchievementsForGames(ctx, gameIDs, userID)
 }
