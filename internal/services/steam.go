@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/repositories"
@@ -49,16 +48,13 @@ func (service *SteamService) ImportOwnedGames(
 		}
 	}
 
-	for _, game := range gamesMap {
-		err = service.steam.UpsertGame(
-			ctx,
-			game.AppID,
-			userID,
-			game.Name,
-		)
-		if err != nil {
-			return nil, err
-		}
+	err = service.steam.UpsertGames(
+		ctx,
+		gamesMap,
+		userID,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	return service.steam.GetAllGames(ctx, userID)
@@ -78,24 +74,14 @@ func (service *SteamService) ImportAchievementsForGame(
 		return nil, err
 	}
 
-	for _, achievement := range achievementsForGame.PlayerStats.Achievements {
-		var unlockTime *time.Time
-		if achievement.Achieved == 1 {
-			value := time.Unix(achievement.UnlockTime, 0)
-			unlockTime = &value
-		}
-
-		err = service.steam.UpsertAchievement(
-			ctx,
-			achievement.APIName,
-			userID,
-			game.ID,
-			achievement.Achieved == 1,
-			unlockTime,
-		)
-		if err != nil {
-			return nil, err
-		}
+	err = service.steam.UpsertAchievements(
+		ctx,
+		achievementsForGame.PlayerStats.Achievements,
+		userID,
+		game.ID,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	if len(achievementsForGame.PlayerStats.Achievements) == 0 {
@@ -105,17 +91,14 @@ func (service *SteamService) ImportAchievementsForGame(
 			return nil, err
 		}
 
-		//nolint:lll //it is what it is
-		for _, achievement := range achievementSchemasForGame.Game.AvailableGameStats.Achievements {
-			err = service.steam.UpsertAchievementSchema(
-				ctx,
-				achievement.Name,
-				userID,
-				game.ID,
-			)
-			if err != nil {
-				return nil, err
-			}
+		err = service.steam.UpsertAchievementSchemas(
+			ctx,
+			achievementSchemasForGame.Game.AvailableGameStats.Achievements,
+			userID,
+			game.ID,
+		)
+		if err != nil {
+			return nil, err
 		}
 	}
 

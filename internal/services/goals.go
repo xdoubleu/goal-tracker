@@ -258,19 +258,13 @@ func (service *GoalService) SaveProgress(
 	progressLabels []string,
 	progressValues []string,
 ) error {
-	for i := 0; i < len(progressLabels); i++ {
-		_, err := service.progress.Upsert(
-			ctx,
-			typeID,
-			userID,
-			progressLabels[i],
-			progressValues[i],
-		)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return service.progress.Upsert(
+		ctx,
+		typeID,
+		userID,
+		progressLabels,
+		progressValues,
+	)
 }
 
 func (service *GoalService) GetListItemsByGoalID(

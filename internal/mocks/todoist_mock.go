@@ -32,7 +32,17 @@ func (client MockTodoistClient) GetActiveTasks(
 			Due: &todoist.Due{
 				String: "every year",
 				Date: todoist.Date{
-					Time: time.Now(),
+					Time: time.Date(time.Now().Year(), 1, 1, 10, 0, 0, 0, time.UTC),
+				},
+				IsRecurring: true,
+			},
+		},
+		{
+			ID: "456",
+			Due: &todoist.Due{
+				String: "every year",
+				Date: todoist.Date{
+					Time: time.Date(time.Now().Year(), 1, 1, 10, 0, 0, 0, time.UTC),
 				},
 				IsRecurring: true,
 			},

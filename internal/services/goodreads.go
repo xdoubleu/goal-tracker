@@ -31,11 +31,9 @@ func (service *GoodreadsService) ImportAllBooks(
 	}
 
 	service.logger.Debug(fmt.Sprintf("saving %d books", len(books)))
-	for _, book := range books {
-		err = service.goodreads.UpsertBook(ctx, book, userID)
-		if err != nil {
-			return nil, err
-		}
+	err = service.goodreads.UpsertBooks(ctx, books, userID)
+	if err != nil {
+		return nil, err
 	}
 
 	return books, nil

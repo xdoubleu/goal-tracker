@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/XDoubleU/essentia/pkg/database/postgres"
+	"github.com/jackc/pgx/v5"
 
 	"goal-tracker/api/internal/models"
 )
@@ -63,37 +64,26 @@ func (repo *ProgressRepository) Upsert(
 	ctx context.Context,
 	typeID int64,
 	userID string,
-	dateStr string,
-	value string,
-) (*models.Progress, error) {
+	dates []string,
+	values []string,
+) error {
 	query := `
 		INSERT INTO progress (type_id, user_id, date, value)
 		VALUES ($1, $2, $3, $4)
 		ON CONFLICT (type_id, user_id, date)
 		DO UPDATE SET value = $4
-		RETURNING date
 	`
 
-	date, _ := time.Parse(models.ProgressDateFormat, dateStr)
-
-	//nolint:exhaustruct //other fields are optional
-	progress := models.Progress{
-		TypeID: typeID,
-		Value:  value,
+	b := &pgx.Batch{}
+	for i := range dates {
+		date, _ := time.Parse(models.ProgressDateFormat, dates[i])
+		b.Queue(query, typeID, userID, date, values[i])
 	}
 
-	err := repo.db.QueryRow(
-		ctx,
-		query,
-		typeID,
-		userID,
-		date,
-		value,
-	).Scan(&progress.Date)
-
+	err := repo.db.SendBatch(ctx, b).Close()
 	if err != nil {
-		return nil, postgres.PgxErrorToHTTPError(err)
+		return postgres.PgxErrorToHTTPError(err)
 	}
 
-	return &progress, nil
+	return nil
 }

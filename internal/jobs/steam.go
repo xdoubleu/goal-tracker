@@ -10,6 +10,8 @@ import (
 	"goal-tracker/api/internal/helper"
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/services"
+
+	"github.com/XDoubleU/essentia/pkg/threading"
 )
 
 type SteamJob struct {
@@ -56,30 +58,37 @@ func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 			fmt.Sprintf("fetched %d games", len(ownedGames)),
 		)
 
+		workerPool := threading.NewWorkerPool(logger, 10, len(ownedGames))
+
 		totalAchievementsPerGame := map[int]int{}
 		achievementsPerGame := map[int][]models.Achievement{}
 		for _, game := range ownedGames {
-			logger.Debug(
-				fmt.Sprintf(
-					"fetching achievements for game %d (%s)",
-					game.ID,
-					game.Name,
-				),
-			)
+			workerPool.EnqueueWork(func(ctx context.Context, logger *slog.Logger) {
+				logger.Debug(
+					fmt.Sprintf(
+						"fetching achievements for game %d (%s)",
+						game.ID,
+						game.Name,
+					),
+				)
 
-			var achievementsForGame []models.Achievement
-			achievementsForGame, err = j.steamService.ImportAchievementsForGame(
-				ctx,
-				game,
-				user.ID,
-			)
-			if err != nil {
-				return err
-			}
+				var achievementsForGame []models.Achievement
+				achievementsForGame, err = j.steamService.ImportAchievementsForGame(
+					ctx,
+					game,
+					user.ID,
+				)
+				if err != nil {
+					logger.Error(err.Error())
+					return
+				}
 
-			achievementsPerGame[game.ID] = achievementsForGame
-			totalAchievementsPerGame[game.ID] = len(achievementsPerGame[game.ID])
+				achievementsPerGame[game.ID] = achievementsForGame
+				totalAchievementsPerGame[game.ID] = len(achievementsPerGame[game.ID])
+			})
 		}
+
+		workerPool.WaitUntilDone()
 
 		grapher := helper.NewAchievementsGrapher(totalAchievementsPerGame)
 
