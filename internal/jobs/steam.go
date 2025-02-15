@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/XDoubleU/essentia/pkg/threading"
@@ -106,7 +107,7 @@ func (j SteamJob) fetchAchievements(
 	user models.User,
 	ownedGames []models.Game,
 ) (map[int]int, map[int][]models.Achievement) {
-	totalAchievementsPerGame := map[int]int{}
+	mu := sync.Mutex{}
 	achievementsPerGame := map[int][]models.Achievement{}
 
 	amountWorkers := 10
@@ -133,12 +134,18 @@ func (j SteamJob) fetchAchievements(
 				return
 			}
 
+			mu.Lock()
 			achievementsPerGame[game.ID] = achievementsForGame
-			totalAchievementsPerGame[game.ID] = len(achievementsPerGame[game.ID])
+			mu.Unlock()
 		})
 	}
 
 	workerPool.WaitUntilDone()
+
+	totalAchievementsPerGame := map[int]int{}
+	for gameID, achievements := range achievementsPerGame {
+		totalAchievementsPerGame[gameID] = len(achievements)
+	}
 
 	return totalAchievementsPerGame, achievementsPerGame
 }
