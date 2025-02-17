@@ -14,9 +14,9 @@
         const ctx = document.getElementById('chart');
 
         const targetValue = {{.Goal.TargetValue}};
-        const progressLabels = {{.ProgressLabels}};
+        const progressLabels = {{.DateLabels}};
         const progressValues = {{.ProgressValues}};
-        const targetValues = Array(progressLabels.length).fill(targetValue);
+        const goalValues = {{.GoalValues}};
       
         new Chart(ctx, {
           type: 'line',
@@ -28,7 +28,7 @@
             },
             {
                 label: 'Goal',
-                data: targetValues,
+                data: goalValues,
                 borderDash: [5, 10]
             }]
           },
