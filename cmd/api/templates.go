@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/XDoubleU/essentia/pkg/context"
 	"github.com/XDoubleU/essentia/pkg/parse"
@@ -111,8 +112,9 @@ func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Reque
 
 type GraphData struct {
 	Goal           models.Goal
-	ProgressLabels []string
+	DateLabels     []string
 	ProgressValues []string
+	GoalValues     []string
 }
 
 func (app *Application) graphViewProgress(
@@ -132,10 +134,12 @@ func (app *Application) graphViewProgress(
 		panic(err)
 	}
 
+	startProgress, _ := strconv.ParseFloat(progressValues[0], 64)
 	graphData := GraphData{
 		Goal:           *goal,
-		ProgressLabels: progressLabels,
+		DateLabels:     progressLabels,
 		ProgressValues: progressValues,
+		GoalValues:     goal.AdaptiveGoalValues(int(startProgress)),
 	}
 
 	tpltools.RenderWithPanic(app.tpl, w, "graph.html", graphData)

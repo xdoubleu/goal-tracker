@@ -1,8 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"strings"
 	"time"
+
+	"github.com/sgreben/piecewiselinear"
 )
 
 type Goal struct {
@@ -66,4 +69,26 @@ func TodoistDueStringToPeriod(dueString string) *Period {
 	}
 
 	return &period
+}
+
+func (goal Goal) AdaptiveGoalValues(startProgress int) []string {
+	secondsInADay := 86400
+
+	f := piecewiselinear.Function{
+		X: []float64{
+			float64(goal.PeriodStart().Unix() / int64(secondsInADay)),
+			float64(goal.PeriodEnd().Unix() / int64(secondsInADay)),
+		},
+		Y: []float64{float64(startProgress), float64(*goal.TargetValue)},
+	}
+
+	result := []string{}
+	for i := goal.PeriodStart(); i.Before(goal.PeriodEnd()); i = i.AddDate(0, 0, 1) {
+		result = append(
+			result,
+			fmt.Sprintf("%.2f", f.At(float64(i.Unix()/int64(secondsInADay)))),
+		)
+	}
+
+	return result
 }

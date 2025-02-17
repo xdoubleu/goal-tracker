@@ -119,16 +119,6 @@ func (j GoodreadsJob) updateProgress(
 					grapher.Cumulative,
 					models.ProgressDateFormat,
 				)
-				graphers[dateRead.Year()].AddPoint(
-					time.Date(dateRead.Year(), 1, 1, 0, 0, 0, 0, time.UTC),
-					0,
-					"",
-				)
-				graphers[dateRead.Year()].AddPoint(
-					time.Date(dateRead.Year(), 12, 31, 0, 0, 0, 0, time.UTC),
-					0,
-					"",
-				)
 				g = graphers[dateRead.Year()]
 			}
 
