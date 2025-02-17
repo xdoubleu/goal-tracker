@@ -125,7 +125,7 @@ func (app *Application) graphViewProgress(
 		r.Context(),
 		*goal.TypeID,
 		userID,
-		goal.PeriodStart(true),
+		goal.PeriodStart(),
 		goal.PeriodEnd(),
 	)
 	if err != nil {

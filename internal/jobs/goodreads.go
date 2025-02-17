@@ -244,7 +244,7 @@ func (j GoodreadsJob) specificBooks(ctx context.Context, userID string) error {
 
 func bookIsReadInGoalPeriod(goal models.Goal, book goodreads.Book) bool {
 	for _, dateRead := range book.DatesRead {
-		if dateRead.After(goal.PeriodStart(false)) &&
+		if dateRead.After(goal.PeriodStart()) &&
 			dateRead.Before(goal.PeriodEnd()) {
 			return true
 		}

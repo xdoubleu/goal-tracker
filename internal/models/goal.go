@@ -33,17 +33,12 @@ const (
 	Month   Period = iota
 )
 
-func (goal Goal) PeriodStart(includePreviousPeriod bool) time.Time {
-	multiplier := 1
-	if includePreviousPeriod {
-		multiplier = 2
-	}
-
+func (goal Goal) PeriodStart() time.Time {
 	switch *goal.Period {
 	case Year:
-		return goal.DueTime.AddDate(-1*multiplier, 0, 1)
+		return goal.DueTime.AddDate(-1, 0, 1)
 	case Quarter:
-		return goal.DueTime.AddDate(0, -3*multiplier, 1)
+		return goal.DueTime.AddDate(0, -3, 1)
 	default:
 		panic("not implemented")
 	}
