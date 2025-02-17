@@ -150,5 +150,5 @@ func calculateCompletionRate(achieved int, total int) float64 {
 
 func calculateAvgCompletionRate(percentageSum float64, totalGames int) string {
 	//nolint:mnd //no magic number
-	return fmt.Sprintf("%.2f", percentageSum/float64(totalGames)*100.0)
+	return fmt.Sprintf("%.2f", math.Floor(percentageSum/float64(totalGames)*10000)/100)
 }
