@@ -1,17 +1,19 @@
 {{template "header"}}
 {{template "navbar"}}
-    <h1>{{.Goal.Name}}</h1>
-    {{template "ws" .Goal.SourceID}}
-    <br/>
-    <br/>
+    <div class="container">
+        <h1>{{.Goal.Name}}</h1>
+        {{template "ws" .Goal.SourceID}}
+        <br/>
+        <br/>
 
-    <ul>
-        {{range $listItem := .ListItems}}
-            {{if $listItem.Completed}}
-                <li><s>{{$listItem.Value}}</s></li>
-            {{else}}
-                <li>{{$listItem.Value}}</li>
+        <ul>
+            {{range $listItem := .ListItems}}
+                {{if $listItem.Completed}}
+                    <li><s>{{$listItem.Value}}</s></li>
+                {{else}}
+                    <li>{{$listItem.Value}}</li>
+                {{end}}
             {{end}}
-        {{end}}
-    </ul>
+        </ul>
+    </div>
 {{template "footer"}}

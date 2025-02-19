@@ -17,7 +17,7 @@ func TestTodoistDueStringToPeriod(t *testing.T) {
 	assert.Equal(t, models.Quarter, *models.TodoistDueStringToPeriod("every 3 months"))
 }
 
-func TestAdaptiveGoalValues(t *testing.T) {
+func TestAdaptiveTargetValues(t *testing.T) {
 	val := int64(365)
 	val2 := models.Year
 	val3 := time.Now()
@@ -29,7 +29,7 @@ func TestAdaptiveGoalValues(t *testing.T) {
 		DueTime:     &val3,
 	}
 
-	goalValues := goal.AdaptiveGoalValues(0)
+	goalValues := goal.AdaptiveTargetValues(0)
 	for i := 0; i < 365; i++ {
 		assert.Equal(t, fmt.Sprintf("%.2f", float64(i)), goalValues[i])
 	}

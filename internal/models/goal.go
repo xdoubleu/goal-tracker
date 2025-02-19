@@ -71,7 +71,7 @@ func TodoistDueStringToPeriod(dueString string) *Period {
 	return &period
 }
 
-func (goal Goal) AdaptiveGoalValues(startProgress int) []string {
+func (goal Goal) AdaptiveTargetValues(startProgress int) []string {
 	secondsInADay := 86400
 
 	f := piecewiselinear.Function{
