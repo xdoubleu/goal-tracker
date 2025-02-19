@@ -1,18 +1,20 @@
 {{template "header"}}
 {{template "navbar"}}
-    {{template "ws" "todoist"}}
-    <br/>
-    <br/>
-
-    {{range $pair := .}}
-        <h2>{{$pair.State}}</h2>
-        <ul>
-            {{range $goalWithSubGoals := $pair.Goals}}
-                {{template "goalWithSubGoals" $goalWithSubGoals}}
-            {{end}}
-        </ul>
+    <div class="container">
+        {{template "ws" "todoist"}}
         <br/>
         <br/>
 
-    {{end}}
+        {{range $pair := .}}
+            <h2>{{$pair.State}}</h2>
+            <ul>
+                {{range $goalWithSubGoals := $pair.Goals}}
+                    {{template "goalWithSubGoals" $goalWithSubGoals}}
+                {{end}}
+            </ul>
+            <br/>
+            <br/>
+
+        {{end}}
+    </div>
 {{template "footer"}}

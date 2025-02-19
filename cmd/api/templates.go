@@ -111,10 +111,12 @@ func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Reque
 }
 
 type GraphData struct {
-	Goal           models.Goal
-	DateLabels     []string
-	ProgressValues []string
-	GoalValues     []string
+	Goal                 models.Goal
+	DateLabels           []string
+	ProgressValues       []string
+	TargetValues         []string
+	CurrentProgressValue string
+	CurrentTargetValue   string
 }
 
 func (app *Application) graphViewProgress(
@@ -135,11 +137,14 @@ func (app *Application) graphViewProgress(
 	}
 
 	startProgress, _ := strconv.ParseFloat(progressValues[0], 64)
+	targetValues := goal.AdaptiveTargetValues(int(startProgress))
 	graphData := GraphData{
-		Goal:           *goal,
-		DateLabels:     progressLabels,
-		ProgressValues: progressValues,
-		GoalValues:     goal.AdaptiveGoalValues(int(startProgress)),
+		Goal:                 *goal,
+		DateLabels:           progressLabels,
+		ProgressValues:       progressValues,
+		TargetValues:         targetValues,
+		CurrentProgressValue: progressValues[len(progressValues)-1],
+		CurrentTargetValue:   targetValues[len(progressValues)-1],
 	}
 
 	tpltools.RenderWithPanic(app.tpl, w, "graph.html", graphData)
