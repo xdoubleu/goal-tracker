@@ -16,7 +16,6 @@ var Sources = []Source{
 var SourcesTypeIDMap = map[int64]Source{
 	SteamCompletionRate.ID:   SteamSource,
 	FinishedBooksThisYear.ID: GoodreadsSource,
-	SpecificBooks.ID:         GoodreadsSource,
 	BooksFromSpecificTag.ID:  GoodreadsSource,
 }
 
@@ -35,7 +34,6 @@ var GoodreadsSource = Source{
 	Name: "Goodreads",
 	Types: []Type{
 		FinishedBooksThisYear,
-		SpecificBooks,
 		BooksFromSpecificTag,
 	},
 }

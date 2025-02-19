@@ -30,17 +30,6 @@ func TestGoodreadsJob(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	err = testApp.services.Goals.LinkGoal(
-		context.Background(),
-		goal2ID,
-		userID,
-		//nolint:exhaustruct //other fields are optional
-		&dtos.LinkGoalDto{
-			TypeID: models.SpecificBooks.ID,
-		},
-	)
-	assert.Nil(t, err)
-
 	_, err = testApp.services.Goals.SaveListItem(
 		context.Background(),
 		1,
