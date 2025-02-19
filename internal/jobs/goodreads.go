@@ -58,12 +58,6 @@ func (j GoodreadsJob) Run(ctx context.Context, logger *slog.Logger) error {
 		if err != nil {
 			return err
 		}
-
-		logger.Debug("checking goals which track specific books")
-		err = j.specificBooks(ctx, user.ID)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -178,50 +172,6 @@ func (j GoodreadsJob) specificTags(ctx context.Context, userID string) error {
 				goal.ID,
 				fmt.Sprintf("%s - %s", book.Title, book.Author),
 				true,
-			)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (j GoodreadsJob) specificBooks(ctx context.Context, userID string) error {
-	goals, err := j.goalService.GetGoalsByTypeID(ctx, models.SpecificBooks.ID, userID)
-	if err != nil {
-		return err
-	}
-
-	for _, goal := range goals {
-		var listItems []models.ListItem
-		listItems, err = j.goalService.GetListItemsByGoalID(ctx, goal.ID, userID)
-		if err != nil {
-			return err
-		}
-
-		bookIDs := []int64{}
-		for _, listItem := range listItems {
-			bookIDs = append(bookIDs, listItem.ID)
-		}
-
-		var books []goodreads.Book
-		books, err = j.goodreadsService.GetBooksByIDs(ctx, bookIDs, userID)
-		if err != nil {
-			return err
-		}
-
-		for _, book := range books {
-			readInPeriod := bookIsReadInGoalPeriod(goal, book)
-
-			_, err = j.goalService.SaveListItem(
-				ctx,
-				book.ID,
-				userID,
-				goal.ID,
-				fmt.Sprintf("%s - %s", book.Title, book.Author),
-				readInPeriod,
 			)
 			if err != nil {
 				return err

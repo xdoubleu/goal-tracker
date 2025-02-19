@@ -29,13 +29,6 @@ var FinishedBooksThisYear = Type{
 }
 
 //nolint:gochecknoglobals //ok
-var SpecificBooks = Type{
-	ID:       2,
-	ViewType: List,
-	Name:     "Specific books",
-}
-
-//nolint:gochecknoglobals //ok
 var BooksFromSpecificTag = Type{
 	ID:       3,
 	ViewType: List,
@@ -46,6 +39,5 @@ var BooksFromSpecificTag = Type{
 var Types = map[int64]Type{
 	SteamCompletionRate.ID:   SteamCompletionRate,
 	FinishedBooksThisYear.ID: FinishedBooksThisYear,
-	SpecificBooks.ID:         SpecificBooks,
 	BooksFromSpecificTag.ID:  BooksFromSpecificTag,
 }
