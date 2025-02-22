@@ -73,7 +73,7 @@ func (client client) sendRequest(
 	defer res.Body.Close()
 
 	err = httptools.ReadJSON(res.Body, dst)
-	if err != nil {
+	if err != nil && err.Error() != "body must not be empty" {
 		return err
 	}
 

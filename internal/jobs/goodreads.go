@@ -49,7 +49,8 @@ func (j GoodreadsJob) Run(ctx context.Context, logger *slog.Logger) error {
 
 	for _, user := range users {
 		logger.Debug("fetching books")
-		books, err := j.goodreadsService.ImportAllBooks(ctx, user.ID)
+		var books []goodreads.Book
+		books, err = j.goodreadsService.ImportAllBooks(ctx, user.ID)
 		if err != nil {
 			return err
 		}

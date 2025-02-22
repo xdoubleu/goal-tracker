@@ -53,24 +53,12 @@ func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 	goalsMap[otherPeriod] = []models.Goal{}
 	for _, goal := range goals {
 		if goal.TypeID != nil && *goal.TypeID == models.BooksFromSpecificTag.ID {
-			progress := 0
-
-			books, err := service.goodreads.GetBooksByTag(ctx, goal.Config["tag"], userID)
+			var progress *string
+			progress, err = service.getProgressForSpecificTag(ctx, goal, userID)
 			if err != nil {
 				return nil, err
 			}
-
-			for _, book := range books {
-				for _, dateRead := range book.DatesRead {
-					if goal.PeriodStart().Before(dateRead) && goal.PeriodEnd().After(dateRead) {
-						progress++
-						break
-					}
-				}
-			}
-
-			strProgress := strconv.Itoa(progress)
-			goal.Progress = &strProgress
+			goal.Progress = progress
 		}
 
 		if goal.IsCurrentPeriod() {
@@ -95,6 +83,35 @@ func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 	}
 
 	return result, nil
+}
+
+func (service *GoalService) getProgressForSpecificTag(
+	ctx context.Context,
+	goal models.Goal,
+	userID string,
+) (*string, error) {
+	progress := 0
+	books, err := service.goodreads.GetBooksByTag(
+		ctx,
+		goal.Config["tag"],
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, book := range books {
+		for _, dateRead := range book.DatesRead {
+			if goal.PeriodStart().Before(dateRead) &&
+				goal.PeriodEnd().After(dateRead) {
+				progress++
+				break
+			}
+		}
+	}
+
+	strProgress := strconv.Itoa(progress)
+	return &strProgress, nil
 }
 
 func (service *GoalService) GetGoalByID(
@@ -329,7 +346,7 @@ func (service *GoalService) GetListItemsByGoal(
 		}
 
 		for _, book := range books {
-			var dateRead *time.Time = nil
+			var dateRead *time.Time
 			for _, date := range book.DatesRead {
 				if periodStart.Before(date) && periodEnd.After(date) {
 					dateRead = &date
@@ -343,7 +360,6 @@ func (service *GoalService) GetListItemsByGoal(
 
 			listItems = append(listItems, models.ListItem{
 				ID:            book.ID,
-				ImageURL:      "",
 				Value:         fmt.Sprintf("%s - %s", book.Title, book.Author),
 				CompletedDate: *dateRead,
 			})
