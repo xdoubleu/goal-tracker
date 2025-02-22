@@ -14,4 +14,5 @@ type Client interface {
 		taskID string,
 		updateTaskDto UpdateTaskDto,
 	) (*Task, error)
+	CloseTask(ctx context.Context, taskID string) error
 }

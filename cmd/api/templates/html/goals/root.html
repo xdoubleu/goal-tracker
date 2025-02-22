@@ -7,12 +7,23 @@
 
         {{range $pair := .}}
             <h2>{{$pair.State}}</h2>
-            <ul>
-                {{range $goalWithSubGoals := $pair.Goals}}
-                    {{template "goalWithSubGoals" $goalWithSubGoals}}
-                {{end}}
-            </ul>
-            <br/>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Due Date/Period</th>
+                    <th scope="col">Progress</th>
+                    <th scope="col">Target</th>
+                    <th scope="col"/>
+                    <th scope="col"/>
+                </tr>
+                </thead>
+                <tbody>
+                    {{range $goal := $pair.Goals}}
+                        {{template "goal" $goal}}
+                    {{end}}
+                </tbody>
+            </table>
             <br/>
 
         {{end}}

@@ -119,3 +119,8 @@ func (client client) UpdateTask(
 
 	return task, nil
 }
+
+func (client client) CloseTask(ctx context.Context, taskID string) error {
+	endpoint := fmt.Sprintf("%s/%s/close", TasksEndpoint, taskID)
+	return client.sendRequest(ctx, http.MethodPost, endpoint, "", nil, nil)
+}

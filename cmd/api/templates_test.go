@@ -29,6 +29,7 @@ func TestRefreshTokens(t *testing.T) {
 		http.MethodGet,
 		"/",
 	)
+
 	tReq.AddCookie(&refreshToken)
 
 	rs := tReq.Do(t)
@@ -36,6 +37,11 @@ func TestRefreshTokens(t *testing.T) {
 }
 
 func TestRoot(t *testing.T) {
+	err := testApp.services.Goals.ImportStatesFromTodoist(context.Background(), userID)
+	if err != nil {
+		panic(err)
+	}
+
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
 		http.MethodGet,

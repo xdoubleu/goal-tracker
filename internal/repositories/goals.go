@@ -22,12 +22,18 @@ func (repo *GoalRepository) GetAll(
 	userID string,
 ) ([]models.Goal, error) {
 	query := `
-		SELECT id, name, type_id, source_id, target_value, 
-		state_id, is_linked, parent_id, period, due_time, "order", 
+		SELECT id, name, type_id, source_id, 
+		( select value
+		from progress
+		where progress.type_id = goals.type_id
+		order by date desc
+		limit 1
+		) as progress, target_value, 
+		state_id, is_linked, period, due_time, "order", 
 		config
 		FROM goals
 		WHERE user_id = $1
-		ORDER BY parent_id DESC
+		ORDER BY "order" asc
 	`
 
 	rows, err := repo.db.Query(ctx, query, userID)
@@ -46,10 +52,10 @@ func (repo *GoalRepository) GetAll(
 			&goal.Name,
 			&goal.TypeID,
 			&goal.SourceID,
+			&goal.Progress,
 			&goal.TargetValue,
 			&goal.StateID,
 			&goal.IsLinked,
-			&goal.ParentID,
 			&goal.Period,
 			&goal.DueTime,
 			&goal.Order,
@@ -76,7 +82,7 @@ func (repo *GoalRepository) GetByID(
 ) (*models.Goal, error) {
 	query := `
 		SELECT name, type_id, source_id, target_value, 
-		state_id, is_linked, parent_id, period, due_time, "order", config
+		state_id, is_linked, period, due_time, "order", config
 		FROM goals
 		WHERE id = $1 AND user_id = $2
 	`
@@ -96,7 +102,6 @@ func (repo *GoalRepository) GetByID(
 		&goal.TargetValue,
 		&goal.StateID,
 		&goal.IsLinked,
-		&goal.ParentID,
 		&goal.Period,
 		&goal.DueTime,
 		&goal.Order,
@@ -116,7 +121,7 @@ func (repo *GoalRepository) GetByTypeID(
 ) ([]models.Goal, error) {
 	query := `
 		SELECT id, name, source_id, target_value, state_id,
-		is_linked, parent_id, period, due_time, "order", config
+		is_linked, period, due_time, "order", config
 		FROM goals
 		WHERE type_id = $1 AND user_id = $2
 	`
@@ -141,7 +146,6 @@ func (repo *GoalRepository) GetByTypeID(
 			&goal.TargetValue,
 			&goal.StateID,
 			&goal.IsLinked,
-			&goal.ParentID,
 			&goal.Period,
 			&goal.DueTime,
 			&goal.Order,
@@ -166,18 +170,17 @@ func (repo *GoalRepository) Upsert(
 	ctx context.Context,
 	id string,
 	userID string,
-	parentID *string,
 	name string,
 	stateID string,
 	due *todoist.Due,
 	order int,
 ) (*models.Goal, error) {
 	query := `
-		INSERT INTO goals (id, user_id, parent_id, name, state_id, period, due_time, "order")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO goals (id, user_id, name, state_id, period, due_time, "order")
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (id, user_id)
-		DO UPDATE SET parent_id = $3, name = $4, state_id = $5, 
-		period = $6, due_time = $7, "order" = $8
+		DO UPDATE SET name = $3, state_id = $4, 
+		period = $5, due_time = $6, "order" = $7
 		RETURNING id
 	`
 
@@ -193,14 +196,13 @@ func (repo *GoalRepository) Upsert(
 
 	//nolint:exhaustruct //other fields are optional
 	goal := models.Goal{
-		ID:       id,
-		ParentID: parentID,
-		Name:     name,
-		StateID:  stateID,
-		Period:   period,
-		DueTime:  dueTime,
-		Order:    order,
-		Config:   nil,
+		ID:      id,
+		Name:    name,
+		StateID: stateID,
+		Period:  period,
+		DueTime: dueTime,
+		Order:   order,
+		Config:  nil,
 	}
 
 	err := repo.db.QueryRow(
@@ -208,7 +210,6 @@ func (repo *GoalRepository) Upsert(
 		query,
 		id,
 		userID,
-		parentID,
 		name,
 		stateID,
 		period,

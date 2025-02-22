@@ -2,11 +2,10 @@ package services
 
 import (
 	"context"
-	"fmt"
+	"slices"
 	"time"
 
 	"goal-tracker/api/internal/dtos"
-	"goal-tracker/api/internal/helper"
 	"goal-tracker/api/internal/models"
 	"goal-tracker/api/internal/repositories"
 	"goal-tracker/api/pkg/todoist"
@@ -23,33 +22,39 @@ type GoalService struct {
 
 type StateGoalsPair struct {
 	State string
-	Goals []models.GoalWithSubGoals
+	Goals []models.Goal
 }
 
 func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 	ctx context.Context,
 	userID string,
 ) ([]StateGoalsPair, error) {
+	otherPeriod := "Outside Current Period"
+
+	states, err := service.states.GetAll(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	//nolint:exhaustruct //order is optional
+	states = slices.Insert(states, 1, models.State{
+		ID:   otherPeriod,
+		Name: otherPeriod,
+	})
+
 	goals, err := service.goals.GetAll(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	goalTree := helper.NewGoalTree()
+	goalsMap := map[string][]models.Goal{}
+	goalsMap[otherPeriod] = []models.Goal{}
 	for _, goal := range goals {
-		if !goalTree.TryAdd(goal) {
-			return nil, fmt.Errorf("failed to add goal %s to tree", goal.ID)
+		if goal.IsCurrentPeriod() {
+			goalsMap[goal.StateID] = append(goalsMap[goal.StateID], goal)
+		} else {
+			goalsMap[otherPeriod] = append(goalsMap[otherPeriod], goal)
 		}
-	}
-
-	goalsMap := map[string][]models.GoalWithSubGoals{}
-	for _, goal := range goalTree.ToSlice() {
-		goalsMap[goal.Goal.StateID] = append(goalsMap[goal.Goal.StateID], goal)
-	}
-
-	states, err := service.states.GetAll(ctx, userID)
-	if err != nil {
-		return nil, err
 	}
 
 	result := []StateGoalsPair{}
@@ -58,6 +63,11 @@ func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 			State: state.Name,
 			Goals: goalsMap[state.ID],
 		}
+
+		if len(pair.Goals) == 0 {
+			continue
+		}
+
 		result = append(result, pair)
 	}
 
@@ -165,7 +175,6 @@ func (service *GoalService) ImportGoalsFromTodoist(
 			ctx,
 			task.ID,
 			userID,
-			task.ParentID,
 			task.Content,
 			task.SectionID,
 			task.Due,
@@ -217,6 +226,19 @@ func (service *GoalService) UnlinkGoal(
 		*goal,
 		userID,
 	)
+}
+
+func (service *GoalService) CompleteGoal(
+	ctx context.Context,
+	id string,
+	userID string,
+) error {
+	goal, err := service.goals.GetByID(ctx, id, userID)
+	if err != nil {
+		return err
+	}
+
+	return service.todoist.CompleteTask(ctx, goal.ID)
 }
 
 func (service *GoalService) GetProgressByTypeIDAndDates(
