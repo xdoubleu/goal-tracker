@@ -9,7 +9,7 @@
 
         <ul>
             {{range $listItem := .ListItems}}
-                {{if $listItem.Completed}}
+                {{if $listItem.CompletedDate}}
                     <li><s>{{$listItem.Value}}</s></li>
                 {{else}}
                     <li>{{$listItem.Value}}</li>

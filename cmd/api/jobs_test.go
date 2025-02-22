@@ -30,16 +30,6 @@ func TestGoodreadsJob(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	_, err = testApp.services.Goals.SaveListItem(
-		context.Background(),
-		1,
-		userID,
-		goal2ID,
-		"2",
-		false,
-	)
-	assert.Nil(t, err)
-
 	job := jobs.NewGoodreadsJob(
 		testApp.services.Auth,
 		testApp.services.Goodreads,

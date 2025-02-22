@@ -23,16 +23,8 @@ func (app *Application) templateRoutes(mux *http.ServeMux) {
 		app.authTemplateAccess(app.rootHandler),
 	)
 	mux.HandleFunc(
-		"GET /link/{id}",
-		app.authTemplateAccess(
-			func(w http.ResponseWriter, r *http.Request) { app.editHandler(w, r, "link.html") },
-		),
-	)
-	mux.HandleFunc(
 		"GET /edit/{id}",
-		app.authTemplateAccess(
-			func(w http.ResponseWriter, r *http.Request) { app.editHandler(w, r, "edit.html") },
-		),
+		app.authTemplateAccess(app.editHandler),
 	)
 	mux.HandleFunc(
 		"GET /goals/{id}",
@@ -66,7 +58,6 @@ type LinkTemplateData struct {
 func (app *Application) editHandler(
 	w http.ResponseWriter,
 	r *http.Request,
-	htmlFile string,
 ) {
 	id, err := parse.URLParam[string](r, "id", nil)
 	if err != nil {
@@ -94,7 +85,7 @@ func (app *Application) editHandler(
 		Tags:    tags,
 	}
 
-	tpltools.RenderWithPanic(app.tpl, w, htmlFile, goalAndSources)
+	tpltools.RenderWithPanic(app.tpl, w, "edit.html", goalAndSources)
 }
 
 func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -173,9 +164,9 @@ func (app *Application) listViewProgress(
 	goal *models.Goal,
 	userID string,
 ) {
-	listItems, err := app.services.Goals.GetListItemsByGoalID(
+	listItems, err := app.services.Goals.GetListItemsByGoal(
 		r.Context(),
-		goal.ID,
+		goal,
 		userID,
 	)
 	if err != nil {

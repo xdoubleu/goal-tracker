@@ -48,13 +48,14 @@ func (j GoodreadsJob) Run(ctx context.Context, logger *slog.Logger) error {
 	}
 
 	for _, user := range users {
-		err = j.updateProgress(ctx, logger, user.ID)
+		logger.Debug("fetching books")
+		books, err := j.goodreadsService.ImportAllBooks(ctx, user.ID)
 		if err != nil {
 			return err
 		}
+		logger.Debug(fmt.Sprintf("fetched %d books", len(books)))
 
-		logger.Debug("checking goals which track specific tags")
-		err = j.specificTags(ctx, user.ID)
+		err = j.updateProgress(ctx, logger, user.ID, books)
 		if err != nil {
 			return err
 		}
@@ -67,14 +68,8 @@ func (j GoodreadsJob) updateProgress(
 	ctx context.Context,
 	logger *slog.Logger,
 	userID string,
+	books []goodreads.Book,
 ) error {
-	logger.Debug("fetching books")
-	books, err := j.goodreadsService.ImportAllBooks(ctx, userID)
-	if err != nil {
-		return err
-	}
-	logger.Debug(fmt.Sprintf("fetched %d books", len(books)))
-
 	graphers := map[int]*grapher.Grapher[int]{}
 
 	graphers[time.Now().Year()] = grapher.New[int](
@@ -135,59 +130,4 @@ func (j GoodreadsJob) updateProgress(
 		progressLabels,
 		progressValues,
 	)
-}
-
-func (j GoodreadsJob) specificTags(ctx context.Context, userID string) error {
-	goals, err := j.goalService.GetGoalsByTypeID(
-		ctx,
-		models.BooksFromSpecificTag.ID,
-		userID,
-	)
-	if err != nil {
-		return err
-	}
-
-	for _, goal := range goals {
-		var books []goodreads.Book
-		books, err = j.goodreadsService.GetBooksByTag(
-			ctx,
-			goal.Config["tag"],
-			userID,
-		)
-		if err != nil {
-			return err
-		}
-
-		for _, book := range books {
-			readInPeriod := bookIsReadInGoalPeriod(goal, book)
-
-			if !readInPeriod {
-				continue
-			}
-
-			_, err = j.goalService.SaveListItem(
-				ctx,
-				book.ID,
-				userID,
-				goal.ID,
-				fmt.Sprintf("%s - %s", book.Title, book.Author),
-				true,
-			)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func bookIsReadInGoalPeriod(goal models.Goal, book goodreads.Book) bool {
-	for _, dateRead := range book.DatesRead {
-		if dateRead.After(goal.PeriodStart()) &&
-			dateRead.Before(goal.PeriodEnd()) {
-			return true
-		}
-	}
-	return false
 }

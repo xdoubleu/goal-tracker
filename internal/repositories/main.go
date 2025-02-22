@@ -10,7 +10,6 @@ type Repositories struct {
 	Progress  *ProgressRepository
 	Goodreads *GoodreadsRepository
 	Steam     *SteamRepository
-	ListItems *ListItemRepository
 }
 
 func New(db postgres.DB) *Repositories {
@@ -19,7 +18,6 @@ func New(db postgres.DB) *Repositories {
 	progress := &ProgressRepository{db: db}
 	goodreads := &GoodreadsRepository{db: db}
 	steam := &SteamRepository{db: db}
-	listItems := &ListItemRepository{db: db}
 
 	return &Repositories{
 		Goals:     goals,
@@ -27,6 +25,5 @@ func New(db postgres.DB) *Repositories {
 		Progress:  progress,
 		Goodreads: goodreads,
 		Steam:     steam,
-		ListItems: listItems,
 	}
 }

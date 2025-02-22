@@ -29,7 +29,7 @@
                     {{end}}
                 </select>
             </div>
-            <button type="submit" class="btn btn-dark">Edit</button>
+            <button type="submit" class="btn btn-dark">Save</button>
         </form>
         <script>
             function typeChange(typeId, resetValues) {
@@ -61,9 +61,11 @@
                 typeChange(e.target.value, true)
             }
 
-            document.getElementById("type").value = "{{.Goal.TypeID}}";
-            document.getElementById("tagSelect").value = {{index .Goal.Config "tag"}};
-            typeChange("{{.Goal.TypeID}}", false);
+            if ("{{.Goal.TypeID}}" != "<nil>") {
+                document.getElementById("type").value = "{{.Goal.TypeID}}";
+                document.getElementById("tagSelect").value = {{index .Goal.Config "tag"}};
+                typeChange("{{.Goal.TypeID}}", false);
+            }
         </script>
     </div>
 {{template "footer"}}
