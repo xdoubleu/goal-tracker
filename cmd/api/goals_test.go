@@ -47,7 +47,15 @@ func TestEditGoalHandler(t *testing.T) {
 }
 
 func TestUnlinkGoalHandler(t *testing.T) {
-	_, err := testApp.repositories.Goals.Upsert(context.Background(), goalID, userID, "Goal", "1", nil, 1)
+	_, err := testApp.repositories.Goals.Upsert(
+		context.Background(),
+		goalID,
+		userID,
+		"Goal",
+		"1",
+		nil,
+		1,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -74,7 +82,15 @@ func TestUnlinkGoalHandler(t *testing.T) {
 }
 
 func TestCompleteGoalHandler(t *testing.T) {
-	_, err := testApp.repositories.Goals.Upsert(context.Background(), goalID, userID, "Goal", "1", nil, 1)
+	_, err := testApp.repositories.Goals.Upsert(
+		context.Background(),
+		goalID,
+		userID,
+		"Goal",
+		"1",
+		nil,
+		1,
+	)
 	if err != nil {
 		panic(err)
 	}
