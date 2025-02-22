@@ -29,6 +29,7 @@ func TestRefreshTokens(t *testing.T) {
 		http.MethodGet,
 		"/",
 	)
+
 	tReq.AddCookie(&refreshToken)
 
 	rs := tReq.Do(t)

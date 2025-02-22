@@ -39,9 +39,11 @@ func TestSignOutHandler(t *testing.T) {
 		"/api/auth/signout",
 	)
 
+	tReq.SetFollowRedirect(false)
+
 	tReq.AddCookie(&accessToken)
 	tReq.AddCookie(&refreshToken)
 
 	rs := tReq.Do(t)
-	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, http.StatusSeeOther, rs.StatusCode)
 }
