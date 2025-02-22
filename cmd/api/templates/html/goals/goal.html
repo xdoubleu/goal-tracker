@@ -13,20 +13,9 @@
             {{else if .DueTime}}
                 <b>{{.DueTime.Format "2006-02-01"}}</b>
             {{end}}
-        </td>
-        <td>
+
             {{if .Progress}}
-                {{.Progress}}
-            {{end}}
-        </td>
-        <td>
-            {{if .TargetValue}}
-                {{.TargetValue}}
-            {{end}}
-        </td>
-        <td>
-            {{if .IsCompletable}}
-                <a class="btn btn-dark" href="/api/goals/{{.ID}}/complete">Mark as completed</a>
+                {{.Progress}}/{{.TargetValue}}
             {{end}}
         </td>
         <td>
@@ -34,6 +23,12 @@
                 <a class="btn btn-dark" href="/api/goals/{{.ID}}/unlink">Unlink</a>
             {{else}}
                 <a class="btn btn-dark" href="/edit/{{.ID}}">Link</a>
+            {{end}}
+
+            {{if .IsCompletable}}
+                <br/>
+                <br/>
+                <a class="btn btn-dark" href="/api/goals/{{.ID}}/complete">Mark as completed</a>
             {{end}}
         </td>
     </tr>
