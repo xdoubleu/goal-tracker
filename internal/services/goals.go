@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"slices"
+	"strconv"
 	"time"
 
 	"goal-tracker/api/internal/dtos"
@@ -16,8 +18,8 @@ type GoalService struct {
 	goals     *repositories.GoalRepository
 	states    *repositories.StateRepository
 	progress  *repositories.ProgressRepository
-	listItems *repositories.ListItemRepository
 	todoist   *TodoistService
+	goodreads *GoodreadsService
 }
 
 type StateGoalsPair struct {
@@ -50,6 +52,15 @@ func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 	goalsMap := map[string][]models.Goal{}
 	goalsMap[otherPeriod] = []models.Goal{}
 	for _, goal := range goals {
+		if goal.TypeID != nil && *goal.TypeID == models.BooksFromSpecificTag.ID {
+			var progress *string
+			progress, err = service.getProgressForSpecificTag(ctx, goal, userID)
+			if err != nil {
+				return nil, err
+			}
+			goal.Progress = progress
+		}
+
 		if goal.IsCurrentPeriod() {
 			goalsMap[goal.StateID] = append(goalsMap[goal.StateID], goal)
 		} else {
@@ -72,6 +83,35 @@ func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 	}
 
 	return result, nil
+}
+
+func (service *GoalService) getProgressForSpecificTag(
+	ctx context.Context,
+	goal models.Goal,
+	userID string,
+) (*string, error) {
+	progress := 0
+	books, err := service.goodreads.GetBooksByTag(
+		ctx,
+		goal.Config["tag"],
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, book := range books {
+		for _, dateRead := range book.DatesRead {
+			if goal.PeriodStart().Before(dateRead) &&
+				goal.PeriodEnd().After(dateRead) {
+				progress++
+				break
+			}
+		}
+	}
+
+	strProgress := strconv.Itoa(progress)
+	return &strProgress, nil
 }
 
 func (service *GoalService) GetGoalByID(
@@ -289,21 +329,45 @@ func (service *GoalService) SaveProgress(
 	)
 }
 
-func (service *GoalService) GetListItemsByGoalID(
+func (service *GoalService) GetListItemsByGoal(
 	ctx context.Context,
-	goalID string,
+	goal *models.Goal,
 	userID string,
 ) ([]models.ListItem, error) {
-	return service.listItems.GetByGoalID(ctx, goalID, userID)
-}
+	listItems := []models.ListItem{}
+	periodStart := goal.PeriodStart()
+	periodEnd := goal.PeriodEnd()
 
-func (service *GoalService) SaveListItem(
-	ctx context.Context,
-	id int64,
-	userID string,
-	goalID string,
-	value string,
-	completed bool,
-) (*models.ListItem, error) {
-	return service.listItems.Upsert(ctx, id, userID, goalID, value, completed)
+	switch *goal.TypeID {
+	case models.BooksFromSpecificTag.ID:
+		books, err := service.goodreads.GetBooksByTag(ctx, goal.Config["tag"], userID)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, book := range books {
+			var dateRead *time.Time
+			for _, date := range book.DatesRead {
+				if periodStart.Before(date) && periodEnd.After(date) {
+					dateRead = &date
+					break
+				}
+			}
+
+			if dateRead == nil {
+				continue
+			}
+
+			listItems = append(listItems, models.ListItem{
+				ID:            book.ID,
+				Value:         fmt.Sprintf("%s - %s", book.Title, book.Author),
+				CompletedDate: *dateRead,
+			})
+		}
+	case models.FinishedBooksThisYear.ID:
+	case models.SteamCompletionRate.ID:
+		panic("not supported")
+	}
+
+	return listItems, nil
 }

@@ -47,6 +47,18 @@ func TestEditGoalHandler(t *testing.T) {
 }
 
 func TestUnlinkGoalHandler(t *testing.T) {
+	_, err := testApp.repositories.Goals.Upsert(
+		context.Background(),
+		goalID,
+		userID,
+		"Goal",
+		"1",
+		nil,
+		1,
+	)
+	if err != nil {
+		panic(err)
+	}
 	//nolint:exhaustruct,errcheck //other fields are optional
 	defer testApp.repositories.Goals.Delete(
 		context.Background(),
@@ -60,14 +72,28 @@ func TestUnlinkGoalHandler(t *testing.T) {
 		fmt.Sprintf("/api/goals/%s/unlink", goalID),
 	)
 
+	tReq.SetFollowRedirect(false)
+
 	tReq.AddCookie(&accessToken)
 	tReq.AddCookie(&refreshToken)
 
 	rs := tReq.Do(t)
-	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, http.StatusSeeOther, rs.StatusCode)
 }
 
 func TestCompleteGoalHandler(t *testing.T) {
+	_, err := testApp.repositories.Goals.Upsert(
+		context.Background(),
+		goalID,
+		userID,
+		"Goal",
+		"1",
+		nil,
+		1,
+	)
+	if err != nil {
+		panic(err)
+	}
 	//nolint:exhaustruct,errcheck //other fields are optional
 	defer testApp.repositories.Goals.Delete(
 		context.Background(),
@@ -81,9 +107,11 @@ func TestCompleteGoalHandler(t *testing.T) {
 		fmt.Sprintf("/api/goals/%s/complete", goalID),
 	)
 
+	tReq.SetFollowRedirect(false)
+
 	tReq.AddCookie(&accessToken)
 	tReq.AddCookie(&refreshToken)
 
 	rs := tReq.Do(t)
-	assert.Equal(t, http.StatusOK, rs.StatusCode)
+	assert.Equal(t, http.StatusSeeOther, rs.StatusCode)
 }

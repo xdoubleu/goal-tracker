@@ -65,7 +65,7 @@ func TestLink(t *testing.T) {
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
 		http.MethodGet,
-		"/link/123",
+		"/edit/123",
 	)
 	tReq.AddCookie(&accessToken)
 

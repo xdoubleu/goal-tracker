@@ -75,7 +75,7 @@ func (app *Application) unlinkGoalHandler(w http.ResponseWriter, r *http.Request
 
 	err = app.services.Goals.UnlinkGoal(r.Context(), id, user.ID)
 	if err != nil {
-		return
+		panic(err)
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -94,7 +94,12 @@ func (app *Application) completeGoalHandler(w http.ResponseWriter, r *http.Reque
 
 	err = app.services.Goals.CompleteGoal(r.Context(), id, user.ID)
 	if err != nil {
-		return
+		panic(err)
+	}
+
+	err = app.services.Goals.ImportGoalsFromTodoist(r.Context(), user.ID)
+	if err != nil {
+		panic(err)
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)

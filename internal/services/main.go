@@ -54,8 +54,8 @@ func New(
 		states:    repositories.States,
 		goals:     repositories.Goals,
 		progress:  repositories.Progress,
-		listItems: repositories.ListItems,
 		todoist:   todoist,
+		goodreads: goodreads,
 	}
 
 	return &Services{

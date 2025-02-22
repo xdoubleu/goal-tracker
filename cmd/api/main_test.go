@@ -16,8 +16,7 @@ import (
 
 var testApp *Application //nolint:gochecknoglobals //needed for tests
 
-var goalID = "123"  //nolint:gochecknoglobals //needed for tests
-var goal2ID = "456" //nolint:gochecknoglobals //needed for tests
+var goalID = "123" //nolint:gochecknoglobals //needed for tests
 
 //nolint:gochecknoglobals //needed for tests
 var userID = "4001e9cf-3fbe-4b09-863f-bd1654cfbf76"
