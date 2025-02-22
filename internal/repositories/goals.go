@@ -271,7 +271,7 @@ func (repo *GoalRepository) Link(
 		return database.ErrResourceNotFound
 	}
 
-	goal.Config = &config
+	goal.Config = config
 
 	return nil
 }
