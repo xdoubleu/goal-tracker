@@ -36,7 +36,10 @@ func TestRefreshTokens(t *testing.T) {
 }
 
 func TestRoot(t *testing.T) {
-	testApp.services.Goals.ImportStatesFromTodoist(context.Background(), userID)
+	err := testApp.services.Goals.ImportStatesFromTodoist(context.Background(), userID)
+	if err != nil {
+		panic(err)
+	}
 
 	tReq := test.CreateRequestTester(
 		testApp.routes(),

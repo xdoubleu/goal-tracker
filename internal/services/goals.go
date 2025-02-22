@@ -36,6 +36,7 @@ func (service *GoalService) GetAllGoalsGroupedByStateAndParentGoal(
 		return nil, err
 	}
 
+	//nolint:exhaustruct //order is optional
 	states = slices.Insert(states, 1, models.State{
 		ID:   otherPeriod,
 		Name: otherPeriod,
