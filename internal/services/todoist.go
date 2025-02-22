@@ -23,7 +23,21 @@ func (service *TodoistService) GetSections(
 }
 
 func (service *TodoistService) GetTasks(ctx context.Context) ([]todoist.Task, error) {
-	return service.client.GetActiveTasks(ctx, service.projectID)
+	tasks, err := service.client.GetActiveTasks(ctx, service.projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(tasks); i++ {
+		if tasks[i].ParentID == nil {
+			continue
+		}
+
+		tasks = append(tasks[:i], tasks[i+1:]...)
+		i--
+	}
+
+	return tasks, nil
 }
 
 func (service *TodoistService) GetTaskByID(
@@ -31,4 +45,11 @@ func (service *TodoistService) GetTaskByID(
 	id string,
 ) (*todoist.Task, error) {
 	return service.client.GetActiveTask(ctx, id)
+}
+
+func (service *TodoistService) CompleteTask(
+	ctx context.Context,
+	id string,
+) error {
+	return service.client.CloseTask(ctx, id)
 }

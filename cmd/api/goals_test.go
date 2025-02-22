@@ -66,3 +66,24 @@ func TestUnlinkGoalHandler(t *testing.T) {
 	rs := tReq.Do(t)
 	assert.Equal(t, http.StatusOK, rs.StatusCode)
 }
+
+func TestCompleteGoalHandler(t *testing.T) {
+	//nolint:exhaustruct,errcheck //other fields are optional
+	defer testApp.repositories.Goals.Delete(
+		context.Background(),
+		&models.Goal{ID: goalID},
+		userID,
+	)
+
+	tReq := test.CreateRequestTester(
+		testApp.routes(),
+		http.MethodGet,
+		fmt.Sprintf("/api/goals/%s/complete", goalID),
+	)
+
+	tReq.AddCookie(&accessToken)
+	tReq.AddCookie(&refreshToken)
+
+	rs := tReq.Do(t)
+	assert.Equal(t, http.StatusOK, rs.StatusCode)
+}

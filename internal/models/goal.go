@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,9 +11,9 @@ import (
 
 type Goal struct {
 	ID          string            `json:"id"`
-	ParentID    *string           `json:"parentId"`
 	Name        string            `json:"name"`
 	IsLinked    bool              `json:"isLinked"`
+	Progress    *string           `json:"progress"`
 	TargetValue *int64            `json:"targetValue"`
 	SourceID    *int64            `json:"sourceId"`
 	TypeID      *int64            `json:"typeId"`
@@ -21,11 +22,6 @@ type Goal struct {
 	DueTime     *time.Time        `json:"time"`
 	Order       int               `json:"order"`
 	Config      map[string]string `json:"config"`
-}
-
-type GoalWithSubGoals struct {
-	Goal
-	SubGoals []GoalWithSubGoals `json:"subGoals"`
 }
 
 type Period = int
@@ -49,6 +45,15 @@ func (goal Goal) PeriodStart() time.Time {
 
 func (goal Goal) PeriodEnd() time.Time {
 	return *goal.DueTime
+}
+
+func (goal Goal) IsCurrentPeriod() bool {
+	if goal.Period == nil {
+		return true
+	}
+
+	nowUtc := time.Now().UTC()
+	return goal.PeriodStart().Before(nowUtc) && goal.PeriodEnd().After(nowUtc)
 }
 
 func TodoistDueStringToPeriod(dueString string) *Period {
@@ -91,4 +96,13 @@ func (goal Goal) AdaptiveTargetValues(startProgress int) []string {
 	}
 
 	return result
+}
+
+func (goal Goal) IsCompletable() bool {
+	if goal.Progress == nil || goal.TargetValue == nil {
+		return false
+	}
+
+	progressInt, _ := strconv.Atoi(*goal.Progress)
+	return int64(progressInt) >= *goal.TargetValue
 }

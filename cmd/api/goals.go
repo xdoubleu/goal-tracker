@@ -23,6 +23,10 @@ func (app *Application) goalsRoutes(prefix string, mux *http.ServeMux) {
 		fmt.Sprintf("GET %s/goals/{id}/unlink", prefix),
 		app.authAccess(app.unlinkGoalHandler),
 	)
+	mux.HandleFunc(
+		fmt.Sprintf("GET %s/goals/{id}/complete", prefix),
+		app.authAccess(app.completeGoalHandler),
+	)
 }
 
 func (app *Application) editGoalHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +74,25 @@ func (app *Application) unlinkGoalHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	err = app.services.Goals.UnlinkGoal(r.Context(), id, user.ID)
+	if err != nil {
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *Application) completeGoalHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parse.URLParam[string](r, "id", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	user := context.GetValue[models.User](r.Context(), constants.UserContextKey)
+	if user == nil {
+		panic(errors.New("not signed in"))
+	}
+
+	err = app.services.Goals.CompleteGoal(r.Context(), id, user.ID)
 	if err != nil {
 		return
 	}

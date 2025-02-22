@@ -1,0 +1,40 @@
+{{define "goal"}}
+    <tr>
+        <th scope="row">
+            {{if .IsLinked}}
+                <a href="/goals/{{.ID}}">{{.Name}}</a>
+            {{else}}
+                {{.Name}}
+            {{end}}
+        </th>
+        <td>
+            {{if .Period}}
+                <b>{{.PeriodStart.Format "2006-02-01"}}</b> to <b>{{.PeriodEnd.Format "2006-02-01"}}</b>
+            {{else if .DueTime}}
+                <b>{{.DueTime.Format "2006-02-01"}}</b>
+            {{end}}
+        </td>
+        <td>
+            {{if .Progress}}
+                {{.Progress}}
+            {{end}}
+        </td>
+        <td>
+            {{if .TargetValue}}
+                {{.TargetValue}}
+            {{end}}
+        </td>
+        <td>
+            {{if .IsCompletable}}
+                <a class="btn btn-dark" href="/api/goals/{{.ID}}/complete">Mark as completed</a>
+            {{end}}
+        </td>
+        <td>
+            {{if .IsLinked}}
+                <a class="btn btn-dark" href="/api/goals/{{.ID}}/unlink">Unlink</a>
+            {{else}}
+                <a class="btn btn-dark" href="/link/{{.ID}}">Link</a>
+            {{end}}
+        </td>
+    </tr>
+{{end}}
