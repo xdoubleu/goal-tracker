@@ -24,7 +24,15 @@ func (app *Application) templateRoutes(mux *http.ServeMux) {
 	)
 	mux.HandleFunc(
 		"GET /link/{id}",
-		app.authTemplateAccess(app.linkHandler),
+		app.authTemplateAccess(
+			func(w http.ResponseWriter, r *http.Request) { app.editHandler(w, r, "link.html") },
+		),
+	)
+	mux.HandleFunc(
+		"GET /edit/{id}",
+		app.authTemplateAccess(
+			func(w http.ResponseWriter, r *http.Request) { app.editHandler(w, r, "edit.html") },
+		),
 	)
 	mux.HandleFunc(
 		"GET /goals/{id}",
@@ -55,7 +63,11 @@ type LinkTemplateData struct {
 	Tags    []string
 }
 
-func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) editHandler(
+	w http.ResponseWriter,
+	r *http.Request,
+	htmlFile string,
+) {
 	id, err := parse.URLParam[string](r, "id", nil)
 	if err != nil {
 		panic(err)
@@ -82,7 +94,7 @@ func (app *Application) linkHandler(w http.ResponseWriter, r *http.Request) {
 		Tags:    tags,
 	}
 
-	tpltools.RenderWithPanic(app.tpl, w, "link.html", goalAndSources)
+	tpltools.RenderWithPanic(app.tpl, w, htmlFile, goalAndSources)
 }
 
 func (app *Application) goalProgressHandler(w http.ResponseWriter, r *http.Request) {

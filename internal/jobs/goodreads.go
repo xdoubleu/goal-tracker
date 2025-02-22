@@ -151,7 +151,7 @@ func (j GoodreadsJob) specificTags(ctx context.Context, userID string) error {
 		var books []goodreads.Book
 		books, err = j.goodreadsService.GetBooksByTag(
 			ctx,
-			(*goal.Config)["tag"],
+			goal.Config["tag"],
 			userID,
 		)
 		if err != nil {

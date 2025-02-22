@@ -13,7 +13,7 @@ import (
 	"goal-tracker/api/internal/models"
 )
 
-func TestLinkGoalHandler(t *testing.T) {
+func TestEditGoalHandler(t *testing.T) {
 	//nolint:exhaustruct,errcheck //other fields are optional
 	defer testApp.repositories.Goals.Delete(
 		context.Background(),
@@ -24,7 +24,7 @@ func TestLinkGoalHandler(t *testing.T) {
 	tReq := test.CreateRequestTester(
 		testApp.routes(),
 		http.MethodPost,
-		fmt.Sprintf("/api/goals/%s/link", goalID),
+		fmt.Sprintf("/api/goals/%s/edit", goalID),
 	)
 
 	tReq.SetFollowRedirect(false)

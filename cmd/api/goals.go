@@ -16,8 +16,8 @@ import (
 
 func (app *Application) goalsRoutes(prefix string, mux *http.ServeMux) {
 	mux.HandleFunc(
-		fmt.Sprintf("POST %s/goals/{id}/link", prefix),
-		app.authAccess(app.linkGoalHandler),
+		fmt.Sprintf("POST %s/goals/{id}/edit", prefix),
+		app.authAccess(app.editGoalHandler),
 	)
 	mux.HandleFunc(
 		fmt.Sprintf("GET %s/goals/{id}/unlink", prefix),
@@ -25,7 +25,7 @@ func (app *Application) goalsRoutes(prefix string, mux *http.ServeMux) {
 	)
 }
 
-func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) {
+func (app *Application) editGoalHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := parse.URLParam[string](r, "id", nil)
 	if err != nil {
 		panic(err)
@@ -40,7 +40,7 @@ func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) 
 
 	err = httptools.ReadForm(r, &linkGoalDto)
 	if err != nil {
-		httptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
+		httptools.RedirectWithError(w, r, fmt.Sprintf("/edit/%s", id), err)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (app *Application) linkGoalHandler(w http.ResponseWriter, r *http.Request) 
 
 	err = app.services.Goals.LinkGoal(r.Context(), id, user.ID, &linkGoalDto)
 	if err != nil {
-		httptools.RedirectWithError(w, r, fmt.Sprintf("/link/%s", id), err)
+		httptools.RedirectWithError(w, r, fmt.Sprintf("/edit/%s", id), err)
 		return
 	}
 
