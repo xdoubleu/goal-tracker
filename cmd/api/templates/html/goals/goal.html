@@ -9,9 +9,9 @@
         </th>
         <td>
             {{if .Period}}
-                <b>{{.PeriodStart.Format "2006-02-01"}}</b> to <b>{{.PeriodEnd.Format "2006-02-01"}}</b>
+                <b>{{.PeriodStart.Format "2006-01-02"}}</b> to <b>{{.PeriodEnd.Format "2006-01-02"}}</b>
             {{else if .DueTime}}
-                <b>{{.DueTime.Format "2006-02-01"}}</b>
+                <b>{{.DueTime.Format "2006-01-02"}}</b>
             {{end}}
 
             {{if .Progress}}
