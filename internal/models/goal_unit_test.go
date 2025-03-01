@@ -20,7 +20,7 @@ func TestTodoistDueStringToPeriod(t *testing.T) {
 func TestAdaptiveTargetValues(t *testing.T) {
 	val := int64(365)
 	val2 := models.Year
-	val3 := time.Now()
+	val3 := time.Date(time.Now().Year(), 12, 31, 0, 0, 0, 0, time.UTC)
 
 	//nolint:exhaustruct //I know
 	goal := models.Goal{
@@ -29,8 +29,8 @@ func TestAdaptiveTargetValues(t *testing.T) {
 		DueTime:     &val3,
 	}
 
-	goalValues := goal.AdaptiveTargetValues(0)
+	goalValues := goal.AdaptiveTargetValues(1)
 	for i := 0; i < 365; i++ {
-		assert.Equal(t, fmt.Sprintf("%.2f", float64(i)), goalValues[i])
+		assert.Equal(t, fmt.Sprintf("%.2f", float64(i+1)), goalValues[i])
 	}
 }
