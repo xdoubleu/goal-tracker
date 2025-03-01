@@ -88,7 +88,8 @@ func (goal Goal) AdaptiveTargetValues(startProgress int) []string {
 	}
 
 	result := []string{}
-	for i := goal.PeriodStart(); i.Before(goal.PeriodEnd()); i = i.AddDate(0, 0, 1) {
+	//nolint:lll //it is what it is
+	for i := goal.PeriodStart(); i.Equal(goal.PeriodEnd()) || i.Before(goal.PeriodEnd()); i = i.AddDate(0, 0, 1) {
 		result = append(
 			result,
 			fmt.Sprintf("%.2f", f.At(float64(i.Unix()/int64(secondsInADay)))),
