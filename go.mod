@@ -1,6 +1,8 @@
 module goal-tracker/api
 
-go 1.22
+go 1.23.0
+
+toolchain go1.24.1
 
 require github.com/justinas/alice v1.2.0
 
@@ -15,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/supabase-community/gotrue-go v1.2.1
 	github.com/xhit/go-str2duration/v2 v2.1.0
-	golang.org/x/net v0.35.0
+	golang.org/x/net v0.36.0
 )
 
 require (
@@ -50,7 +52,7 @@ require (
 	github.com/temoto/robotstxt v1.1.2 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
