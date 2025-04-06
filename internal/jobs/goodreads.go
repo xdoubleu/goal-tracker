@@ -77,7 +77,7 @@ func (j GoodreadsJob) updateProgress(
 		grapher.Cumulative,
 		grapher.PreviousValue,
 		models.ProgressDateFormat,
-		24*time.Hour,
+		24*time.Hour, //nolint:mnd //no magic number
 	)
 	graphers[time.Now().Year()].AddPoint(
 		time.Date(time.Now().Year(), 1, 1, 0, 0, 0, 0, time.UTC),
@@ -111,7 +111,7 @@ func (j GoodreadsJob) updateProgress(
 					grapher.Cumulative,
 					grapher.PreviousValue,
 					models.ProgressDateFormat,
-					24*time.Hour,
+					24*time.Hour, //nolint:mnd //no magic number
 				)
 				g = graphers[dateRead.Year()]
 			}
