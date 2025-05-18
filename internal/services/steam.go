@@ -95,7 +95,7 @@ func (service *SteamService) importAchievementsForGames(
 
 	mu := sync.Mutex{}
 	achievementsPerGame := map[int][]steam.Achievement{}
-	for ID := range gameIDs {
+	for _, ID := range gameIDs {
 		workerPool.EnqueueWork(func(ctx context.Context, _ *slog.Logger) error {
 			achievementsForGame, errIn := service.client.GetPlayerAchievements(
 				ctx,
