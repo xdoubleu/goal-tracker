@@ -145,16 +145,18 @@ func (app *Application) graphViewProgress(
 		panic(err)
 	}
 
-	startProgress, _ := strconv.ParseFloat(progressValues[0], 64)
-	targetValues := goal.AdaptiveTargetValues(int(startProgress))
 	graphData := GraphData{
-		Goal:                 *goal,
-		DateLabels:           progressLabels,
-		ProgressValues:       progressValues,
-		TargetValues:         targetValues,
-		CurrentProgressValue: progressValues[len(progressValues)-1],
-		CurrentTargetValue:   targetValues[len(progressValues)-1],
-		Details:              details,
+		Goal:           *goal,
+		DateLabels:     progressLabels,
+		ProgressValues: progressValues,
+		Details:        details,
+	}
+
+	if len(progressValues) > 0 {
+		startProgress, _ := strconv.ParseFloat(progressValues[0], 64)
+		graphData.TargetValues = goal.AdaptiveTargetValues(int(startProgress))
+		graphData.CurrentProgressValue = progressValues[len(progressValues)-1]
+		graphData.CurrentTargetValue = graphData.TargetValues[len(progressValues)-1]
 	}
 
 	tpltools.RenderWithPanic(app.tpl, w, "graph.html", graphData)
