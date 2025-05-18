@@ -20,6 +20,7 @@ type GoalService struct {
 	progress  *repositories.ProgressRepository
 	todoist   *TodoistService
 	goodreads *GoodreadsService
+	steam     *SteamService
 }
 
 type StateGoalsPair struct {
@@ -329,6 +330,7 @@ func (service *GoalService) SaveProgress(
 	)
 }
 
+//nolint:gocognit //function is too complex
 func (service *GoalService) GetListItemsByGoal(
 	ctx context.Context,
 	goal *models.Goal,
@@ -365,8 +367,67 @@ func (service *GoalService) GetListItemsByGoal(
 			})
 		}
 	case models.FinishedBooksThisYear.ID:
+		books, err := service.goodreads.GetAllBooks(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, book := range books {
+			var dateRead *time.Time
+			for _, date := range book.DatesRead {
+				if periodStart.Before(date) && periodEnd.After(date) {
+					dateRead = &date
+					break
+				}
+			}
+
+			if dateRead == nil {
+				continue
+			}
+
+			listItems = append(listItems, models.ListItem{
+				ID:            book.ID,
+				Value:         fmt.Sprintf("%s - %s", book.Title, book.Author),
+				CompletedDate: *dateRead,
+			})
+		}
 	case models.SteamCompletionRate.ID:
-		panic("not supported")
+		games, err := service.steam.GetAllGames(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		slices.SortFunc(games, func(a models.Game, b models.Game) int {
+			fCRA, errA := strconv.ParseFloat(a.CompletionRate, 64)
+			if errA != nil {
+				return 0
+			}
+			fCRB, errB := strconv.ParseFloat(b.CompletionRate, 64)
+			if errB != nil {
+				return 0
+			}
+
+			if fCRA == fCRB {
+				return 0
+			}
+			if fCRA < fCRB {
+				return 1
+			}
+			return -1
+		})
+
+		for _, game := range games {
+			//nolint:exhaustruct //other fields not applicable
+			listItems = append(listItems, models.ListItem{
+				ID: int64(game.ID),
+				Value: fmt.Sprintf(
+					"%s (%s%%) - %s%%",
+					game.Name,
+					game.CompletionRate,
+					game.Contribution,
+				),
+			})
+		}
 	}
 
 	return listItems, nil

@@ -120,6 +120,7 @@ type GraphData struct {
 	TargetValues         []string
 	CurrentProgressValue string
 	CurrentTargetValue   string
+	Details              []models.ListItem
 }
 
 func (app *Application) graphViewProgress(
@@ -139,6 +140,11 @@ func (app *Application) graphViewProgress(
 		panic(err)
 	}
 
+	details, err := app.services.Goals.GetListItemsByGoal(r.Context(), goal, userID)
+	if err != nil {
+		panic(err)
+	}
+
 	startProgress, _ := strconv.ParseFloat(progressValues[0], 64)
 	targetValues := goal.AdaptiveTargetValues(int(startProgress))
 	graphData := GraphData{
@@ -148,6 +154,7 @@ func (app *Application) graphViewProgress(
 		TargetValues:         targetValues,
 		CurrentProgressValue: progressValues[len(progressValues)-1],
 		CurrentTargetValue:   targetValues[len(progressValues)-1],
+		Details:              details,
 	}
 
 	tpltools.RenderWithPanic(app.tpl, w, "graph.html", graphData)

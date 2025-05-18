@@ -28,9 +28,14 @@ func (service *SteamService) ImportOwnedGames(
 		return nil, err
 	}
 
-	gamesMap := map[int]steam.Game{}
+	gamesMap := map[int]*models.Game{}
 	for _, game := range ownedGamesResponse.Response.Games {
-		gamesMap[game.AppID] = game
+		//nolint:exhaustruct //others are defined later
+		gamesMap[game.AppID] = &models.Game{
+			ID:         game.AppID,
+			Name:       game.Name,
+			IsDelisted: false,
+		}
 	}
 
 	games, err := service.steam.GetAllGames(ctx, userID)
@@ -45,10 +50,21 @@ func (service *SteamService) ImportOwnedGames(
 			continue
 		}
 
-		err = service.steam.MarkGameAsDelisted(ctx, &game, userID)
-		if err != nil {
-			return nil, err
-		}
+		game.IsDelisted = true
+		gamesMap[game.ID] = &game
+	}
+
+	achievementsPerGame, err := service.importAchievementsForGames(
+		ctx,
+		gamesMap,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	for ID := range gamesMap {
+		gamesMap[ID].SetCalculatedInfo(achievementsPerGame[ID], len(gamesMap))
 	}
 
 	err = service.steam.UpsertGames(
@@ -63,30 +79,35 @@ func (service *SteamService) ImportOwnedGames(
 	return service.steam.GetAllGames(ctx, userID)
 }
 
-func (service *SteamService) ImportAchievementsForGames(
+func (service *SteamService) importAchievementsForGames(
 	ctx context.Context,
-	games []models.Game,
+	gamesMap map[int]*models.Game,
 	userID string,
 ) (map[int][]models.Achievement, error) {
+	gameIDs := []int{}
+	for ID := range gamesMap {
+		gameIDs = append(gameIDs, ID)
+	}
+
 	//nolint:mnd //no magic number
-	amountWorkers := (len(games) / 10) + 1
-	workerPool := threading.NewWorkerPool(service.logger, amountWorkers, len(games))
+	amountWorkers := (len(gameIDs) / 10) + 1
+	workerPool := threading.NewWorkerPool(service.logger, amountWorkers, len(gameIDs))
 
 	mu := sync.Mutex{}
 	achievementsPerGame := map[int][]steam.Achievement{}
-	for _, game := range games {
+	for ID := range gameIDs {
 		workerPool.EnqueueWork(func(ctx context.Context, _ *slog.Logger) error {
 			achievementsForGame, errIn := service.client.GetPlayerAchievements(
 				ctx,
 				service.userID,
-				game.ID,
+				ID,
 			)
 			if errIn != nil {
 				return errIn
 			}
 
 			mu.Lock()
-			achievementsPerGame[game.ID] = achievementsForGame.PlayerStats.Achievements
+			achievementsPerGame[ID] = achievementsForGame.PlayerStats.Achievements
 			mu.Unlock()
 
 			return nil
@@ -95,10 +116,7 @@ func (service *SteamService) ImportAchievementsForGames(
 
 	workerPool.WaitUntilDone()
 
-	gameIDs := []int{}
 	for gameID, achievements := range achievementsPerGame {
-		gameIDs = append(gameIDs, gameID)
-
 		err := service.steam.UpsertAchievements(
 			ctx,
 			achievements,
@@ -131,4 +149,24 @@ func (service *SteamService) ImportAchievementsForGames(
 	}
 
 	return service.steam.GetAchievementsForGames(ctx, gameIDs, userID)
+}
+
+func (service *SteamService) GetAchievementsForGames(
+	ctx context.Context,
+	games []models.Game,
+	userID string,
+) (map[int][]models.Achievement, error) {
+	gameIDs := []int{}
+	for _, game := range games {
+		gameIDs = append(gameIDs, game.ID)
+	}
+
+	return service.steam.GetAchievementsForGames(ctx, gameIDs, userID)
+}
+
+func (service *SteamService) GetAllGames(
+	ctx context.Context,
+	userID string,
+) ([]models.Game, error) {
+	return service.steam.GetAllGames(ctx, userID)
 }
