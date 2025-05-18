@@ -145,6 +145,7 @@ func (app *Application) graphViewProgress(
 		panic(err)
 	}
 
+	//nolint:exhaustruct //others are defined later
 	graphData := GraphData{
 		Goal:           *goal,
 		DateLabels:     progressLabels,
