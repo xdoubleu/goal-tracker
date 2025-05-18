@@ -60,7 +60,7 @@ func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 		totalAchievementsPerGame := map[int]int{}
 
 		var achievementsForGame map[int][]models.Achievement
-		achievementsForGame, err = j.steamService.ImportAchievementsForGames(
+		achievementsForGame, err = j.steamService.GetAchievementsForGames(
 			ctx,
 			ownedGames,
 			user.ID,

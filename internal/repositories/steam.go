@@ -20,9 +20,9 @@ func (repo *SteamRepository) GetAllGames(
 	userID string,
 ) ([]models.Game, error) {
 	query := `
-		SELECT id, name, is_delisted
+		SELECT id, name, is_delisted, completion_rate, contribution
 		FROM steam_games
-		WHERE user_id = $1
+		WHERE user_id = $1 AND completion_rate != 'NaN'
 	`
 
 	rows, err := repo.db.Query(ctx, query, userID)
@@ -39,6 +39,8 @@ func (repo *SteamRepository) GetAllGames(
 			&game.ID,
 			&game.Name,
 			&game.IsDelisted,
+			&game.CompletionRate,
+			&game.Contribution,
 		)
 
 		if err != nil {
@@ -57,48 +59,32 @@ func (repo *SteamRepository) GetAllGames(
 
 func (repo *SteamRepository) UpsertGames(
 	ctx context.Context,
-	games map[int]steam.Game,
+	games map[int]*models.Game,
 	userID string,
 ) error {
 	query := `
-		INSERT INTO steam_games (id, user_id, name)
-		VALUES ($1, $2, $3)
+		INSERT INTO steam_games (id, user_id, name, is_delisted, 
+		completion_rate, contribution)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (id, user_id)
-		DO UPDATE SET name = $3
+		DO UPDATE SET name = $3, is_delisted = $4, completion_rate = $5, contribution = $6
 	`
 
 	//nolint:exhaustruct //fields are optional
 	b := &pgx.Batch{}
 	for _, game := range games {
-		b.Queue(query, game.AppID, userID, game.Name)
+		b.Queue(
+			query,
+			game.ID,
+			userID,
+			game.Name,
+			game.IsDelisted,
+			game.CompletionRate,
+			game.Contribution,
+		)
 	}
 
 	err := repo.db.SendBatch(ctx, b).Close()
-	if err != nil {
-		return postgres.PgxErrorToHTTPError(err)
-	}
-
-	return nil
-}
-
-func (repo *SteamRepository) MarkGameAsDelisted(
-	ctx context.Context,
-	game *models.Game,
-	userID string,
-) error {
-	query := `
-		UPDATE steam_games
-		SET is_delisted = true
-		WHERE id = $1 AND user_id = $2
-	`
-
-	_, err := repo.db.Exec(
-		ctx,
-		query,
-		game.ID,
-		userID,
-	)
-
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}

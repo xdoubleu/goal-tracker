@@ -56,6 +56,7 @@ func New(
 		progress:  repositories.Progress,
 		todoist:   todoist,
 		goodreads: goodreads,
+		steam:     steam,
 	}
 
 	return &Services{
