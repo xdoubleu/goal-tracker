@@ -39,5 +39,5 @@ func (game *Game) SetCalculatedInfo(achievements []Achievement, totalGames int) 
 		math.Floor(float64(achieved)/float64(total)*10000)/100,
 	)
 	//nolint:mnd // this is a percentage
-	game.Contribution = fmt.Sprintf("%.2f", 100.0/float64(totalGames*total))
+	game.Contribution = fmt.Sprintf("%.4f", 100.0/float64(totalGames*total))
 }
