@@ -5,7 +5,7 @@ go 1.23.0
 require github.com/justinas/alice v1.2.0
 
 require (
-	github.com/XDoubleU/essentia v1.0.1
+	github.com/XDoubleU/essentia v1.0.2
 	github.com/getsentry/sentry-go v0.33.0
 	github.com/gocolly/colly/v2 v2.2.0
 	github.com/google/uuid v1.6.0
