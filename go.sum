@@ -12,6 +12,8 @@ github.com/XDoubleU/essentia v1.0.0 h1:zOZLhBJSLZq5JGzHo7A6JCzefYDiSmmrFmWCc2UHe
 github.com/XDoubleU/essentia v1.0.0/go.mod h1:1HuTUdPqxyhGI+6Lr+N8cRxzGJ3w6Q8MJKoB1lKJBYE=
 github.com/XDoubleU/essentia v1.0.1 h1:mQkGAnWzlzQ1icheWTJ5fV7/tVqnJ4EnFH5ToBTC4c4=
 github.com/XDoubleU/essentia v1.0.1/go.mod h1:dU1IyIOMjg7JBzsS3XnUngOzucQWG5DwZLfM2aE5RzA=
+github.com/XDoubleU/essentia v1.0.2 h1:AYcS5wxNv96qvw5YFLr5gCau/URfU9+4EJvTWL9K3Yo=
+github.com/XDoubleU/essentia v1.0.2/go.mod h1:uPwZwL/l1wcRa1IiryEy8YND4Y9dC+vpf/EgzwtXGYE=
 github.com/andybalholm/cascadia v1.1.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
 github.com/andybalholm/cascadia v1.2.0/go.mod h1:YCyR8vOZT9aZ1CHEd8ap0gMVm2aFgxBp0T0eFw1RUQY=
 github.com/andybalholm/cascadia v1.3.3 h1:AG2YHrzJIm4BZ19iwJ/DAua6Btl3IwJX+VI4kktS1LM=
