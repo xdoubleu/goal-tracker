@@ -5,7 +5,7 @@ go 1.23.0
 require github.com/justinas/alice v1.2.0
 
 require (
-	github.com/XDoubleU/essentia v1.0.2
+	github.com/XDoubleU/essentia v1.0.3
 	github.com/getsentry/sentry-go v0.35.0
 	github.com/gocolly/colly/v2 v2.2.0
 	github.com/google/uuid v1.6.0
@@ -23,7 +23,7 @@ require (
 	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/time v0.11.0 // indirect
+	golang.org/x/time v0.12.0 // indirect
 )
 
 require (
