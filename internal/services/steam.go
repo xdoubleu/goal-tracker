@@ -117,22 +117,22 @@ func (service *SteamService) importAchievementsForGames(
 	workerPool.WaitUntilDone()
 
 	for gameID, achievements := range achievementsPerGame {
-		err := service.steam.UpsertAchievements(
-			ctx,
-			achievements,
-			userID,
-			gameID,
-		)
-		if err != nil {
-			return nil, err
-		}
-
 		if len(achievements) != 0 {
+			err := service.steam.UpsertAchievements(
+				ctx,
+				achievements,
+				userID,
+				gameID,
+			)
+			if err != nil {
+				return nil, err
+			}
+
 			continue
 		}
 
 		var achievementSchemasForGame *steam.GetSchemaForGameResponse
-		achievementSchemasForGame, err = service.client.GetSchemaForGame(ctx, gameID)
+		achievementSchemasForGame, err := service.client.GetSchemaForGame(ctx, gameID)
 		if err != nil {
 			return nil, err
 		}
