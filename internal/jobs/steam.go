@@ -39,6 +39,7 @@ func (j SteamJob) RunEvery() time.Duration {
 	return 24 * time.Hour
 }
 
+//nolint:gocognit // this is fine for now
 func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 	users, err := j.authService.GetAllUsers()
 	if err != nil {
@@ -56,9 +57,9 @@ func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 			fmt.Sprintf("fetched %d games", len(ownedGames)),
 		)
 
-		gamesIdNameMap := map[int]string{}
+		gamesIDNameMap := map[int]string{}
 		for _, game := range ownedGames {
-			gamesIdNameMap[game.ID] = game.Name
+			gamesIDNameMap[game.ID] = game.Name
 		}
 
 		achievementsPerGame := map[int][]models.Achievement{}
@@ -95,7 +96,11 @@ func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 
 			if achievedForGame > 0 {
 				logger.Debug(
-					fmt.Sprintf("achieved %d achievements in '%s'", achievedForGame, gamesIdNameMap[gameID]),
+					fmt.Sprintf(
+						"achieved %d achievements in '%s'",
+						achievedForGame,
+						gamesIDNameMap[gameID],
+					),
 				)
 				totalStartedGames++
 				totalAchievedAchievements += achievedForGame
@@ -103,7 +108,11 @@ func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 		}
 
 		logger.Debug(
-			fmt.Sprintf("achieved %d achievements in %d games", totalAchievedAchievements, totalStartedGames),
+			fmt.Sprintf(
+				"achieved %d achievements in %d games",
+				totalAchievedAchievements,
+				totalStartedGames,
+			),
 		)
 
 		progressLabels, progressValues := grapher.ToSlices()
