@@ -2,6 +2,8 @@
     <div class="container">
         <br/>
         <form method="POST" action="/api/auth/signin" class="col-lg-6 offset-lg-3">
+            <h1>Goal Tracker</h1>
+            <br/>
             <div class="justify-content-center mb-3">
                 <label for="email" class="form-label">Email address</label>
                 <input type="email" class="form-control" name="email">
@@ -14,9 +16,7 @@
                 <input type="checkbox" class="form-check-input" name="rememberMe">
                 <label class="form-check-label" for="rememberMe">Remember me</label>
             </div>
-            <div class="alert alert-danger d-none" role="alert" id="error-alert">
-                A simple danger alert—check it out!
-            </div>
+            <div class="alert alert-danger d-none" role="alert" id="error-alert"/>
             <button type="submit" class="btn btn-dark">Sign in</button>
         </form>
         <script>
