@@ -144,6 +144,19 @@ func (repo *SteamRepository) UpsertAchievements(
 	userID string,
 	gameID int,
 ) error {
+	tx, err := repo.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return postgres.PgxErrorToHTTPError(err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	_, err = tx.Exec(ctx, "DELETE FROM steam_achievements WHERE game_id = $1 AND user_id = $2", gameID, userID)
+	if err != nil {
+		return postgres.PgxErrorToHTTPError(err)
+	}
+
 	query := `
 		INSERT INTO steam_achievements (name, user_id, game_id, achieved, unlock_time)
 		VALUES ($1, $2, $3, $4, $5)
@@ -169,11 +182,12 @@ func (repo *SteamRepository) UpsertAchievements(
 		)
 	}
 
-	err := repo.db.SendBatch(ctx, b).Close()
+	err = tx.SendBatch(ctx, b).Close()
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}
 
+	tx.Commit(ctx)
 	return nil
 }
 
@@ -183,6 +197,19 @@ func (repo *SteamRepository) UpsertAchievementSchemas(
 	userID string,
 	gameID int,
 ) error {
+	tx, err := repo.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return postgres.PgxErrorToHTTPError(err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	_, err = tx.Exec(ctx, "DELETE FROM steam_achievements WHERE game_id = $1 AND user_id = $2", gameID, userID)
+	if err != nil {
+		return postgres.PgxErrorToHTTPError(err)
+	}
+
 	query := `
 		INSERT INTO steam_achievements (name, user_id, game_id)
 		VALUES ($1, $2, $3)
@@ -196,10 +223,11 @@ func (repo *SteamRepository) UpsertAchievementSchemas(
 		b.Queue(query, achievementSchema.Name, userID, gameID)
 	}
 
-	err := repo.db.SendBatch(ctx, b).Close()
+	err = tx.SendBatch(ctx, b).Close()
 	if err != nil {
 		return postgres.PgxErrorToHTTPError(err)
 	}
 
+	tx.Commit(ctx)
 	return nil
 }
