@@ -91,6 +91,8 @@ func (j SteamJob) Run(ctx context.Context, logger *slog.Logger) error {
 					continue
 				}
 
+				achievedForGame++
+
 				grapher.AddPoint(*achievement.UnlockTime, gameID)
 			}
 
