@@ -51,7 +51,7 @@ func (client client) GetOwnedGames(
 		ctx,
 		"IPlayerService/GetOwnedGames/v0001",
 		fmt.Sprintf(
-			`steamid=%s&include_appinfo=true&include_played_free_games=true&skip_unvetted_apps=false&include_free_sub=true`,
+			`steamid=%s&include_appinfo=true&include_played_free_games=true&include_free_sub=true`,
 			steamID,
 		),
 		&ownedGamesResponse,
