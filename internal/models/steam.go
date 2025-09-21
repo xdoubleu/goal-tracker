@@ -33,6 +33,12 @@ func (game *Game) SetCalculatedInfo(achievements []Achievement, totalGames int) 
 		}
 	}
 
+	if total == 0 {
+		game.CompletionRate = "0.00"
+		game.Contribution = "0.0000"
+		return
+	}
+
 	//nolint:mnd // this is a percentage
 	game.CompletionRate = fmt.Sprintf(
 		"%.2f",
