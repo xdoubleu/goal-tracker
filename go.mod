@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/supabase-community/gotrue-go v1.2.1
 	github.com/xhit/go-str2duration/v2 v2.1.0
-	golang.org/x/net v0.42.0
+	golang.org/x/net v0.44.0
 )
 
 require (
