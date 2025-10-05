@@ -9,7 +9,7 @@ require (
 	github.com/getsentry/sentry-go v0.35.0
 	github.com/gocolly/colly/v2 v2.2.0
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.7.5
+	github.com/jackc/pgx/v5 v5.7.6
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/sgreben/piecewiselinear v1.2.0
 	github.com/stretchr/testify v1.10.0
