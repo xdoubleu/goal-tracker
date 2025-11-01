@@ -5,7 +5,7 @@ go 1.23.0
 require github.com/justinas/alice v1.2.0
 
 require (
-	github.com/XDoubleU/essentia v1.0.3
+	github.com/XDoubleU/essentia v1.0.4
 	github.com/getsentry/sentry-go v0.35.3
 	github.com/gocolly/colly/v2 v2.2.0
 	github.com/google/uuid v1.6.0
@@ -20,7 +20,7 @@ require (
 
 require (
 	github.com/goddtriffin/helmet v1.0.2 // indirect
-	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438 // indirect
+	github.com/jackc/pgerrcode v0.0.0-20250907135507-afb5586c32a6 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
@@ -33,7 +33,7 @@ require (
 	github.com/antchfx/xmlquery v1.4.4 // indirect
 	github.com/antchfx/xpath v1.3.3 // indirect
 	github.com/bits-and-blooms/bitset v1.22.0 // indirect
-	github.com/coder/websocket v1.8.13 // indirect
+	github.com/coder/websocket v1.8.14 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
